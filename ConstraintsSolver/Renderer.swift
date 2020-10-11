@@ -11,7 +11,6 @@ class Renderer: NSObject, MTKViewDelegate {
     var uniformBuffer: MTLBuffer
     var uniforms: UnsafeMutablePointer<Uniforms>
     
-    var indexBuffer: MTLBuffer
     var vertexBuffer: MTLBuffer
     
     let t0 = CACurrentMediaTime()
@@ -46,16 +45,13 @@ class Renderer: NSObject, MTKViewDelegate {
         } catch {
             fatalError("Unable to compile render pipeline state: \(error)")
         }
-        
-        let indices: [UInt16] = [0, 1, 2]
-        
+                
         let vertices: [Vertex] = [
             .init(position: .init(-1, -1, 0), color: .init(1, 0, 0)),
             .init(position: .init(1, -1, 0), color: .init(0, 1, 0)),
             .init(position: .init(0, 1, 0), color: .init(0, 0, 1)),
         ]
         
-        indexBuffer = device.makeBuffer(bytes: indices, length: MemoryLayout<UInt16>.stride * indices.count, options: .cpuCacheModeWriteCombined)!
         vertexBuffer = device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count, options: .cpuCacheModeWriteCombined)!
         
         super.init()
@@ -85,7 +81,7 @@ class Renderer: NSObject, MTKViewDelegate {
         renderEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
-        renderEncoder.drawIndexedPrimitives(type: .triangle, indexCount: 3, indexType: .uint16, indexBuffer: indexBuffer, indexBufferOffset: 0)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         
         renderEncoder.popDebugGroup()
         renderEncoder.endEncoding()
