@@ -2,17 +2,9 @@ import Metal
 import MetalKit
 import simd
 
-class Geometry {
+struct Geometry {
     let name: String
-    let color: SIMD3<Float>
     let vertices: UnsafeMutableBufferPointer<Vertex>
-    
-    init(name: String, vertexCount: Int, color: SIMD3<Float>, renderer: Renderer) {
-        self.name = name
-        self.color = color
-        vertices = renderer.allocateVertices(vertexCount: vertexCount)
-        renderer.geometries.append(self)
-    }
     
     subscript(index: Int) -> Vertex {
         get {
@@ -39,24 +31,25 @@ class Renderer: NSObject, MTKViewDelegate {
     var vertices: UnsafeMutablePointer<Vertex>
     
     var currentVertexCount = 0
-    static let vertexCount = 1024
+    static let maximalVertexCount = 1024
     
-    func makeTriangle(name: String, color: SIMD3<Float>) -> Geometry {
-        let geometry = Geometry(name: name, vertexCount: 3, color: color, renderer: self)
-        geometry[0] = .init(position: .init(-1, -1, 0), color: .init(1, 0, 0))
-        geometry[1] = .init(position: .init(1, -1, 0), color: .init(0, 1, 0))
-        geometry[2] = .init(position: .init(0, 1, 0), color: .init(0, 0, 1))
-        return geometry
-    }
-    
-    func allocateVertices(vertexCount: Int) -> UnsafeMutableBufferPointer<Vertex> {
-        if currentVertexCount + vertexCount >= Renderer.vertexCount {
+    func makeGeometry(name: String, vertexCount: Int) -> Geometry {
+        if currentVertexCount + vertexCount >= Renderer.maximalVertexCount {
             fatalError("Vertex buffer is out of memory")
         }
         
         let pointer = UnsafeMutableBufferPointer(start: vertices.advanced(by: currentVertexCount), count: vertexCount)
         currentVertexCount += vertexCount
-        return pointer
+
+        return Geometry(name: name, vertices: pointer)
+    }
+    
+    func makeTriangle(name: String, color: SIMD3<Float>) -> Geometry {
+        var geometry = makeGeometry(name: name, vertexCount: 3)
+        geometry[0] = .init(position: .init(-1, -1, 0), color: .init(1, 0, 0))
+        geometry[1] = .init(position: .init(1, -1, 0), color: .init(0, 1, 0))
+        geometry[2] = .init(position: .init(0, 1, 0), color: .init(0, 0, 1))
+        return geometry
     }
     
     init(metalKitView: MTKView) {
@@ -89,8 +82,8 @@ class Renderer: NSObject, MTKViewDelegate {
             fatalError("Unable to compile render pipeline state: \(error)")
         }
         
-        vertexBuffer = device.makeBuffer(length: Renderer.vertexCount * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
-        vertices = vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: Renderer.vertexCount)
+        vertexBuffer = device.makeBuffer(length: Renderer.maximalVertexCount * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
+        vertices = vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: Renderer.maximalVertexCount)
         
         super.init()
     }
