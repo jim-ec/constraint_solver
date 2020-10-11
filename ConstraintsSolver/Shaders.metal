@@ -5,17 +5,16 @@
 
 using namespace metal;
 
-struct Vertex {
-    float3 position [[attribute(VertexAttributePosition)]];
-    float3 color [[attribute(VertexAttributeColor)]];
-};
-
 struct VertexOut {
     float4 position [[position]];
     float3 color;
 };
 
-vertex VertexOut vertexShader(Vertex in [[stage_in]], constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]]) {
+vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndexVertices)]],
+                              constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]],
+                              uint vertexId [[vertex_id]])
+{
+    Vertex in = vertices[vertexId];
     VertexOut out;
     
     out.position = float4(uniforms.transform * in.position, 1.0);

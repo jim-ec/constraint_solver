@@ -11,10 +11,8 @@ class Renderer: NSObject, MTKViewDelegate {
     var uniformBuffer: MTLBuffer
     var uniforms: UnsafeMutablePointer<Uniforms>
     
-    var vertexDescriptor = MTLVertexDescriptor()
     var indexBuffer: MTLBuffer
-    var positionBuffer: MTLBuffer
-    var colorBuffer: MTLBuffer
+    var vertexBuffer: MTLBuffer
     
     let t0 = CACurrentMediaTime()
     
@@ -29,22 +27,6 @@ class Renderer: NSObject, MTKViewDelegate {
         uniformBuffer = device.makeBuffer(length: MemoryLayout<Uniforms>.stride, options: [MTLResourceOptions.storageModeShared])!
         uniforms = UnsafeMutableRawPointer(uniformBuffer.contents()).bindMemory(to: Uniforms.self, capacity: 1)
         
-        vertexDescriptor.attributes[Int(VertexAttributePosition)].format = MTLVertexFormat.float3
-        vertexDescriptor.attributes[Int(VertexAttributePosition)].offset = 0
-        vertexDescriptor.attributes[Int(VertexAttributePosition)].bufferIndex = Int(BufferIndexMeshPositions)
-        
-        vertexDescriptor.attributes[Int(VertexAttributeColor)].format = MTLVertexFormat.float3
-        vertexDescriptor.attributes[Int(VertexAttributeColor)].offset = 0
-        vertexDescriptor.attributes[Int(VertexAttributeColor)].bufferIndex = Int(BufferIndexMeshColors)
-        
-        vertexDescriptor.layouts[Int(BufferIndexMeshPositions)].stride = MemoryLayout<SIMD3<Float>>.stride
-        vertexDescriptor.layouts[Int(BufferIndexMeshPositions)].stepRate = 1
-        vertexDescriptor.layouts[Int(BufferIndexMeshPositions)].stepFunction = MTLVertexStepFunction.perVertex
-        
-        vertexDescriptor.layouts[Int(BufferIndexMeshColors)].stride = MemoryLayout<SIMD3<Float>>.stride
-        vertexDescriptor.layouts[Int(BufferIndexMeshColors)].stepRate = 1
-        vertexDescriptor.layouts[Int(BufferIndexMeshColors)].stepFunction = MTLVertexStepFunction.perVertex
-        
         let library = device.makeDefaultLibrary()!
         
         let vertexFunction = library.makeFunction(name: "vertexShader")
@@ -54,7 +36,6 @@ class Renderer: NSObject, MTKViewDelegate {
         pipelineDescriptor.sampleCount = metalKitView.sampleCount
         pipelineDescriptor.vertexFunction = vertexFunction
         pipelineDescriptor.fragmentFunction = fragmentFunction
-        pipelineDescriptor.vertexDescriptor = vertexDescriptor
         
         pipelineDescriptor.colorAttachments[0].pixelFormat = metalKitView.colorPixelFormat
         pipelineDescriptor.depthAttachmentPixelFormat = metalKitView.depthStencilPixelFormat
@@ -67,12 +48,15 @@ class Renderer: NSObject, MTKViewDelegate {
         }
         
         let indices: [UInt16] = [0, 1, 2]
-        let positions: [SIMD3<Float>] = [.init(-1, -1, 0), .init(1, -1, 0), .init(0, 1, 0)];
-        let colors: [SIMD3<Float>] = [.init(1, 0, 0), .init(0, 1, 0), .init(0, 0, 1)];
+        
+        let vertices: [Vertex] = [
+            .init(position: .init(-1, -1, 0), color: .init(1, 0, 0)),
+            .init(position: .init(1, -1, 0), color: .init(0, 1, 0)),
+            .init(position: .init(0, 1, 0), color: .init(0, 0, 1)),
+        ]
         
         indexBuffer = device.makeBuffer(bytes: indices, length: MemoryLayout<UInt16>.stride * indices.count, options: .cpuCacheModeWriteCombined)!
-        positionBuffer = device.makeBuffer(bytes: positions, length: MemoryLayout<SIMD3<Float>>.stride * positions.count, options: .cpuCacheModeWriteCombined)!
-        colorBuffer = device.makeBuffer(bytes: colors, length: MemoryLayout<SIMD3<Float>>.stride * colors.count, options: .cpuCacheModeWriteCombined)!
+        vertexBuffer = device.makeBuffer(bytes: vertices, length: MemoryLayout<Vertex>.stride * vertices.count, options: .cpuCacheModeWriteCombined)!
         
         super.init()
     }
@@ -99,8 +83,7 @@ class Renderer: NSObject, MTKViewDelegate {
         
         renderEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
         renderEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
-        renderEncoder.setVertexBuffer(positionBuffer, offset: 0, index: Int(BufferIndexMeshPositions))
-        renderEncoder.setVertexBuffer(colorBuffer, offset: 0, index: Int(BufferIndexMeshColors))
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
         renderEncoder.drawIndexedPrimitives(type: .triangle, indexCount: 3, indexType: .uint16, indexBuffer: indexBuffer, indexBufferOffset: 0)
         
