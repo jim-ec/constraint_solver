@@ -45,6 +45,7 @@ class Renderer: NSObject, MTKViewDelegate {
     
     var uniformBuffer: MTLBuffer
     var uniforms: UnsafeMutablePointer<Uniforms>
+    var aspectRatio: Float = 1
     
     var geometries: [Geometry] = []
     
@@ -69,9 +70,9 @@ class Renderer: NSObject, MTKViewDelegate {
     
     func makeTriangle(name: String, color1: Color, color2: Color, color3: Color) -> Geometry {
         var geometry = makeGeometry(name: name, vertexCount: 3)
-        geometry[0] = .init(position: .init(-1, -1, 0), color: color1.rgb)
-        geometry[1] = .init(position: .init(1, -1, 0), color: color2.rgb)
-        geometry[2] = .init(position: .init(0, 1, 0), color: color3.rgb)
+        geometry[0] = .init(position: .init(-1, -1, -5), color: color1.rgb)
+        geometry[1] = .init(position: .init(1, -1, -5), color: color2.rgb)
+        geometry[2] = .init(position: .init(0, 1, -5), color: color3.rgb)
         return geometry
     }
     
@@ -113,6 +114,7 @@ class Renderer: NSObject, MTKViewDelegate {
     
     private func updateUniforms() {
         uniforms[0].transform = .init(diagonal: .init(repeating: 1.0))
+        uniforms[0].projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
     }
     
     func draw(in view: MTKView) {
@@ -153,5 +155,15 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        aspectRatio = Float(size.width / size.height)
     }
+}
+
+func perspectiveTransform(fovy: Float, aspectRatio: Float) -> matrix_float4x4 {
+    let ys = 1 / tanf(fovy * 0.5)
+    let xs = ys / aspectRatio
+    return matrix_float4x4(columns: (vector_float4(xs,  0,  0,  0),
+                                     vector_float4( 0, ys,  0,  0),
+                                     vector_float4( 0,  0, -1, -1),
+                                     vector_float4( 0,  0,  0,  0)))
 }

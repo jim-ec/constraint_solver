@@ -7,6 +7,7 @@
 
 struct Uniforms {
     matrix_float3x3 transform;
+    matrix_float4x4 projection;
 };
 
 struct Vertex {
