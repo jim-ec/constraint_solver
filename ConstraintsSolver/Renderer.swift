@@ -2,6 +2,27 @@ import Metal
 import MetalKit
 import simd
 
+struct Color {
+    let rgb: SIMD3<Float>
+    
+    init(_ red: Float, _ green: Float, _ blue: Float) {
+        rgb = .init(red, green, blue)
+    }
+    
+    init(_ grey: Float) {
+        rgb = .init(repeating: grey)
+    }
+    
+    static let red = Color(1, 0, 0)
+    static let green = Color(0, 1, 0)
+    static let blue = Color(0, 0, 1)
+    static let yellow = Color(1, 1, 0)
+    static let cyan = Color(0, 1, 1)
+    static let magenta = Color(1, 0, 1)
+    static let white = Color(1)
+    static let black = Color(0)
+}
+
 struct Geometry {
     let name: String
     let vertices: UnsafeMutableBufferPointer<Vertex>
@@ -46,11 +67,11 @@ class Renderer: NSObject, MTKViewDelegate {
         return geometry
     }
     
-    func makeTriangle(name: String, color0: SIMD3<Float>, color1: SIMD3<Float>, color2: SIMD3<Float>) -> Geometry {
+    func makeTriangle(name: String, color1: Color, color2: Color, color3: Color) -> Geometry {
         var geometry = makeGeometry(name: name, vertexCount: 3)
-        geometry[0] = .init(position: .init(-1, -1, 0), color: color0)
-        geometry[1] = .init(position: .init(1, -1, 0), color: color1)
-        geometry[2] = .init(position: .init(0, 1, 0), color: color2)
+        geometry[0] = .init(position: .init(-1, -1, 0), color: color1.rgb)
+        geometry[1] = .init(position: .init(1, -1, 0), color: color2.rgb)
+        geometry[2] = .init(position: .init(0, 1, 0), color: color3.rgb)
         return geometry
     }
     
