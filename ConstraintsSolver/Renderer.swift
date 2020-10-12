@@ -132,7 +132,11 @@ class Renderer: NSObject, MTKViewDelegate {
         uniforms.pointee.projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
         
         let commandBuffer = commandQueue.makeCommandBuffer()!
-        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: view.currentRenderPassDescriptor!)!
+        
+        let renderPassDescriptor = view.currentRenderPassDescriptor!
+        renderPassDescriptor.colorAttachments[0].clearColor = .init(red: 0.01, green: 0.01, blue: 0.01, alpha: 0.0)
+        
+        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
         
         renderEncoder.label = "Primary Render Encoder"
         
