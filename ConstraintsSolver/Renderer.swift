@@ -85,7 +85,7 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
-        var geometry = makeGeometry(name: name, vertexCount: 3)
+        let geometry = makeGeometry(name: name, vertexCount: 3)
         geometry[0] = .init(position: .init(-1, -1, 5), color: colors.0.rgb)
         geometry[1] = .init(position: .init(1, -1, 5), color: colors.1.rgb)
         geometry[2] = .init(position: .init(0, 1, 5), color: colors.2.rgb)
@@ -100,7 +100,7 @@ class Renderer: NSObject, MTKViewDelegate {
         metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm_srgb
         metalKitView.sampleCount = 1
         
-        uniformBuffer = device.makeBuffer(length: MemoryLayout<Uniforms>.stride, options: [MTLResourceOptions.storageModeShared])!
+        uniformBuffer = device.makeBuffer(length: MemoryLayout<Uniforms>.stride, options: MTLResourceOptions.storageModeShared)!
         uniforms = uniformBuffer.contents().bindMemory(to: Uniforms.self, capacity: 1)
         
         let library = device.makeDefaultLibrary()!
@@ -129,7 +129,7 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
-        uniforms[0].projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
+        uniforms.pointee.projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
         
         let commandBuffer = commandQueue.makeCommandBuffer()!
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: view.currentRenderPassDescriptor!)!
@@ -149,7 +149,7 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            uniforms[0].transform = geometry.transform()
+            uniforms.pointee.transform = geometry.transform()
             renderEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
             
             let vertexStart = geometry.vertices.baseAddress! - vertices
