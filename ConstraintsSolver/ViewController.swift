@@ -15,6 +15,7 @@ class ViewController: NSViewController {
         mtkView.delegate = renderer
         
         triangle = renderer.makeTriangle(name: "Triangle", colors: (.red, .green, .blue))
+        triangle.translation.z = 5
         
         self.view = mtkView
     }
@@ -26,6 +27,6 @@ class ViewController: NSViewController {
     }
     
     override func mouseDragged(with event: NSEvent) {
-        triangle.rotationY += Float(event.deltaX * -0.005)
+        triangle.rotationY += Float(event.deltaX * 0.01)
     }
 }

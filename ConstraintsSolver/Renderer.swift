@@ -86,9 +86,9 @@ class Renderer: NSObject, MTKViewDelegate {
     
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
         let geometry = makeGeometry(name: name, vertexCount: 3)
-        geometry[0] = .init(position: .init(-1, -1, 5), color: colors.0.rgb)
-        geometry[1] = .init(position: .init(1, -1, 5), color: colors.1.rgb)
-        geometry[2] = .init(position: .init(0, 1, 5), color: colors.2.rgb)
+        geometry[0] = .init(position: .init(-1, -1, 0), normal: .init(0, 0, -1), color: colors.0.rgb)
+        geometry[1] = .init(position: .init(1, -1, 0), normal: .init(0, 0, -1), color: colors.1.rgb)
+        geometry[2] = .init(position: .init(0, 1, 0), normal: .init(0, 0, -1), color: colors.2.rgb)
         return geometry
     }
     
@@ -154,6 +154,7 @@ class Renderer: NSObject, MTKViewDelegate {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
             uniforms.pointee.transform = geometry.transform()
+            uniforms.pointee.translation = geometry.translation
             renderEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
             
             let vertexStart = geometry.vertices.baseAddress! - vertices
