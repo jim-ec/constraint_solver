@@ -23,9 +23,14 @@ struct Color {
     static let black = Color(0)
 }
 
-struct Geometry {
+class Geometry {
     let name: String
     let vertices: UnsafeMutableBufferPointer<Vertex>
+    
+    init(name: String, vertices: UnsafeMutableBufferPointer<Vertex>) {
+        self.name = name
+        self.vertices = vertices
+    }
     
     subscript(index: Int) -> Vertex {
         get {
