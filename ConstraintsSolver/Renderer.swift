@@ -70,9 +70,9 @@ class Renderer: NSObject, MTKViewDelegate {
     
     func makeTriangle(name: String, color1: Color, color2: Color, color3: Color) -> Geometry {
         var geometry = makeGeometry(name: name, vertexCount: 3)
-        geometry[0] = .init(position: .init(-1, -1, -5), color: color1.rgb)
-        geometry[1] = .init(position: .init(1, -1, -5), color: color2.rgb)
-        geometry[2] = .init(position: .init(0, 1, -5), color: color3.rgb)
+        geometry[0] = .init(position: .init(-1, -1, 5), color: color1.rgb)
+        geometry[1] = .init(position: .init(1, -1, 5), color: color2.rgb)
+        geometry[2] = .init(position: .init(0, 1, 5), color: color3.rgb)
         return geometry
     }
     
@@ -159,11 +159,16 @@ class Renderer: NSObject, MTKViewDelegate {
     }
 }
 
+/// Left-handed perspective projection matrix.
+/// The camera looks in the positive z-direction.
 func perspectiveTransform(fovy: Float, aspectRatio: Float) -> matrix_float4x4 {
-    let ys = 1 / tanf(fovy * 0.5)
-    let xs = ys / aspectRatio
-    return matrix_float4x4(columns: (vector_float4(xs,  0,  0,  0),
-                                     vector_float4( 0, ys,  0,  0),
-                                     vector_float4( 0,  0, -1, -1),
-                                     vector_float4( 0,  0,  0,  0)))
+    // Scale x and y according to the field of view and the given aspect ratio.
+    // Then copy the z value to the w coordinate.
+    // The resulting matrix is actually so sparse that it could be represented by a single vector.
+    let y = 1 / tanf(fovy * 0.5)
+    let x = y / aspectRatio
+    return matrix_float4x4(columns: (vector_float4(x, 0, 0, 0),
+                                     vector_float4(0, y, 0, 0),
+                                     vector_float4(0, 0, 1, 1),
+                                     vector_float4(0, 0, 0, 0)))
 }
