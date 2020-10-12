@@ -27,6 +27,7 @@ class ViewController: NSViewController {
     }
     
     override func mouseDragged(with event: NSEvent) {
-        triangle.rotationY += Float(event.deltaX * 0.01)
+        triangle.rotation.x += Float(event.deltaY * 0.01)
+        triangle.rotation.y += Float(event.deltaX * 0.01)
     }
 }

@@ -28,8 +28,8 @@ class Geometry {
     let vertices: UnsafeMutableBufferPointer<Vertex>
         
     var translation: simd_float3 = .zero
-    var rotationY: Float = .zero
-    
+    var rotation: simd_float3 = .zero
+
     init(name: String, vertices: UnsafeMutableBufferPointer<Vertex>) {
         self.name = name
         self.vertices = vertices
@@ -45,11 +45,25 @@ class Geometry {
     }
     
     func transform() -> simd_float3x3 {
-        return simd_float3x3(columns: (
-            simd_float3(cosf(rotationY), 0, sinf(rotationY)),
-            simd_float3(0, 1, 0),
-            simd_float3(-sinf(rotationY), 0, cosf(rotationY))
+        let rotationX = simd_float3x3(columns: (
+            simd_float3(1, 0, 0),
+            simd_float3(0, cosf(rotation.x), -sinf(rotation.x)),
+            simd_float3(0, sinf(rotation.x), cosf(rotation.x))
         ))
+        
+        let rotationY = simd_float3x3(columns: (
+            simd_float3(cosf(rotation.y), 0, sinf(rotation.y)),
+            simd_float3(0, 1, 0),
+            simd_float3(-sinf(rotation.y), 0, cosf(rotation.y))
+        ))
+        
+//        let rotationZ = simd_float3x3(columns: (
+//            simd_float3(cosf(rotation.z), -sinf(rotation.z), 0),
+//            simd_float3(sinf(rotation.z), cosf(rotation.z), 0),
+//            simd_float3(0, 0, 1)
+//        ))
+        
+        return rotationX * rotationY
     }
 }
 
