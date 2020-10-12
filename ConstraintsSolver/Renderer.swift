@@ -8,8 +8,6 @@ class Renderer: NSObject, MTKViewDelegate {
     let commandQueue: MTLCommandQueue
     var pipelineState: MTLRenderPipelineState
     
-    var uniformBuffer: MTLBuffer
-    var uniforms: UnsafeMutablePointer<Uniforms>
     var aspectRatio: Float = 1
     
     var geometries: [Geometry] = []
@@ -27,10 +25,7 @@ class Renderer: NSObject, MTKViewDelegate {
         metalKitView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
         metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm_srgb
         metalKitView.sampleCount = 1
-        
-        uniformBuffer = device.makeBuffer(length: MemoryLayout<Uniforms>.stride, options: MTLResourceOptions.storageModeShared)!
-        uniforms = uniformBuffer.contents().bindMemory(to: Uniforms.self, capacity: 1)
-        
+                
         let library = device.makeDefaultLibrary()!
         
         let vertexFunction = library.makeFunction(name: "vertexShader")
@@ -57,8 +52,6 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
-        uniforms.pointee.viewTransform = viewTransform();
-        
         let commandBuffer = commandQueue.makeCommandBuffer()!
         
         let renderPassDescriptor = view.currentRenderPassDescriptor!
@@ -73,7 +66,6 @@ class Renderer: NSObject, MTKViewDelegate {
         
         renderEncoder.setRenderPipelineState(pipelineState)
         
-        renderEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
         renderEncoder.pushDebugGroup("Draw Geometries")
@@ -81,9 +73,12 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            uniforms.pointee.transform = geometry.transform()
-            uniforms.pointee.translation = geometry.translation
-            renderEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
+            var uniforms = Uniforms(
+                translation: geometry.translation,
+                transform: geometry.transform(),
+                viewTransform: viewTransform())
+            
+            renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             
             let vertexStart = geometry.vertices.baseAddress! - vertices
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: geometry.vertices.count)
