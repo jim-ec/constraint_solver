@@ -44,8 +44,8 @@ class Geometry {
         }
     }
     
-    func transform() -> matrix_float3x3 {
-        return matrix_float3x3(columns: (
+    func transform() -> simd_float3x3 {
+        return simd_float3x3(columns: (
             simd_float3(cosf(rotationY), 0, sinf(rotationY)),
             simd_float3(0, 1, 0),
             simd_float3(-sinf(rotationY), 0, cosf(rotationY))
@@ -174,14 +174,15 @@ class Renderer: NSObject, MTKViewDelegate {
 
 /// Left-handed perspective projection matrix.
 /// The camera looks in the positive z-direction.
-func perspectiveTransform(fovy: Float, aspectRatio: Float) -> matrix_float4x4 {
+func perspectiveTransform(fovy: Float, aspectRatio: Float) -> simd_float4x4 {
     // Scale x and y according to the field of view and the given aspect ratio.
     // Then copy the z value to the w coordinate.
     // The resulting matrix is actually so sparse that it could be represented by a single vector.
     let y = 1 / tanf(fovy * 0.5)
     let x = y / aspectRatio
-    return matrix_float4x4(columns: (vector_float4(x, 0, 0, 0),
-                                     vector_float4(0, y, 0, 0),
-                                     vector_float4(0, 0, 1, 1),
-                                     vector_float4(0, 0, 0, 0)))
+    return simd_float4x4(columns: (
+                            simd_float4(x, 0, 0, 0),
+                            simd_float4(0, y, 0, 0),
+                            simd_float4(0, 0, 1, 1),
+                            simd_float4(0, 0, 0, 0)))
 }

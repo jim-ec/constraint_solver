@@ -6,8 +6,8 @@
 #define BufferIndexUniforms 1
 
 struct Uniforms {
-    matrix_float3x3 transform;
-    matrix_float4x4 projection;
+    simd_float3x3 transform;
+    simd_float4x4 projection;
 };
 
 struct Vertex {
