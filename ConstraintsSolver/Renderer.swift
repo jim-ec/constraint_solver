@@ -68,11 +68,11 @@ class Renderer: NSObject, MTKViewDelegate {
         return geometry
     }
     
-    func makeTriangle(name: String, color1: Color, color2: Color, color3: Color) -> Geometry {
+    func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
         var geometry = makeGeometry(name: name, vertexCount: 3)
-        geometry[0] = .init(position: .init(-1, -1, 5), color: color1.rgb)
-        geometry[1] = .init(position: .init(1, -1, 5), color: color2.rgb)
-        geometry[2] = .init(position: .init(0, 1, 5), color: color3.rgb)
+        geometry[0] = .init(position: .init(-1, -1, 5), color: colors.0.rgb)
+        geometry[1] = .init(position: .init(1, -1, 5), color: colors.1.rgb)
+        geometry[2] = .init(position: .init(0, 1, 5), color: colors.2.rgb)
         return geometry
     }
     

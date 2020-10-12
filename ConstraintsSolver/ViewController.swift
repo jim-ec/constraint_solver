@@ -13,7 +13,7 @@ class ViewController: NSViewController {
         renderer = Renderer(metalKitView: mtkView)
         mtkView.delegate = renderer
         
-        renderer.makeTriangle(name: "Triangle", color1: .red, color2: .green, color3: .blue)
+        renderer.makeTriangle(name: "Triangle", colors: (.red, .green, .blue))
         
         self.view = mtkView
     }
