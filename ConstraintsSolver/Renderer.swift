@@ -26,6 +26,9 @@ struct Color {
 class Geometry {
     let name: String
     let vertices: UnsafeMutableBufferPointer<Vertex>
+        
+    var translation: simd_float3 = .zero
+    var rotationY: Float = .zero
     
     init(name: String, vertices: UnsafeMutableBufferPointer<Vertex>) {
         self.name = name
@@ -39,6 +42,14 @@ class Geometry {
         set {
             vertices[index] = newValue
         }
+    }
+    
+    func transform() -> matrix_float3x3 {
+        return matrix_float3x3(columns: (
+            simd_float3(cosf(rotationY), 0, sinf(rotationY)),
+            simd_float3(0, 1, 0),
+            simd_float3(-sinf(rotationY), 0, cosf(rotationY))
+        ))
     }
 }
 
@@ -117,13 +128,8 @@ class Renderer: NSObject, MTKViewDelegate {
         super.init()
     }
     
-    private func updateUniforms() {
-        uniforms[0].transform = .init(diagonal: .init(repeating: 1.0))
-        uniforms[0].projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
-    }
-    
     func draw(in view: MTKView) {
-        updateUniforms()
+        uniforms[0].projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
         
         let commandBuffer = commandQueue.makeCommandBuffer()!
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: view.currentRenderPassDescriptor!)!
@@ -135,7 +141,6 @@ class Renderer: NSObject, MTKViewDelegate {
         
         renderEncoder.setRenderPipelineState(pipelineState)
         
-        renderEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
         renderEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
@@ -143,6 +148,9 @@ class Renderer: NSObject, MTKViewDelegate {
         
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
+            
+            uniforms[0].transform = geometry.transform()
+            renderEncoder.setVertexBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
             
             let vertexStart = geometry.vertices.baseAddress! - vertices
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: geometry.vertices.count)
