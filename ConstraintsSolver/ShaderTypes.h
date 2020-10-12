@@ -8,7 +8,9 @@
 struct Uniforms {
     simd_float3 translation;
     simd_float3x3 transform;
-    simd_float4x4 projection;
+    
+    /// Diagonalized view transform matrix.
+    simd_float2 viewTransform;
 };
 
 struct Vertex {

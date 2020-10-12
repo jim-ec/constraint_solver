@@ -194,8 +194,15 @@ class Renderer: NSObject, MTKViewDelegate {
         super.init()
     }
     
+    func viewTransform() -> simd_float2 {
+        let fovY: Float = 1.0472;
+        let y = 1 / tanf(fovY * 0.5)
+        let x = y / aspectRatio
+        return simd_float2(x, y)
+    }
+    
     func draw(in view: MTKView) {
-        uniforms.pointee.projection = perspectiveTransform(fovy: 1.0472, aspectRatio: aspectRatio)
+        uniforms.pointee.viewTransform = viewTransform();
         
         let commandBuffer = commandQueue.makeCommandBuffer()!
         
@@ -241,19 +248,4 @@ class Renderer: NSObject, MTKViewDelegate {
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         aspectRatio = Float(size.width / size.height)
     }
-}
-
-/// Left-handed perspective projection matrix.
-/// The camera looks in the positive z-direction.
-func perspectiveTransform(fovy: Float, aspectRatio: Float) -> simd_float4x4 {
-    // Scale x and y according to the field of view and the given aspect ratio.
-    // Then copy the z value to the w coordinate.
-    // The resulting matrix is actually so sparse that it could be represented by a single vector.
-    let y = 1 / tanf(fovy * 0.5)
-    let x = y / aspectRatio
-    return simd_float4x4(columns: (
-                            simd_float4(x, 0, 0, 0),
-                            simd_float4(0, y, 0, 0),
-                            simd_float4(0, 0, 1, 1),
-                            simd_float4(0, 0, 0, 0)))
 }

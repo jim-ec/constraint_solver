@@ -18,7 +18,7 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
     VertexOut out;
     
     float3 transformedPosition = uniforms.transform * in.position + uniforms.translation;
-    out.position = uniforms.projection * float4(transformedPosition, 1.0);
+    out.position = float4(uniforms.viewTransform * transformedPosition.xy, transformedPosition.z, transformedPosition.z);
     
     out.color = in.color * dot(uniforms.transform * in.normal, float3(0, 0, -1));
     
