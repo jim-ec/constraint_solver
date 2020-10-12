@@ -5,6 +5,7 @@ class ViewController: NSViewController {
     
     var renderer: Renderer!
     var mtkView: MTKView!
+    var cube: Geometry!
     var triangle: Geometry!
     
     override func loadView() {
@@ -14,8 +15,12 @@ class ViewController: NSViewController {
         renderer = Renderer(metalKitView: mtkView)
         mtkView.delegate = renderer
         
-        triangle = renderer.makeCube(name: "Cube", color: .white)
-        triangle.translation.z = 5
+        cube = renderer.makeCube(name: "Cube", color: .white)
+        cube.translation.x = 1
+        cube.translation.z = 5
+        
+        triangle = renderer.makeTriangle(name: "Triangle", colors: (.red, .green, .blue))
+        triangle.translation.z = 3
         
         self.view = mtkView
     }
@@ -27,6 +32,8 @@ class ViewController: NSViewController {
     }
     
     override func mouseDragged(with event: NSEvent) {
+        cube.rotation.x += Float(event.deltaY * 0.01)
+        cube.rotation.y += Float(event.deltaX * 0.01)
         triangle.rotation.x += Float(event.deltaY * 0.01)
         triangle.rotation.y += Float(event.deltaX * 0.01)
     }
