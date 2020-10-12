@@ -30,10 +30,10 @@ struct Color {
 class Geometry {
     let name: String
     let vertices: UnsafeMutableBufferPointer<Vertex>
-        
+    
     var translation: simd_float3 = .zero
     var rotation: simd_float3 = .zero
-
+    
     init(name: String, vertices: UnsafeMutableBufferPointer<Vertex>) {
         self.name = name
         self.vertices = vertices
