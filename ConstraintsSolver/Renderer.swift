@@ -2,6 +2,10 @@ import Metal
 import MetalKit
 import simd
 
+private let x = simd_float3(1, 0, 0)
+private let y = simd_float3(0, 1, 0)
+private let z = simd_float3(0, 0, 1)
+
 struct Color {
     let rgb: SIMD3<Float>
     
@@ -103,6 +107,54 @@ class Renderer: NSObject, MTKViewDelegate {
         geometry[0] = .init(position: .init(-1, -1, 0), normal: .init(0, 0, -1), color: colors.0.rgb)
         geometry[1] = .init(position: .init(1, -1, 0), normal: .init(0, 0, -1), color: colors.1.rgb)
         geometry[2] = .init(position: .init(0, 1, 0), normal: .init(0, 0, -1), color: colors.2.rgb)
+        return geometry
+    }
+    
+    func makeCube(name: String, color: Color) -> Geometry {
+        let geometry = makeGeometry(name: name, vertexCount: 36)
+        
+        geometry[0] = .init(position: .zero, normal: -z, color: color.rgb)
+        geometry[1] = .init(position: x, normal: -z, color: color.rgb)
+        geometry[2] = .init(position: x + y, normal: -z, color: color.rgb)
+        geometry[3] = .init(position: .zero, normal: -z, color: color.rgb)
+        geometry[4] = .init(position: x + y, normal: -z, color: color.rgb)
+        geometry[5] = .init(position: y, normal: -z, color: color.rgb)
+        
+        geometry[6] = .init(position: x, normal: x, color: color.rgb)
+        geometry[7] = .init(position: x + z, normal: x, color: color.rgb)
+        geometry[8] = .init(position: x + y + z, normal: x, color: color.rgb)
+        geometry[9] = .init(position: x, normal: x, color: color.rgb)
+        geometry[10] = .init(position: x + y + z, normal: x, color: color.rgb)
+        geometry[11] = .init(position: x + y, normal: x, color: color.rgb)
+        
+        geometry[12] = .init(position: y, normal: y, color: color.rgb)
+        geometry[13] = .init(position: x + y, normal: y, color: color.rgb)
+        geometry[14] = .init(position: x + y + z, normal: y, color: color.rgb)
+        geometry[15] = .init(position: y, normal: y, color: color.rgb)
+        geometry[16] = .init(position: x + y + z, normal: y, color: color.rgb)
+        geometry[17] = .init(position: y + z, normal: y, color: color.rgb)
+        
+        geometry[18] = .init(position: z, normal: z, color: color.rgb)
+        geometry[19] = .init(position: x + y + z, normal: z, color: color.rgb)
+        geometry[20] = .init(position: x + z, normal: z, color: color.rgb)
+        geometry[21] = .init(position: z, normal: z, color: color.rgb)
+        geometry[22] = .init(position: y + z, normal: z, color: color.rgb)
+        geometry[23] = .init(position: x + y + z, normal: z, color: color.rgb)
+        
+        geometry[24] = .init(position: .zero, normal: -x, color: color.rgb)
+        geometry[25] = .init(position: y + z, normal: -x, color: color.rgb)
+        geometry[26] = .init(position: z, normal: -x, color: color.rgb)
+        geometry[27] = .init(position: .zero, normal: -x, color: color.rgb)
+        geometry[28] = .init(position: y, normal: -x, color: color.rgb)
+        geometry[29] = .init(position: y + z, normal: -x, color: color.rgb)
+        
+        geometry[30] = .init(position: .zero, normal: -y, color: color.rgb)
+        geometry[31] = .init(position: x + z, normal: -y, color: color.rgb)
+        geometry[32] = .init(position: x, normal: -y, color: color.rgb)
+        geometry[33] = .init(position: .zero, normal: -y, color: color.rgb)
+        geometry[34] = .init(position: z, normal: -y, color: color.rgb)
+        geometry[35] = .init(position: x + z, normal: -y, color: color.rgb)
+        
         return geometry
     }
     
