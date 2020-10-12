@@ -41,7 +41,9 @@ class Renderer: NSObject, MTKViewDelegate {
         let pointer = UnsafeMutableBufferPointer(start: vertices.advanced(by: currentVertexCount), count: vertexCount)
         currentVertexCount += vertexCount
 
-        return Geometry(name: name, vertices: pointer)
+        let geometry = Geometry(name: name, vertices: pointer)
+        geometries.append(geometry)
+        return geometry
     }
     
     func makeTriangle(name: String, color: SIMD3<Float>) -> Geometry {
@@ -99,7 +101,6 @@ class Renderer: NSObject, MTKViewDelegate {
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: view.currentRenderPassDescriptor!)!
         
         renderEncoder.label = "Primary Render Encoder"
-        renderEncoder.pushDebugGroup("Draw Triangle")
         
         renderEncoder.setCullMode(.back)
         renderEncoder.setFrontFacing(.counterClockwise)
@@ -110,17 +111,19 @@ class Renderer: NSObject, MTKViewDelegate {
         renderEncoder.setFragmentBuffer(uniformBuffer, offset: 0, index: Int(BufferIndexUniforms))
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
+        renderEncoder.pushDebugGroup("Draw Geometries")
+        
         for geometry in geometries {
-            renderEncoder.pushDebugGroup("Draw '\(geometry.name)'")
+            renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
             let vertexStart = geometry.vertices.baseAddress! - vertices
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: geometry.vertices.count)
             
             renderEncoder.popDebugGroup()
         }
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         
         renderEncoder.popDebugGroup()
+        
         renderEncoder.endEncoding()
         
         commandBuffer.present(view.currentDrawable!)
