@@ -75,4 +75,23 @@ struct Transform {
         )
         return Transform(translation: translation, rotation: rotation)
     }
+    
+    mutating func rotate(eulerAngles: simd_float3) {
+        let rotationX = simd_float3x3(columns: (
+            simd_float3(1, 0, 0),
+            simd_float3(0, cosf(eulerAngles.x), -sinf(eulerAngles.x)),
+            simd_float3(0, sinf(eulerAngles.x), cosf(eulerAngles.x))
+        ))
+        let rotationY = simd_float3x3(columns: (
+            simd_float3(cosf(eulerAngles.y), 0, sinf(eulerAngles.y)),
+            simd_float3(0, 1, 0),
+            simd_float3(-sinf(eulerAngles.y), 0, cosf(eulerAngles.y))
+        ))
+        let rotationZ = simd_float3x3(columns: (
+            simd_float3(1, 0, 0),
+            simd_float3(0, cosf(eulerAngles.z), -sinf(eulerAngles.z)),
+            simd_float3(0, sinf(eulerAngles.z), cosf(eulerAngles.z))
+        ))
+        self.rotation = rotationX * rotationY * rotationZ * self.rotation
+    }
 }
