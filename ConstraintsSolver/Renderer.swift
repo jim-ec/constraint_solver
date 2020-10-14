@@ -7,6 +7,7 @@ class Renderer: NSObject, MTKViewDelegate {
     public let device: MTLDevice
     let commandQueue: MTLCommandQueue
     var pipelineState: MTLRenderPipelineState
+    var depthState: MTLDepthStencilState
     
     var aspectRatio: Float = 1
     var cameraRotationAroundZ = Float(0.2)
@@ -28,7 +29,7 @@ class Renderer: NSObject, MTKViewDelegate {
         metalKitView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
         metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm_srgb
         metalKitView.sampleCount = 1
-                
+        
         let library = device.makeDefaultLibrary()!
         
         let vertexFunction = library.makeFunction(name: "vertexShader")
@@ -47,6 +48,12 @@ class Renderer: NSObject, MTKViewDelegate {
         } catch {
             fatalError("Unable to compile render pipeline state: \(error)")
         }
+        
+        let depthStencilDescriptor = MTLDepthStencilDescriptor()
+        depthStencilDescriptor.depthCompareFunction = .less
+        depthStencilDescriptor.isDepthWriteEnabled = true
+        
+        depthState = device.makeDepthStencilState(descriptor: depthStencilDescriptor)!
         
         vertexBuffer = device.makeBuffer(length: Renderer.maximalVertexCount * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
         vertices = vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: Renderer.maximalVertexCount)
@@ -68,6 +75,7 @@ class Renderer: NSObject, MTKViewDelegate {
         renderEncoder.setFrontFacing(.counterClockwise)
         
         renderEncoder.setRenderPipelineState(pipelineState)
+        renderEncoder.setDepthStencilState(depthState)
         
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
