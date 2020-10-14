@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		AA35E4862534C0DF00A6761C /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA35E4852534C0DF00A6761C /* Geometry.swift */; };
 		AA35E4892534C0E900A6761C /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA35E4882534C0E900A6761C /* Color.swift */; };
+		AAAC5FE225378AEA002FA47B /* Transform.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAAC5FE125378AEA002FA47B /* Transform.swift */; };
 		AADF6E1D2530B55600681C64 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADF6E1C2530B55600681C64 /* AppDelegate.swift */; };
 		AADF6E1F2530B55600681C64 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADF6E1E2530B55600681C64 /* ViewController.swift */; };
 		AADF6E212530B55600681C64 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADF6E202530B55600681C64 /* Renderer.swift */; };
@@ -19,6 +20,7 @@
 /* Begin PBXFileReference section */
 		AA35E4852534C0DF00A6761C /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
 		AA35E4882534C0E900A6761C /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		AAAC5FE125378AEA002FA47B /* Transform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transform.swift; sourceTree = "<group>"; };
 		AADF6E192530B55600681C64 /* ConstraintsSolver.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ConstraintsSolver.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AADF6E1C2530B55600681C64 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AADF6E1E2530B55600681C64 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 				AADF6E1E2530B55600681C64 /* ViewController.swift */,
 				AADF6E202530B55600681C64 /* Renderer.swift */,
 				AA35E4852534C0DF00A6761C /* Geometry.swift */,
+				AAAC5FE125378AEA002FA47B /* Transform.swift */,
 				AA35E4882534C0E900A6761C /* Color.swift */,
 				AADF6E222530B55600681C64 /* Shaders.metal */,
 				AADF6E242530B55600681C64 /* ShaderTypes.h */,
@@ -145,6 +148,7 @@
 				AADF6E3E2530BCBE00681C64 /* main.swift in Sources */,
 				AADF6E1F2530B55600681C64 /* ViewController.swift in Sources */,
 				AADF6E212530B55600681C64 /* Renderer.swift in Sources */,
+				AAAC5FE225378AEA002FA47B /* Transform.swift in Sources */,
 				AADF6E1D2530B55600681C64 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
