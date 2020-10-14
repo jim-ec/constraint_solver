@@ -9,6 +9,9 @@ class Renderer: NSObject, MTKViewDelegate {
     var pipelineState: MTLRenderPipelineState
     
     var aspectRatio: Float = 1
+    var cameraRotationAroundZ = Float(0.2)
+    var cameraRotationElevation = Float(0)
+    var cameraDistance = Float(4)
     
     var geometries: [Geometry] = []
     
@@ -73,10 +76,15 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
+            let cameraTransform = Transform.lookFromOrbit(azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
+            
+            let transform = geometry.transform.then(cameraTransform)
+            
             var uniforms = Uniforms(
-                translation: geometry.translation,
-                transform: geometry.transform(),
-                viewTransform: viewTransform())
+                rotation: transform.rotation,
+                translation: transform.translation,
+                projection: projectionMatrix()
+            )
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             
@@ -99,11 +107,20 @@ class Renderer: NSObject, MTKViewDelegate {
         aspectRatio = Float(size.width / size.height)
     }
     
-    func viewTransform() -> simd_float2 {
-        let fovY: Float = 1.0472;
-        let y = 1 / tanf(fovY * 0.5)
-        let x = y / aspectRatio
-        return simd_float2(x, y)
+    func projectionMatrix() -> simd_float4x4 {
+        let fovY = Float(1.0472)
+        let ys = 1 / tanf(fovY * 0.5)
+        let xs = ys / aspectRatio
+        let nearZ = Float(0.1)
+        let farZ = Float(100)
+        let zs = farZ / (nearZ - farZ)
+        
+        return simd_float4x4(columns: (
+            simd_float4(xs, 0, 0, 0),
+            simd_float4(0, ys, 0, 0),
+            simd_float4(0, 0, zs, -1),
+            simd_float4(0, 0, zs * nearZ, 0)
+        ))
     }
     
     func makeGeometry(name: String, vertexCount: Int) -> Geometry {

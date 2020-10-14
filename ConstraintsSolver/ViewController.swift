@@ -15,12 +15,15 @@ class ViewController: NSViewController {
         renderer = Renderer(metalKitView: mtkView)
         mtkView.delegate = renderer
         
+        renderer.cameraDistance = 6
+        
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.translation.x = 1
-        cube.translation.z = 5
         
         triangle = renderer.makeTriangle(name: "Triangle", colors: (.red, .green, .blue))
-        triangle.translation.z = 3
+        triangle.transform.translation = -e1 + -e2
+        
+        let triangle2 = renderer.makeTriangle(name: "Triangle 2", colors: (.red, .yellow, .magenta))
+        triangle2.transform.translation = e1
         
         self.view = mtkView
     }
@@ -32,9 +35,7 @@ class ViewController: NSViewController {
     }
     
     override func mouseDragged(with event: NSEvent) {
-        cube.rotation.x += Float(event.deltaY * 0.01)
-        cube.rotation.y += Float(event.deltaX * 0.01)
-        triangle.rotation.x += Float(event.deltaY * 0.01)
-        triangle.rotation.y += Float(event.deltaX * 0.01)
+        renderer.cameraRotationAroundZ += Float(event.deltaX) * -0.01
+        renderer.cameraRotationElevation += Float(event.deltaY) * -0.01
     }
 }

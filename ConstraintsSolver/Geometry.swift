@@ -1,15 +1,86 @@
 import Foundation
 
-private let e1 = simd_float3(1, 0, 0)
-private let e2 = simd_float3(0, 1, 0)
-private let e3 = simd_float3(0, 0, 1)
+let e1 = simd_float3(1, 0, 0)
+let e2 = simd_float3(0, 1, 0)
+let e3 = simd_float3(0, 0, 1)
+
+struct Transform {
+    var translation: simd_float3
+    var rotation: simd_float3x3
+    
+    init() {
+        translation = .zero
+        rotation = simd_float3x3(diagonal: simd_float3(repeating: 1))
+    }
+    
+    init(translation: simd_float3, rotation: simd_float3x3) {
+        self.translation = translation
+        self.rotation = rotation
+    }
+    
+    init(translation: simd_float3, eulerAngles: simd_float3) {
+        let rotationX = simd_float3x3(columns: (
+            simd_float3(1, 0, 0),
+            simd_float3(0, cosf(eulerAngles.x), -sinf(eulerAngles.x)),
+            simd_float3(0, sinf(eulerAngles.x), cosf(eulerAngles.x))
+        ))
+        
+        let rotationY = simd_float3x3(columns: (
+            simd_float3(cosf(eulerAngles.y), 0, sinf(eulerAngles.y)),
+            simd_float3(0, 1, 0),
+            simd_float3(-sinf(eulerAngles.y), 0, cosf(eulerAngles.y))
+        ))
+        
+        let rotationZ = simd_float3x3(columns: (
+            simd_float3(cosf(eulerAngles.z), -sinf(eulerAngles.z), 0),
+            simd_float3(sinf(eulerAngles.z), cosf(eulerAngles.z), 0),
+            simd_float3(0, 0, 1)
+        ))
+        
+        rotation = rotationX * rotationY * rotationZ
+        self.translation = translation
+    }
+    
+    static func lookFromOrbit(azimuth: Float, elevation: Float, radius: Float) -> Transform {
+        let rotationZ = simd_float3x3(columns: (
+            simd_float3(cosf(azimuth), -sinf(azimuth), 0),
+            simd_float3(sinf(azimuth), cosf(azimuth), 0),
+            simd_float3(0, 0, 1)
+        ))
+        
+        let rotationX = simd_float3x3(columns: (
+            simd_float3(1, 0, 0),
+            simd_float3(0, cosf(elevation), -sinf(elevation)),
+            simd_float3(0, sinf(elevation), cosf(elevation))
+        ))
+        
+        return Transform(translation: simd_float3(0, radius, 0), rotation: rotationX * rotationZ)
+    }
+    
+    func then(_ other: Transform) -> Transform {
+        let rotation = other.rotation * self.rotation
+        let translation = simd_float3(
+            other.rotation[0][0] * self.translation[0] +
+                other.rotation[1][0] * self.translation[1] +
+                other.rotation[2][0] * self.translation[2] +
+                other.translation[0],
+            other.rotation[0][1] * self.translation[0] +
+                other.rotation[1][1] * self.translation[1] +
+                other.rotation[2][1] * self.translation[2] +
+                other.translation[1],
+            other.rotation[0][2] * self.translation[0] +
+                other.rotation[1][2] * self.translation[1] +
+                other.rotation[2][2] * self.translation[2] +
+                other.translation[2]
+        )
+        return Transform(translation: translation, rotation: rotation)
+    }
+}
 
 class Geometry {
     let name: String
     let vertices: UnsafeMutableBufferPointer<Vertex>
-    
-    var translation: simd_float3 = .zero
-    var rotation: simd_float3 = .zero
+    var transform = Transform()
     
     init(name: String, vertices: UnsafeMutableBufferPointer<Vertex>) {
         self.name = name
@@ -24,37 +95,15 @@ class Geometry {
             vertices[index] = newValue
         }
     }
-    
-    func transform() -> simd_float3x3 {
-        let rotationX = simd_float3x3(columns: (
-            simd_float3(1, 0, 0),
-            simd_float3(0, cosf(rotation.x), -sinf(rotation.x)),
-            simd_float3(0, sinf(rotation.x), cosf(rotation.x))
-        ))
-        
-        let rotationY = simd_float3x3(columns: (
-            simd_float3(cosf(rotation.y), 0, sinf(rotation.y)),
-            simd_float3(0, 1, 0),
-            simd_float3(-sinf(rotation.y), 0, cosf(rotation.y))
-        ))
-        
-//        let rotationZ = simd_float3x3(columns: (
-//            simd_float3(cosf(rotation.z), -sinf(rotation.z), 0),
-//            simd_float3(sinf(rotation.z), cosf(rotation.z), 0),
-//            simd_float3(0, 0, 1)
-//        ))
-        
-        return rotationX * rotationY
-    }
 }
 
 extension Renderer {
     
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
         let geometry = makeGeometry(name: name, vertexCount: 3)
-        geometry[0] = .init(position: -e1 - e2, normal: -e3, color: colors.0.rgb)
-        geometry[1] = .init(position: e1 - e2, normal: -e3, color: colors.1.rgb)
-        geometry[2] = .init(position: e2, normal: -e3, color: colors.2.rgb)
+        geometry[0] = Vertex(position: -e1 - e3, normal: -e2, color: colors.0.rgb)
+        geometry[1] = Vertex(position: e1 - e3, normal: -e2, color: colors.1.rgb)
+        geometry[2] = Vertex(position: e3, normal: -e2, color: colors.2.rgb)
         return geometry
     }
     

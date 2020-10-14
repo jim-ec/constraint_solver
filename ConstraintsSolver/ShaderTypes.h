@@ -6,11 +6,9 @@
 #define BufferIndexUniforms 1
 
 struct Uniforms {
+    simd_float3x3 rotation;
     simd_float3 translation;
-    simd_float3x3 transform;
-    
-    /// Diagonalized view transform matrix.
-    simd_float2 viewTransform;
+    simd_float4x4 projection;
 };
 
 struct Vertex {
