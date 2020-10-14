@@ -23,7 +23,7 @@ class ViewController: NSViewController {
         triangle.transform.translation = -e1 + -e2
         
         let triangle2 = renderer.makeTriangle(name: "Triangle 2", colors: (.red, .yellow, .magenta))
-        triangle2.transform.translation = e1
+        triangle2.transform.translation = e1 + -2 * e2
         
         self.view = mtkView
     }

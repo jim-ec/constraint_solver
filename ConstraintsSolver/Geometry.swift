@@ -1,8 +1,8 @@
 import Foundation
 
-let e1 = simd_float3(1, 0, 0)
-let e2 = simd_float3(0, 1, 0)
-let e3 = simd_float3(0, 0, 1)
+let e1: simd_float3 = simd_float3(1, 0, 0)
+let e2: simd_float3 = simd_float3(0, 1, 0)
+let e3: simd_float3 = simd_float3(0, 0, 1)
 
 struct Transform {
     var translation: simd_float3
@@ -111,46 +111,46 @@ extension Renderer {
         let geometry = makeGeometry(name: name, vertexCount: 36)
         
         geometry[0] = .init(position: .zero, normal: -e3, color: color.rgb)
-        geometry[1] = .init(position: e1, normal: -e3, color: color.rgb)
-        geometry[2] = .init(position: e1 + e2, normal: -e3, color: color.rgb)
+        geometry[1] = .init(position: e1 + e2, normal: -e3, color: color.rgb)
+        geometry[2] = .init(position: e1, normal: -e3, color: color.rgb)
         geometry[3] = .init(position: .zero, normal: -e3, color: color.rgb)
-        geometry[4] = .init(position: e1 + e2, normal: -e3, color: color.rgb)
-        geometry[5] = .init(position: e2, normal: -e3, color: color.rgb)
+        geometry[4] = .init(position: e2, normal: -e3, color: color.rgb)
+        geometry[5] = .init(position: e1 + e2, normal: -e3, color: color.rgb)
         
         geometry[6] = .init(position: e1, normal: e1, color: color.rgb)
-        geometry[7] = .init(position: e1 + e3, normal: e1, color: color.rgb)
-        geometry[8] = .init(position: e1 + e2 + e3, normal: e1, color: color.rgb)
+        geometry[7] = .init(position: e1 + e2 + e3, normal: e1, color: color.rgb)
+        geometry[8] = .init(position: e1 + e3, normal: e1, color: color.rgb)
         geometry[9] = .init(position: e1, normal: e1, color: color.rgb)
-        geometry[10] = .init(position: e1 + e2 + e3, normal: e1, color: color.rgb)
-        geometry[11] = .init(position: e1 + e2, normal: e1, color: color.rgb)
+        geometry[10] = .init(position: e1 + e2, normal: e1, color: color.rgb)
+        geometry[11] = .init(position: e1 + e2 + e3, normal: e1, color: color.rgb)
         
         geometry[12] = .init(position: e2, normal: e2, color: color.rgb)
-        geometry[13] = .init(position: e1 + e2, normal: e2, color: color.rgb)
-        geometry[14] = .init(position: e1 + e2 + e3, normal: e2, color: color.rgb)
+        geometry[13] = .init(position: e1 + e2 + e3, normal: e2, color: color.rgb)
+        geometry[14] = .init(position: e1 + e2, normal: e2, color: color.rgb)
         geometry[15] = .init(position: e2, normal: e2, color: color.rgb)
-        geometry[16] = .init(position: e1 + e2 + e3, normal: e2, color: color.rgb)
-        geometry[17] = .init(position: e2 + e3, normal: e2, color: color.rgb)
+        geometry[16] = .init(position: e2 + e3, normal: e2, color: color.rgb)
+        geometry[17] = .init(position: e1 + e2 + e3, normal: e2, color: color.rgb)
         
         geometry[18] = .init(position: e3, normal: e3, color: color.rgb)
-        geometry[19] = .init(position: e1 + e2 + e3, normal: e3, color: color.rgb)
-        geometry[20] = .init(position: e1 + e3, normal: e3, color: color.rgb)
+        geometry[19] = .init(position: e1 + e3, normal: e3, color: color.rgb)
+        geometry[20] = .init(position: e1 + e2 + e3, normal: e3, color: color.rgb)
         geometry[21] = .init(position: e3, normal: e3, color: color.rgb)
-        geometry[22] = .init(position: e2 + e3, normal: e3, color: color.rgb)
-        geometry[23] = .init(position: e1 + e2 + e3, normal: e3, color: color.rgb)
+        geometry[22] = .init(position: e1 + e2 + e3, normal: e3, color: color.rgb)
+        geometry[23] = .init(position: e2 + e3, normal: e3, color: color.rgb)
         
         geometry[24] = .init(position: .zero, normal: -e1, color: color.rgb)
-        geometry[25] = .init(position: e2 + e3, normal: -e1, color: color.rgb)
-        geometry[26] = .init(position: e3, normal: -e1, color: color.rgb)
+        geometry[25] = .init(position: e3, normal: -e1, color: color.rgb)
+        geometry[26] = .init(position: e2 + e3, normal: -e1, color: color.rgb)
         geometry[27] = .init(position: .zero, normal: -e1, color: color.rgb)
-        geometry[28] = .init(position: e2, normal: -e1, color: color.rgb)
-        geometry[29] = .init(position: e2 + e3, normal: -e1, color: color.rgb)
+        geometry[28] = .init(position: e2 + e3, normal: -e1, color: color.rgb)
+        geometry[29] = .init(position: e2, normal: -e1, color: color.rgb)
         
         geometry[30] = .init(position: .zero, normal: -e2, color: color.rgb)
-        geometry[31] = .init(position: e1 + e3, normal: -e2, color: color.rgb)
-        geometry[32] = .init(position: e1, normal: -e2, color: color.rgb)
+        geometry[31] = .init(position: e1, normal: -e2, color: color.rgb)
+        geometry[32] = .init(position: e1 + e3, normal: -e2, color: color.rgb)
         geometry[33] = .init(position: .zero, normal: -e2, color: color.rgb)
-        geometry[34] = .init(position: e3, normal: -e2, color: color.rgb)
-        geometry[35] = .init(position: e1 + e3, normal: -e2, color: color.rgb)
+        geometry[34] = .init(position: e1 + e3, normal: -e2, color: color.rgb)
+        geometry[35] = .init(position: e3, normal: -e2, color: color.rgb)
         
         return geometry
     }
