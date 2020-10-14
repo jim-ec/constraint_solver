@@ -2,7 +2,15 @@ import Metal
 import MetalKit
 import simd
 
+protocol FrameDelegate {
+    func onFrame(dt: Float, t: Float)
+}
+
 class Renderer: NSObject, MTKViewDelegate {
+    
+    var frameDelegate: FrameDelegate? = .none
+    var startTime = Float(CACurrentMediaTime())
+    var lastFrameTime = Float(CACurrentMediaTime())
     
     public let device: MTLDevice
     let commandQueue: MTLCommandQueue
@@ -62,6 +70,12 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func draw(in view: MTKView) {
+        if let frameDelegate = frameDelegate {
+            let currentTime = Float(CACurrentMediaTime())
+            frameDelegate.onFrame(dt: currentTime - lastFrameTime, t: currentTime - startTime)
+            lastFrameTime = currentTime
+        }
+        
         let commandBuffer = commandQueue.makeCommandBuffer()!
         
         let renderPassDescriptor = view.currentRenderPassDescriptor!

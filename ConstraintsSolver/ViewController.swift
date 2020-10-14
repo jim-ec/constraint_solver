@@ -1,7 +1,7 @@
 import Cocoa
 import MetalKit
 
-class ViewController: NSViewController {
+class ViewController: NSViewController, FrameDelegate {
     
     var renderer: Renderer!
     var mtkView: MTKView!
@@ -15,6 +15,7 @@ class ViewController: NSViewController {
         renderer = Renderer(metalKitView: mtkView)
         mtkView.delegate = renderer
         
+        renderer.frameDelegate = self
         renderer.cameraDistance = 6
         
         cube = renderer.makeCube(name: "Cube", color: .white)
@@ -37,5 +38,9 @@ class ViewController: NSViewController {
     override func mouseDragged(with event: NSEvent) {
         renderer.cameraRotationAroundZ += Float(event.deltaX) * -0.01
         renderer.cameraRotationElevation += Float(event.deltaY) * -0.01
+    }
+    
+    func onFrame(dt: Float, t: Float) {
+        cube.transform.translation.z = sinf(t)
     }
 }
