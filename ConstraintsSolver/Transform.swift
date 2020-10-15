@@ -75,20 +75,7 @@ struct Transform {
     
     func then(_ other: Transform) -> Transform {
         let rotation = other.rotation * self.rotation
-        let translation = simd_float3(
-            other.rotation[0][0] * self.translation[0] +
-                other.rotation[1][0] * self.translation[1] +
-                other.rotation[2][0] * self.translation[2] +
-                other.translation[0],
-            other.rotation[0][1] * self.translation[0] +
-                other.rotation[1][1] * self.translation[1] +
-                other.rotation[2][1] * self.translation[2] +
-                other.translation[1],
-            other.rotation[0][2] * self.translation[0] +
-                other.rotation[1][2] * self.translation[1] +
-                other.rotation[2][2] * self.translation[2] +
-                other.translation[2]
-        )
+        let translation = other.rotation * self.translation + other.translation
         return Transform(translation: translation, rotation: rotation)
     }
     
