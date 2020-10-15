@@ -18,9 +18,10 @@ class Renderer: NSObject, MTKViewDelegate {
     var depthState: MTLDepthStencilState
     
     var aspectRatio: Float = 1
-    var cameraRotationAroundZ = Float(0.2)
-    var cameraRotationElevation = Float(0)
+    var cameraRotationAroundZ: Float = 0.4
+    var cameraRotationElevation: Float = 0.4
     var cameraDistance = Float(4)
+    var cameraTarget = simd_float3()
     
     var geometries: [Geometry] = []
     
@@ -98,7 +99,7 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            let cameraTransform = Transform.lookFromOrbit(azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
+            let cameraTransform = Transform.look(at: cameraTarget, azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
             
             let transform = geometry.transform.then(cameraTransform)
             

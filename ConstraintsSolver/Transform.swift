@@ -41,7 +41,7 @@ struct Transform {
         self.translation = translation
     }
     
-    static func lookFromOrbit(azimuth: Float, elevation: Float, radius: Float) -> Transform {
+    static func look(at: simd_float3, azimuth: Float, elevation: Float, radius: Float) -> Transform {
         let rotationZ = simd_float3x3(columns: (
             simd_float3(cosf(azimuth), -sinf(azimuth), 0),
             simd_float3(sinf(azimuth), cosf(azimuth), 0),
@@ -50,11 +50,11 @@ struct Transform {
         
         let rotationX = simd_float3x3(columns: (
             simd_float3(1, 0, 0),
-            simd_float3(0, cosf(elevation), -sinf(elevation)),
-            simd_float3(0, sinf(elevation), cosf(elevation))
+            simd_float3(0, cosf(-elevation), -sinf(-elevation)),
+            simd_float3(0, sinf(-elevation), cosf(-elevation))
         ))
         
-        return Transform(translation: simd_float3(0, radius, 0), rotation: rotationX * rotationZ)
+        return Transform(translation: simd_float3(0, radius, 0) - at, rotation: rotationX * rotationZ)
     }
     
     func then(_ other: Transform) -> Transform {

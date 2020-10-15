@@ -37,8 +37,10 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func mouseDragged(with event: NSEvent) {
-        renderer.cameraRotationAroundZ += Float(event.deltaX) * -0.01
-        renderer.cameraRotationElevation += Float(event.deltaY) * -0.01
+//        renderer.cameraRotationAroundZ += Float(event.deltaX) * -0.01
+//        renderer.cameraRotationElevation += Float(event.deltaY) * 0.01
+        renderer.cameraTarget.x += Float(event.deltaX) * -0.01
+        renderer.cameraTarget.z += Float(event.deltaY) * 0.01
     }
     
     func onFrame(dt: Float, t: Float) {
