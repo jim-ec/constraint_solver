@@ -55,4 +55,8 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.cameraTarget.z += Float(event.scrollingDeltaY) * sensitivity
     }
     
+    override func magnify(with event: NSEvent) {
+        renderer.cameraDistance *= Float(1 - event.magnification)
+    }
+    
 }
