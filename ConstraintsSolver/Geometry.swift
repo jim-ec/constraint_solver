@@ -24,6 +24,7 @@ class Geometry {
         for vertex in vertices {
             centerOfMass += vertex.position
         }
+        centerOfMass /= Float(vertices.count)
         return centerOfMass
     }
 }
