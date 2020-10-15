@@ -29,7 +29,6 @@ class ViewController: NSViewController, FrameDelegate {
         
         view = mtkView
         mtkView.allowedTouchTypes = .indirect
-        mtkView.wantsRestingTouches = true
     }
     
     func onFrame(dt: Float, t: Float) {
