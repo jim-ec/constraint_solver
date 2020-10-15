@@ -18,6 +18,14 @@ class Geometry {
             vertices[index] = newValue
         }
     }
+    
+    func findCenterOfMass() -> simd_float3 {
+        var centerOfMass = simd_float3()
+        for vertex in vertices {
+            centerOfMass += vertex.position
+        }
+        return centerOfMass
+    }
 }
 
 extension Renderer {
