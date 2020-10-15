@@ -38,10 +38,15 @@ class Geometry {
 extension Renderer {
     
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
-        let geometry = makeGeometry(name: name, vertexCount: 3)
+        let geometry = makeGeometry(name: name, vertexCount: 6)
+        
         geometry[0] = Vertex(position: -e1 - e3, normal: -e2, color: colors.0.rgb)
         geometry[1] = Vertex(position: e1 - e3, normal: -e2, color: colors.1.rgb)
         geometry[2] = Vertex(position: e3, normal: -e2, color: colors.2.rgb)
+        geometry[3] = Vertex(position: -e1 - e3, normal: e2, color: colors.0.rgb)
+        geometry[4] = Vertex(position: e3, normal: e2, color: colors.2.rgb)
+        geometry[5] = Vertex(position: e1 - e3, normal: e2, color: colors.1.rgb)
+        
         return geometry
     }
     
