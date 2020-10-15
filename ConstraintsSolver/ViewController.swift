@@ -38,7 +38,7 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func keyDown(with event: NSEvent) {
-        if event.characters == "q" && event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command {
+        if event.keyCode == 12 && event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command {
             NSApplication.shared.terminate(self)
         }
     }
