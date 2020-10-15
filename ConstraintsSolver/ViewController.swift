@@ -19,7 +19,8 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.cameraDistance = 6
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.transform = Transform(translation: simd_float3(), eulerAngles: simd_float3(0, 3.1415 * 0.25, 0))
+        cube.transform = Transform(eulerAngles: simd_float3(0, 3.1415 * 0.25, 0))
+        cube.transformVertices(transform: Transform(translation: -cube.findCenterOfMass()))
         
         triangle = renderer.makeTriangle(name: "Triangle", colors: (.red, .green, .blue))
         triangle.transform.translation = -e1 + -e2
