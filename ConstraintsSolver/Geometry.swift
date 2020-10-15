@@ -27,6 +27,12 @@ class Geometry {
         centerOfMass /= Float(vertices.count)
         return centerOfMass
     }
+    
+    func transformVertices(transform: Transform) {
+        for i in 0..<vertices.count {
+            vertices[i].position = transform.rotation * vertices[i].position + transform.translation
+        }
+    }
 }
 
 extension Renderer {
