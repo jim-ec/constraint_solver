@@ -16,25 +16,23 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView.delegate = renderer
         
         renderer.frameDelegate = self
-        renderer.cameraDistance = 6
+        renderer.cameraDistance = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.transform = Transform(eulerAngles: simd_float3(0, 3.1415 * 0.25, 0))
         cube.transformVertices(transform: Transform(translation: -cube.findCenterOfMass()))
-        
-        triangle = renderer.makeTriangle(name: "Triangle", colors: (.red, .green, .blue))
-        triangle.transform.translation = -e1 + -e2
-        
-        let triangle2 = renderer.makeTriangle(name: "Triangle 2", colors: (.red, .yellow, .magenta))
-        triangle2.transform.translation = e1 + -2 * e2
+                
+        let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
+        floor.transformVertices(transform: Transform(translation: -floor.findCenterOfMass()))
+        floor.mapPositions { position in position * 10 }
         
         view = mtkView
         mtkView.allowedTouchTypes = .indirect
     }
     
     func onFrame(dt: Float, t: Float) {
-        cube.transform.translation.z = sinf(0.5 * t)
-        cube.transform.rotate(eulerAngles: simd_float3(1.5 * dt, 0, 0))
+        cube.transform.translation.z = cbrt(3) + 0.5 + sinf(t)
+        cube.transform.rotate(eulerAngles: simd_float3(1.8 * dt, dt, 0))
     }
     
     override func keyDown(with event: NSEvent) {

@@ -33,6 +33,12 @@ class Geometry {
             vertices[i].position = transform.rotation * vertices[i].position + transform.translation
         }
     }
+    
+    func mapPositions(function: (simd_float3) -> simd_float3) {
+        for i in 0..<vertices.count {
+            vertices[i].position = function(vertices[i].position)
+        }
+    }
 }
 
 extension Renderer {
@@ -46,6 +52,19 @@ extension Renderer {
         geometry[3] = Vertex(position: -e1 - e3, normal: e2, color: colors.0.rgb)
         geometry[4] = Vertex(position: e3, normal: e2, color: colors.2.rgb)
         geometry[5] = Vertex(position: e1 - e3, normal: e2, color: colors.1.rgb)
+        
+        return geometry
+    }
+    
+    func makeQuadliteral(name: String, color: Color) -> Geometry {
+        let geometry = makeGeometry(name: name, vertexCount: 6)
+        
+        geometry[0] = Vertex(position: .zero, normal: e3, color: color.rgb)
+        geometry[1] = Vertex(position: e1, normal: e3, color: color.rgb)
+        geometry[2] = Vertex(position: e1 + e2, normal: e3, color: color.rgb)
+        geometry[3] = Vertex(position: .zero, normal: e3, color: color.rgb)
+        geometry[4] = Vertex(position: e1 + e2, normal: e3, color: color.rgb)
+        geometry[5] = Vertex(position: e2, normal: e3, color: color.rgb)
         
         return geometry
     }
