@@ -28,13 +28,13 @@ class Geometry {
         return centerOfMass
     }
     
-    func transformVertices(transform: Transform) {
+    func transformPositions(_ transform: Transform) {
         for i in 0..<vertices.count {
             vertices[i].position = transform.rotation * vertices[i].position + transform.translation
         }
     }
     
-    func mapPositions(function: (simd_float3) -> simd_float3) {
+    func mapPositions(by function: (simd_float3) -> simd_float3) {
         for i in 0..<vertices.count {
             vertices[i].position = function(vertices[i].position)
         }

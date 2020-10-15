@@ -20,10 +20,10 @@ class ViewController: NSViewController, FrameDelegate {
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.transform = Transform(eulerAngles: simd_float3(0, 3.1415 * 0.25, 0))
-        cube.transformVertices(transform: Transform(translation: -cube.findCenterOfMass()))
-                
+        cube.transformPositions(Transform(translation: -cube.findCenterOfMass()))
+        
         let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
-        floor.transformVertices(transform: Transform(translation: -floor.findCenterOfMass()))
+        floor.transformPositions(Transform(translation: -floor.findCenterOfMass()))
         floor.mapPositions { position in position * 10 }
         
         view = mtkView
