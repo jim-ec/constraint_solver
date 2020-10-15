@@ -32,6 +32,11 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView.wantsRestingTouches = true
     }
     
+    func onFrame(dt: Float, t: Float) {
+        cube.transform.translation.z = sinf(0.5 * t)
+        cube.transform.rotate(eulerAngles: simd_float3(1.5 * dt, 0, 0))
+    }
+    
     override func keyDown(with event: NSEvent) {
         if event.characters == "q" && event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command {
             NSApplication.shared.terminate(self)
@@ -42,11 +47,6 @@ class ViewController: NSViewController, FrameDelegate {
         let sensitivity: Float = 0.01
         renderer.cameraRotationAroundZ += Float(-event.deltaX) * sensitivity
         renderer.cameraRotationElevation += Float(event.deltaY) * sensitivity
-    }
-    
-    func onFrame(dt: Float, t: Float) {
-        cube.transform.translation.z = sinf(0.5 * t)
-        cube.transform.rotate(eulerAngles: simd_float3(1.5 * dt, 0, 0))
     }
     
     override func scrollWheel(with event: NSEvent) {
