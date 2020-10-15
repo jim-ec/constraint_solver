@@ -99,7 +99,8 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            let cameraTransform = Transform.look(at: cameraTarget, azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
+            var cameraTransform = Transform.look(azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
+            cameraTransform.translation -= cameraTarget
             
             let transform = geometry.transform.then(cameraTransform)
             
