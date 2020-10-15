@@ -27,7 +27,9 @@ class ViewController: NSViewController, FrameDelegate {
         let triangle2 = renderer.makeTriangle(name: "Triangle 2", colors: (.red, .yellow, .magenta))
         triangle2.transform.translation = e1 + -2 * e2
         
-        self.view = mtkView
+        view = mtkView
+        mtkView.allowedTouchTypes = .indirect
+        mtkView.wantsRestingTouches = true
     }
     
     override func keyDown(with event: NSEvent) {
@@ -37,14 +39,20 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func mouseDragged(with event: NSEvent) {
-//        renderer.cameraRotationAroundZ += Float(event.deltaX) * -0.01
-//        renderer.cameraRotationElevation += Float(event.deltaY) * 0.01
-        renderer.cameraTarget.x += Float(event.deltaX) * -0.01
-        renderer.cameraTarget.z += Float(event.deltaY) * 0.01
+        let sensitivity: Float = 0.01
+        renderer.cameraRotationAroundZ += Float(-event.deltaX) * sensitivity
+        renderer.cameraRotationElevation += Float(event.deltaY) * sensitivity
     }
     
     func onFrame(dt: Float, t: Float) {
         cube.transform.translation.z = sinf(0.5 * t)
         cube.transform.rotate(eulerAngles: simd_float3(1.5 * dt, 0, 0))
     }
+    
+    override func scrollWheel(with event: NSEvent) {
+        let sensitivity: Float = 0.001 * renderer.cameraDistance
+        renderer.cameraTarget.x += Float(-event.scrollingDeltaX) * sensitivity
+        renderer.cameraTarget.z += Float(event.scrollingDeltaY) * sensitivity
+    }
+    
 }
