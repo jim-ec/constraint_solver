@@ -85,7 +85,7 @@ struct Transform {
     
     func then(_ other: Transform) -> Transform {
         let rotation = other.rotation * self.rotation
-        let translation = other.rotation * self.translation + other.translation
+        let translation = other.apply(to: self.translation)
         return Transform(translation: translation, rotation: rotation)
     }
     
@@ -106,5 +106,10 @@ struct Transform {
             simd_float3(0, sinf(eulerAngles.z), cosf(eulerAngles.z))
         ))
         self.rotation = rotationX * rotationY * rotationZ * self.rotation
+    }
+    
+    /// Applies this transform to some vector.
+    func apply(to x: simd_float3) -> simd_float3 {
+        rotation * x + translation
     }
 }

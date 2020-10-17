@@ -28,13 +28,13 @@ class Geometry {
         return centerOfMass
     }
     
-    func transformPositions(_ transform: Transform) {
-        for i in 0..<vertices.count {
-            vertices[i].position = transform.rotation * vertices[i].position + transform.translation
-        }
+    /// Applies the given transform to all position vectors of this geometry.
+    func transform(by transform: Transform) {
+        map(by: transform.apply)
     }
     
-    func mapPositions(by function: (simd_float3) -> simd_float3) {
+    /// Maps all position vectors of this geometry according to mapping function.
+    func map(by function: (simd_float3) -> simd_float3) {
         for i in 0..<vertices.count {
             vertices[i].position = function(vertices[i].position)
         }

@@ -20,11 +20,11 @@ class ViewController: NSViewController, FrameDelegate {
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.transform = Transform(eulerAngles: simd_float3(0, 3.1415 * 0.25, 0))
-        cube.transformPositions(Transform(translation: -cube.findCenterOfMass()))
+        cube.transform(by: Transform(translation: -cube.findCenterOfMass()))
         
         let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
-        floor.transformPositions(Transform(translation: -floor.findCenterOfMass()))
-        floor.mapPositions { position in position * 10 }
+        floor.transform(by: Transform(translation: -floor.findCenterOfMass()))
+        floor.map { position in position * 10 }
         
         view = mtkView
         mtkView.allowedTouchTypes = .indirect
