@@ -1,8 +1,18 @@
 import Foundation
 
-let e1: simd_float3 = simd_float3(1, 0, 0)
-let e2: simd_float3 = simd_float3(0, 1, 0)
-let e3: simd_float3 = simd_float3(0, 0, 1)
+extension simd_float3 {
+    public static var e1: simd_float3 {
+        get { simd_float3(1, 0, 0) }
+    }
+    
+    public static var e2: simd_float3 {
+        get { simd_float3(0, 1, 0) }
+    }
+    
+    public static var e3: simd_float3 {
+        get { simd_float3(0, 0, 1) }
+    }
+}
 
 private let identity: simd_float3x3 = simd_float3x3(diagonal: simd_float3(repeating: 1))
 
