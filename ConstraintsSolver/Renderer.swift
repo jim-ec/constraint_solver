@@ -21,7 +21,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var cameraRotationAroundZ: Float = 0.4
     var cameraRotationElevation: Float = 0.4
     var cameraDistance = Float(4)
-    var cameraTarget = simd_float3()
+    var cameraPanning = simd_float3()
     
     var geometries: [Geometry] = []
     
@@ -100,7 +100,7 @@ class Renderer: NSObject, MTKViewDelegate {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
             var cameraTransform = Transform.look(azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
-            cameraTransform.translation -= cameraTarget
+            cameraTransform.translation -= cameraPanning
             
             let transform = geometry.transform.then(cameraTransform)
             

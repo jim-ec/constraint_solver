@@ -49,8 +49,8 @@ class ViewController: NSViewController, FrameDelegate {
     
     override func scrollWheel(with event: NSEvent) {
         let sensitivity: Float = 0.001 * renderer.cameraDistance
-        renderer.cameraTarget.x += Float(-event.scrollingDeltaX) * sensitivity
-        renderer.cameraTarget.z += Float(event.scrollingDeltaY) * sensitivity
+        renderer.cameraPanning.x += Float(-event.scrollingDeltaX) * sensitivity
+        renderer.cameraPanning.z += Float(event.scrollingDeltaY) * sensitivity
     }
     
     override func magnify(with event: NSEvent) {
