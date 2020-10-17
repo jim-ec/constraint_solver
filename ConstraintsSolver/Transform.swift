@@ -14,7 +14,11 @@ extension simd_float3 {
     }
 }
 
-private let identity: simd_float3x3 = simd_float3x3(diagonal: simd_float3(repeating: 1))
+extension simd_float3x3 {
+    public static var identity: simd_float3x3 {
+        get { simd_float3x3(diagonal: simd_float3(repeating: 1)) }
+    }
+}
 
 struct Transform {
     var translation: simd_float3
@@ -22,12 +26,12 @@ struct Transform {
     
     init() {
         translation = .zero
-        rotation = identity
+        rotation = .identity
     }
     
     init(translation: simd_float3) {
         self.translation = translation
-        self.rotation = identity
+        self.rotation = .identity
     }
     
     init(rotation: simd_float3x3) {
