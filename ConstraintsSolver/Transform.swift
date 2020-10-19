@@ -117,4 +117,8 @@ struct Transform {
     func apply(to x: simd_float3) -> simd_float3 {
         rotation * x + translation
     }
+    
+    func inverse() -> Transform {
+        return Transform(translation: -translation).then(Transform(rotation: rotation.inverse))
+    }
 }
