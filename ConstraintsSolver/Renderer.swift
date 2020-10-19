@@ -111,7 +111,8 @@ class Renderer: NSObject, MTKViewDelegate {
             )
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
-            
+            renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+
             let vertexStart = geometry.vertices.baseAddress! - vertices
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: geometry.vertices.count)
             

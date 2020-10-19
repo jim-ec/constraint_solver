@@ -30,6 +30,8 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
     return out;
 }
 
-fragment float4 fragmentShader(VertexOut in [[stage_in]]) {
+fragment float4 fragmentShader(VertexOut in [[stage_in]],
+                               constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]])
+{
     return float4(in.color, 1.0);
 }
