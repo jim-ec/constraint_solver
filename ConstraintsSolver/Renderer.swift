@@ -102,11 +102,12 @@ class Renderer: NSObject, MTKViewDelegate {
             var cameraTransform = Transform.look(azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
             cameraTransform.translation -= cameraPanning
             
-            let transform = geometry.transform.then(cameraTransform)
-            
             var uniforms = Uniforms(
-                rotation: transform.rotation,
-                translation: transform.translation,
+                rotation: geometry.transform.rotation,
+                translation: geometry.transform.translation,
+                viewRotation: cameraTransform.rotation,
+                viewTranslation: cameraTransform.translation,
+                viewPosition: cameraTransform.inverse().apply(to: simd_float3()),
                 projection: projectionMatrix()
             )
             

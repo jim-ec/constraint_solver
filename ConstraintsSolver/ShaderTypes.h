@@ -8,6 +8,9 @@
 struct Uniforms {
     simd_float3x3 rotation;
     simd_float3 translation;
+    simd_float3x3 viewRotation;
+    simd_float3 viewTranslation;
+    simd_float3 viewPosition;
     simd_float4x4 projection;
 };
 
