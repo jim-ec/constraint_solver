@@ -29,7 +29,7 @@ class Geometry {
     }
     
     /// Applies the given transform to all position vectors of this geometry.
-    func transform(by transform: Transform) {
+    func map(by transform: Transform) {
         map(by: transform.apply)
     }
     
