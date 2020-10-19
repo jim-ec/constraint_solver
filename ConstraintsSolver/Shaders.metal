@@ -6,7 +6,9 @@
 using namespace metal;
 
 struct VertexOut {
-    float4 position [[position]];
+    float4 clipSpacePosition [[position]];
+    float3 position;
+    float3 normal;
     float3 color;
 };
 
@@ -23,9 +25,10 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
     Vertex in = vertices[vertexId];
     VertexOut out;
     
-    out.position = toClipSpace(uniforms.projection) * float4((uniforms.rotation * in.position + uniforms.translation), 1.0);
-    
-    out.color = in.color * dot(uniforms.rotation * in.normal, float3(0, -1, 0));
+    out.color = in.color;
+    out.normal = uniforms.rotation * in.normal;
+    out.position = uniforms.rotation * in.position + uniforms.translation;
+    out.clipSpacePosition = toClipSpace(uniforms.projection) * float4(out.position, 1.0);
     
     return out;
 }
@@ -33,5 +36,6 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
 fragment float4 fragmentShader(VertexOut in [[stage_in]],
                                constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]])
 {
-    return float4(in.color, 1.0);
+    float3 color = in.color * dot(in.normal, float3(0, -1, 0));
+    return float4(color, 1.0);
 }
