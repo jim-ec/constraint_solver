@@ -71,6 +71,7 @@ struct Transform {
         self.translation = translation
     }
     
+    /// Positions the camera along the negative y-axis, offsets from that axis are given in angle quantities.
     static func look(azimuth: Float, elevation: Float, radius: Float) -> Transform {
         let rotationZ = simd_float3x3(columns: (
             simd_float3(cosf(azimuth), -sinf(azimuth), 0),

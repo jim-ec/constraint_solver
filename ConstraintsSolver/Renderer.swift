@@ -18,8 +18,8 @@ class Renderer: NSObject, MTKViewDelegate {
     var depthState: MTLDepthStencilState
     
     var aspectRatio: Float = 1
-    var cameraRotationAroundZ: Float = 0.4
-    var cameraRotationElevation: Float = 0.4
+    var cameraRotationAroundZ: Float = .pi * 2 / 3
+    var cameraRotationElevation: Float = .pi * 1 / 8
     var cameraDistance = Float(4)
     var cameraPanning = simd_float3()
     
