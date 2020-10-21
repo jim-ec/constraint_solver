@@ -19,6 +19,10 @@ class Geometry {
         }
     }
     
+    func builder() -> GeometryBuilder {
+        GeometryBuilder(geometry: self)
+    }
+    
     func findCenterOfMass() -> simd_float3 {
         var centerOfMass = simd_float3()
         for vertex in vertices {
@@ -41,80 +45,81 @@ class Geometry {
     }
 }
 
+/// A type soley for the purpose of pushing vertices into a geometry.
+class GeometryBuilder {
+    
+    let geometry: Geometry
+    var index: Int
+    
+    /// The builder will start overwriting vertices from the start.
+    init(geometry: Geometry) {
+        self.geometry = geometry
+        self.index = 0
+    }
+    
+    /// Push a single vertex.
+    func push(vertex: Vertex) {
+        geometry[index] = vertex
+        index += 1
+    }
+    
+    /// Push a uni-colored triangle.
+    /// The normal is computed automatically, assuming counter-clockwise winding.
+    func push(_ a: simd_float3, _ b: simd_float3, _ c: simd_float3, color: Color) {
+        let normal = normalize(cross(b - a, c - a))
+        push(vertex: Vertex(position: a, normal: normal, color: color.rgb))
+        push(vertex: Vertex(position: b, normal: normal, color: color.rgb))
+        push(vertex: Vertex(position: c, normal: normal, color: color.rgb))
+    }
+    
+}
+
 extension Renderer {
     
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
-        let geometry = makeGeometry(name: name, vertexCount: 6)
+        let builder = makeGeometry(name: name, vertexCount: 6).builder()
+                
+        builder.push(vertex: Vertex(position: -.e1 - .e3, normal: -.e2, color: colors.0.rgb))
+        builder.push(vertex: Vertex(position: .e1 - .e3, normal: -.e2, color: colors.1.rgb))
+        builder.push(vertex: Vertex(position: .e3, normal: -.e2, color: colors.2.rgb))
+        builder.push(vertex: Vertex(position: -.e1 - .e3, normal: .e2, color: colors.0.rgb))
+        builder.push(vertex: Vertex(position: .e3, normal: .e2, color: colors.2.rgb))
+        builder.push(vertex: Vertex(position: .e1 - .e3, normal: .e2, color: colors.1.rgb))
         
-        geometry[0] = Vertex(position: -.e1 - .e3, normal: -.e2, color: colors.0.rgb)
-        geometry[1] = Vertex(position: .e1 - .e3, normal: -.e2, color: colors.1.rgb)
-        geometry[2] = Vertex(position: .e3, normal: -.e2, color: colors.2.rgb)
-        geometry[3] = Vertex(position: -.e1 - .e3, normal: .e2, color: colors.0.rgb)
-        geometry[4] = Vertex(position: .e3, normal: .e2, color: colors.2.rgb)
-        geometry[5] = Vertex(position: .e1 - .e3, normal: .e2, color: colors.1.rgb)
-        
-        return geometry
+        return builder.geometry
     }
     
     func makeQuadliteral(name: String, color: Color) -> Geometry {
-        let geometry = makeGeometry(name: name, vertexCount: 6)
+        let builder = makeGeometry(name: name, vertexCount: 6).builder()
         
-        geometry[0] = Vertex(position: .zero, normal: .e3, color: color.rgb)
-        geometry[1] = Vertex(position: .e1, normal: .e3, color: color.rgb)
-        geometry[2] = Vertex(position: .e1 + .e2, normal: .e3, color: color.rgb)
-        geometry[3] = Vertex(position: .zero, normal: .e3, color: color.rgb)
-        geometry[4] = Vertex(position: .e1 + .e2, normal: .e3, color: color.rgb)
-        geometry[5] = Vertex(position: .e2, normal: .e3, color: color.rgb)
+        builder.push(.zero, .e1, .e1 + .e2, color: color)
+        builder.push(.zero, .e1 + .e2, .e2, color: color)
         
-        return geometry
+        return builder.geometry
     }
     
     func makeCube(name: String, color: Color) -> Geometry {
-        let geometry = makeGeometry(name: name, vertexCount: 36)
+        let builder = makeGeometry(name: name, vertexCount: 36).builder()
         
-        geometry[0] = Vertex(position: .zero, normal: -.e3, color: color.rgb)
-        geometry[1] = Vertex(position: .e1 + .e2, normal: -.e3, color: color.rgb)
-        geometry[2] = Vertex(position: .e1, normal: -.e3, color: color.rgb)
-        geometry[3] = Vertex(position: .zero, normal: -.e3, color: color.rgb)
-        geometry[4] = Vertex(position: .e2, normal: -.e3, color: color.rgb)
-        geometry[5] = Vertex(position: .e1 + .e2, normal: -.e3, color: color.rgb)
+        builder.push(.zero, .e1, .e1 + .e3, color: color)
+        builder.push(.zero, .e1 + .e3, .e3, color: color)
         
-        geometry[6] = Vertex(position: .e1, normal: .e1, color: color.rgb)
-        geometry[7] = Vertex(position: .e1 + .e2 + .e3, normal: .e1, color: color.rgb)
-        geometry[8] = Vertex(position: .e1 + .e3, normal: .e1, color: color.rgb)
-        geometry[9] = Vertex(position: .e1, normal: .e1, color: color.rgb)
-        geometry[10] = Vertex(position: .e1 + .e2, normal: .e1, color: color.rgb)
-        geometry[11] = Vertex(position: .e1 + .e2 + .e3, normal: .e1, color: color.rgb)
+        builder.push(.zero, .e2 + .e1, .e1, color: color)
+        builder.push(.zero, .e2, .e2 + .e1, color: color)
         
-        geometry[12] = Vertex(position: .e2, normal: .e2, color: color.rgb)
-        geometry[13] = Vertex(position: .e1 + .e2 + .e3, normal: .e2, color: color.rgb)
-        geometry[14] = Vertex(position: .e1 + .e2, normal: .e2, color: color.rgb)
-        geometry[15] = Vertex(position: .e2, normal: .e2, color: color.rgb)
-        geometry[16] = Vertex(position: .e2 + .e3, normal: .e2, color: color.rgb)
-        geometry[17] = Vertex(position: .e1 + .e2 + .e3, normal: .e2, color: color.rgb)
+        builder.push(.zero, .e3, .e3 + .e2, color: color)
+        builder.push(.zero, .e3 + .e2, .e2, color: color)
         
-        geometry[18] = Vertex(position: .e3, normal: .e3, color: color.rgb)
-        geometry[19] = Vertex(position: .e1 + .e3, normal: .e3, color: color.rgb)
-        geometry[20] = Vertex(position: .e1 + .e2 + .e3, normal: .e3, color: color.rgb)
-        geometry[21] = Vertex(position: .e3, normal: .e3, color: color.rgb)
-        geometry[22] = Vertex(position: .e1 + .e2 + .e3, normal: .e3, color: color.rgb)
-        geometry[23] = Vertex(position: .e2 + .e3, normal: .e3, color: color.rgb)
+        builder.push(.e1, .e1 + .e2 + .e3, .e1 + .e3, color: color)
+        builder.push(.e1, .e1 + .e2, .e1 + .e2 + .e3, color: color)
         
-        geometry[24] = Vertex(position: .zero, normal: -.e1, color: color.rgb)
-        geometry[25] = Vertex(position: .e3, normal: -.e1, color: color.rgb)
-        geometry[26] = Vertex(position: .e2 + .e3, normal: -.e1, color: color.rgb)
-        geometry[27] = Vertex(position: .zero, normal: -.e1, color: color.rgb)
-        geometry[28] = Vertex(position: .e2 + .e3, normal: -.e1, color: color.rgb)
-        geometry[29] = Vertex(position: .e2, normal: -.e1, color: color.rgb)
+        builder.push(.e2, .e1 + .e2 + .e3, .e1 + .e2, color: color)
+        builder.push(.e2, .e2 + .e3, .e1 + .e2 + .e3, color: color)
         
-        geometry[30] = Vertex(position: .zero, normal: -.e2, color: color.rgb)
-        geometry[31] = Vertex(position: .e1, normal: -.e2, color: color.rgb)
-        geometry[32] = Vertex(position: .e1 + .e3, normal: -.e2, color: color.rgb)
-        geometry[33] = Vertex(position: .zero, normal: -.e2, color: color.rgb)
-        geometry[34] = Vertex(position: .e1 + .e3, normal: -.e2, color: color.rgb)
-        geometry[35] = Vertex(position: .e3, normal: -.e2, color: color.rgb)
+        builder.push(.e3, .e1 + .e3, .e1 + .e2 + .e3, color: color)
+        builder.push(.e3, .e1 + .e2 + .e3, .e2 + .e3, color: color)
         
-        return geometry
+        return builder.geometry
     }
     
 }
