@@ -20,72 +20,47 @@ extension simd_float3x3 {
     }
 }
 
+extension simd_quatf {
+    public static var identity: simd_quatf {
+        get { simd_quatf(ix: 0, iy: 0, iz: 0, r: 1) }
+    }
+}
+
 struct Transform {
     var translation: simd_float3
     var rotation: simd_quatf
     
-    init() {
-        translation = .zero
-        rotation = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
+    static func identity() -> Transform {
+        return Transform(translation: .zero, rotation: .identity)
     }
     
-    init(translation: simd_float3) {
-        self.translation = translation
-        self.rotation = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
+    static func translation(_ translation: simd_float3) -> Transform {
+        return Transform(translation: translation, rotation: .identity)
     }
     
-    init(rotation: simd_quatf) {
-        self.translation = simd_float3()
-        self.rotation = rotation
+    static func rotation(_ rotation: simd_quatf) -> Transform {
+        return Transform(translation: .zero, rotation: rotation)
     }
     
-    init(translation: simd_float3, rotation: simd_quatf) {
-        self.translation = translation
-        self.rotation = rotation
+    static func around(x angle: Float) -> Transform {
+        return Transform(translation: .zero, rotation: simd_quatf(angle: angle, axis: .e1))
     }
     
-    init(eulerAngles: simd_float3) {
-        self.init(translation: simd_float3(), eulerAngles: eulerAngles)
+    static func around(y angle: Float) -> Transform {
+        return Transform(translation: .zero, rotation: simd_quatf(angle: angle, axis: .e2))
     }
     
-    init(translation: simd_float3, eulerAngles: simd_float3) {
-        let rotationX = simd_float3x3(columns: (
-            simd_float3(1, 0, 0),
-            simd_float3(0, cosf(eulerAngles.x), -sinf(eulerAngles.x)),
-            simd_float3(0, sinf(eulerAngles.x), cosf(eulerAngles.x))
-        ))
-        
-        let rotationY = simd_float3x3(columns: (
-            simd_float3(cosf(eulerAngles.y), 0, sinf(eulerAngles.y)),
-            simd_float3(0, 1, 0),
-            simd_float3(-sinf(eulerAngles.y), 0, cosf(eulerAngles.y))
-        ))
-        
-        let rotationZ = simd_float3x3(columns: (
-            simd_float3(cosf(eulerAngles.z), -sinf(eulerAngles.z), 0),
-            simd_float3(sinf(eulerAngles.z), cosf(eulerAngles.z), 0),
-            simd_float3(0, 0, 1)
-        ))
-        
-        rotation = simd_quatf(rotationX * rotationY * rotationZ)
-        self.translation = translation
+    static func around(z angle: Float) -> Transform {
+        return Transform(translation: .zero, rotation: simd_quatf(angle: angle, axis: .e3))
+    }
+    
+    static func around(axis: simd_float3, angle: Float) -> Transform {
+        return Transform(translation: .zero, rotation: simd_quatf(angle: angle, axis: axis))
     }
     
     /// Positions the camera along the negative y-axis, offsets from that axis are given in angle quantities.
     static func look(azimuth: Float, elevation: Float, radius: Float) -> Transform {
-        let rotationZ = simd_float3x3(columns: (
-            simd_float3(cosf(azimuth), -sinf(azimuth), 0),
-            simd_float3(sinf(azimuth), cosf(azimuth), 0),
-            simd_float3(0, 0, 1)
-        ))
-        
-        let rotationX = simd_float3x3(columns: (
-            simd_float3(1, 0, 0),
-            simd_float3(0, cosf(-elevation), -sinf(-elevation)),
-            simd_float3(0, sinf(-elevation), cosf(-elevation))
-        ))
-        
-        return Transform(translation: simd_float3(0, radius, 0), rotation: simd_quatf(rotationX * rotationZ))
+        return Transform.around(z: azimuth).then(.around(x: elevation)).then(.translation(simd_float3(0, radius, 0)))
     }
     
     func then(_ other: Transform) -> Transform {

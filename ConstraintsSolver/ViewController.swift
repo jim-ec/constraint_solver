@@ -19,20 +19,20 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.cameraDistance = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.map(by: Transform(translation: -cube.findCenterOfMass()))
+        cube.map(by: Transform.translation(-cube.findCenterOfMass()))
         
         let X = renderer.makeCube(name: "x", color: .red)
-        X.map(by: Transform(translation: -X.findCenterOfMass()))
+        X.map(by: Transform.translation(-X.findCenterOfMass()))
         X.map { x in x * 0.5 }
         X.transform.translation.x = 4
         
         let Y = renderer.makeCube(name: "y", color: .green)
-        Y.map(by: Transform(translation: -Y.findCenterOfMass()))
+        Y.map(by: Transform.translation(-Y.findCenterOfMass()))
         Y.map { x in x * 0.5 }
         Y.transform.translation.y = 4
         
         let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
-        floor.map(by: Transform(translation: -floor.findCenterOfMass()))
+        floor.map(by: Transform.translation(-floor.findCenterOfMass()))
         floor.map { position in position * 10 }
         
         view = mtkView
@@ -40,12 +40,9 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Float, t: Float) {
-        let aroundX = simd_quatf(angle: t, axis: .e1)
-        let aroundZ = simd_quatf(angle: t, axis: .e3)
-        
-        cube.transform = Transform(rotation: aroundZ)
-            .then(Transform(translation: .e2))
-            .then(Transform(rotation: aroundX))
+        cube.transform = Transform.around(z: t)
+            .then(.translation(.e2))
+            .then(.around(x: t))
     }
     
     override func keyDown(with event: NSEvent) {
@@ -56,7 +53,7 @@ class ViewController: NSViewController, FrameDelegate {
     
     override func mouseDragged(with event: NSEvent) {
         let sensitivity: Float = 0.01
-        renderer.cameraRotationAroundZ += Float(-event.deltaX) * sensitivity
+        renderer.cameraRotationAroundZ += Float(event.deltaX) * sensitivity
         renderer.cameraRotationElevation += Float(event.deltaY) * sensitivity
     }
     
