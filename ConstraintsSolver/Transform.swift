@@ -58,7 +58,7 @@ struct Transform {
         return Transform(translation: .zero, rotation: simd_quatf(angle: angle, axis: axis))
     }
     
-    /// Positions the camera along the negative y-axis, offsets from that axis are given in angle quantities.
+    /// Positions the viewer along the negative y-axis, offsets from that axis are given in angle quantities.
     static func look(azimuth: Float, elevation: Float, radius: Float) -> Transform {
         return Transform.around(z: azimuth).then(.around(x: elevation)).then(.translation(simd_float3(0, radius, 0)))
     }

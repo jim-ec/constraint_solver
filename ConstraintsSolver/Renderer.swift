@@ -18,10 +18,10 @@ class Renderer: NSObject, MTKViewDelegate {
     var depthState: MTLDepthStencilState
     
     var aspectRatio: Float = 1
-    var cameraRotationAroundZ: Float = .pi * 2 / 3
-    var cameraRotationElevation: Float = .pi * 1 / 8
-    var cameraDistance = Float(4)
-    var cameraPanning = simd_float3()
+    var viewOrbitAzimuth: Float = .pi * 2 / 3
+    var viewOrbitElevation: Float = .pi * 1 / 8
+    var viewOrbitRadius = Float(4)
+    var viewPanning = simd_float3()
     
     var geometries: [Geometry] = []
     
@@ -99,15 +99,15 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            var cameraTransform = Transform.look(azimuth: cameraRotationAroundZ, elevation: cameraRotationElevation, radius: cameraDistance)
-            cameraTransform.translation -= cameraPanning
+            var viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
+            viewTransform.translation -= viewPanning
             
             var uniforms = Uniforms(
                 rotation: simd_float3x3(geometry.transform.rotation),
                 translation: geometry.transform.translation,
-                viewRotation: simd_float3x3(cameraTransform.rotation),
-                viewTranslation: cameraTransform.translation,
-                viewPosition: cameraTransform.inverse().apply(to: simd_float3()),
+                viewRotation: simd_float3x3(viewTransform.rotation),
+                viewTranslation: viewTransform.translation,
+                viewPosition: viewTransform.inverse().apply(to: simd_float3()),
                 projection: projectionMatrix()
             )
             

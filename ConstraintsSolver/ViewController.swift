@@ -16,7 +16,7 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView.delegate = renderer
         
         renderer.frameDelegate = self
-        renderer.cameraDistance = 10
+        renderer.viewOrbitRadius = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.map(by: Transform.translation(-cube.findCenterOfMass()))
@@ -53,18 +53,18 @@ class ViewController: NSViewController, FrameDelegate {
     
     override func mouseDragged(with event: NSEvent) {
         let sensitivity: Float = 0.01
-        renderer.cameraRotationAroundZ += Float(event.deltaX) * sensitivity
-        renderer.cameraRotationElevation += Float(event.deltaY) * sensitivity
+        renderer.viewOrbitAzimuth += Float(event.deltaX) * sensitivity
+        renderer.viewOrbitElevation += Float(event.deltaY) * sensitivity
     }
     
     override func scrollWheel(with event: NSEvent) {
-        let sensitivity: Float = 0.001 * renderer.cameraDistance
-        renderer.cameraPanning.x += Float(-event.scrollingDeltaX) * sensitivity
-        renderer.cameraPanning.z += Float(event.scrollingDeltaY) * sensitivity
+        let sensitivity: Float = 0.001 * renderer.viewOrbitRadius
+        renderer.viewPanning.x += Float(-event.scrollingDeltaX) * sensitivity
+        renderer.viewPanning.z += Float(event.scrollingDeltaY) * sensitivity
     }
     
     override func magnify(with event: NSEvent) {
-        renderer.cameraDistance *= Float(1 - event.magnification)
+        renderer.viewOrbitRadius *= Float(1 - event.magnification)
     }
     
 }
