@@ -22,24 +22,24 @@ extension simd_float3x3 {
 
 struct Transform {
     var translation: simd_float3
-    var rotation: simd_float3x3
+    var rotation: simd_quatf
     
     init() {
         translation = .zero
-        rotation = .identity
+        rotation = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
     }
     
     init(translation: simd_float3) {
         self.translation = translation
-        self.rotation = .identity
+        self.rotation = simd_quatf(ix: 0, iy: 0, iz: 0, r: 1)
     }
     
-    init(rotation: simd_float3x3) {
+    init(rotation: simd_quatf) {
         self.translation = simd_float3()
         self.rotation = rotation
     }
     
-    init(translation: simd_float3, rotation: simd_float3x3) {
+    init(translation: simd_float3, rotation: simd_quatf) {
         self.translation = translation
         self.rotation = rotation
     }
@@ -67,7 +67,7 @@ struct Transform {
             simd_float3(0, 0, 1)
         ))
         
-        rotation = rotationX * rotationY * rotationZ
+        rotation = simd_quatf(rotationX * rotationY * rotationZ)
         self.translation = translation
     }
     
@@ -85,40 +85,23 @@ struct Transform {
             simd_float3(0, sinf(-elevation), cosf(-elevation))
         ))
         
-        return Transform(translation: simd_float3(0, radius, 0), rotation: rotationX * rotationZ)
+        return Transform(translation: simd_float3(0, radius, 0), rotation: simd_quatf(rotationX * rotationZ))
     }
     
     func then(_ other: Transform) -> Transform {
         let rotation = other.rotation * self.rotation
-        let translation = other.apply(to: self.translation)
+        let translation = other.rotation.act(self.translation) + other.translation
         return Transform(translation: translation, rotation: rotation)
-    }
-    
-    mutating func rotate(eulerAngles: simd_float3) {
-        let rotationX = simd_float3x3(columns: (
-            simd_float3(1, 0, 0),
-            simd_float3(0, cosf(eulerAngles.x), -sinf(eulerAngles.x)),
-            simd_float3(0, sinf(eulerAngles.x), cosf(eulerAngles.x))
-        ))
-        let rotationY = simd_float3x3(columns: (
-            simd_float3(cosf(eulerAngles.y), 0, sinf(eulerAngles.y)),
-            simd_float3(0, 1, 0),
-            simd_float3(-sinf(eulerAngles.y), 0, cosf(eulerAngles.y))
-        ))
-        let rotationZ = simd_float3x3(columns: (
-            simd_float3(1, 0, 0),
-            simd_float3(0, cosf(eulerAngles.z), -sinf(eulerAngles.z)),
-            simd_float3(0, sinf(eulerAngles.z), cosf(eulerAngles.z))
-        ))
-        self.rotation = rotationX * rotationY * rotationZ * self.rotation
     }
     
     /// Applies this transform to some vector.
     func apply(to x: simd_float3) -> simd_float3 {
-        rotation * x + translation
+        rotation.act(x) + translation
     }
     
     func inverse() -> Transform {
-        return Transform(translation: -translation).then(Transform(rotation: rotation.inverse))
+        let inverseRotation = rotation.inverse
+        let inverseTranslaton = -inverseRotation.act(translation)
+        return Transform(translation: inverseTranslaton, rotation: inverseRotation)
     }
 }

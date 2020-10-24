@@ -19,8 +19,17 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.cameraDistance = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.transform = Transform(eulerAngles: simd_float3(0, 3.1415 * 0.25, 0))
         cube.map(by: Transform(translation: -cube.findCenterOfMass()))
+        
+        let X = renderer.makeCube(name: "x", color: .red)
+        X.map(by: Transform(translation: -X.findCenterOfMass()))
+        X.map { x in x * 0.5 }
+        X.transform.translation.x = 4
+        
+        let Y = renderer.makeCube(name: "y", color: .green)
+        Y.map(by: Transform(translation: -Y.findCenterOfMass()))
+        Y.map { x in x * 0.5 }
+        Y.transform.translation.y = 4
         
         let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
         floor.map(by: Transform(translation: -floor.findCenterOfMass()))
@@ -31,8 +40,12 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Float, t: Float) {
-        cube.transform.translation.z = cbrt(3) + 0.5 + sinf(t)
-        cube.transform.rotate(eulerAngles: simd_float3(1.8 * dt, dt, 0))
+        let aroundX = simd_quatf(angle: t, axis: .e1)
+        let aroundZ = simd_quatf(angle: t, axis: .e3)
+        
+        cube.transform = Transform(rotation: aroundZ)
+            .then(Transform(translation: .e2))
+            .then(Transform(rotation: aroundX))
     }
     
     override func keyDown(with event: NSEvent) {

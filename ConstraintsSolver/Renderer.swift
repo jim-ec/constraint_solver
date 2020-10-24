@@ -103,9 +103,9 @@ class Renderer: NSObject, MTKViewDelegate {
             cameraTransform.translation -= cameraPanning
             
             var uniforms = Uniforms(
-                rotation: geometry.transform.rotation,
+                rotation: simd_float3x3(geometry.transform.rotation),
                 translation: geometry.transform.translation,
-                viewRotation: cameraTransform.rotation,
+                viewRotation: simd_float3x3(cameraTransform.rotation),
                 viewTranslation: cameraTransform.translation,
                 viewPosition: cameraTransform.inverse().apply(to: simd_float3()),
                 projection: projectionMatrix()
