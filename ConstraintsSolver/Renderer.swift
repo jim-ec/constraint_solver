@@ -94,22 +94,25 @@ class Renderer: NSObject, MTKViewDelegate {
         
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
+        var viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
+        viewTransform.translation -= viewPanning
+        
+        var uniforms = Uniforms(
+            rotation: .identity,
+            translation: .zero,
+            viewRotation: simd_float3x3(viewTransform.rotation),
+            viewTranslation: viewTransform.translation,
+            viewPosition: viewTransform.inverse().apply(to: simd_float3()),
+            projection: projectionMatrix()
+        )
+        
         renderEncoder.pushDebugGroup("Draw Geometries")
         
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            var viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
-            viewTransform.translation -= viewPanning
-            
-            var uniforms = Uniforms(
-                rotation: simd_float3x3(geometry.transform.rotation),
-                translation: geometry.transform.translation,
-                viewRotation: simd_float3x3(viewTransform.rotation),
-                viewTranslation: viewTransform.translation,
-                viewPosition: viewTransform.inverse().apply(to: simd_float3()),
-                projection: projectionMatrix()
-            )
+            uniforms.rotation = simd_float3x3(geometry.transform.rotation)
+            uniforms.translation = geometry.transform.translation
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
