@@ -9,12 +9,22 @@ import Foundation
 
 struct Contact {
     let penetration: simd_float3
+    let penetratingVertex: simd_float3
 }
 
 /// A cube located at the origin, extending in the positive axis directions.
 struct Cube {
+    let mass: Float
     let sideLength: Float
     let transform: Transform
+    
+    func restTransform() -> Transform {
+        .translation(simd_float3(-sideLength, -sideLength, -sideLength))
+    }
+    
+    func inertiaTensor() -> simd_float3 {
+        simd_float3(repeating: 1.0 / 6.0 * mass * sideLength * sideLength)
+    }
 }
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
@@ -31,15 +41,11 @@ func intersectCubeWithGround(cube: Cube) -> Contact {
     ]
     
     let vertices = canonicalVertices.map(cube.transform.act)
+    let deepestVertex = vertices.min { a, b in a.z < b.z }!
+    let deepestVertexRestSpace = cube.transform.inverse().then(cube.restTransform()).act(on: deepestVertex)
     
-    let deepestVertex = vertices.reduce(simd_float3(0, 0, .infinity)) { (reduction, vertex) in
-        if vertex.z < reduction.z {
-            return vertex
-        }
-        else {
-            return reduction
-        }
-    }
-    
-    return Contact(penetration: simd_float3(0, 0, deepestVertex.z))
+    return Contact(
+        penetration: simd_float3(0, 0, deepestVertex.z),
+        penetratingVertex: deepestVertexRestSpace
+    )
 }
