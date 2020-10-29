@@ -34,7 +34,7 @@ class Geometry {
     
     /// Applies the given transform to all position vectors of this geometry.
     func map(by transform: Transform) {
-        map(by: transform.apply)
+        map(by: transform.act)
     }
     
     /// Maps all position vectors of this geometry according to mapping function.

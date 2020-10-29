@@ -102,7 +102,7 @@ class Renderer: NSObject, MTKViewDelegate {
             translation: .zero,
             viewRotation: simd_float3x3(viewTransform.rotation),
             viewTranslation: viewTransform.translation,
-            viewPosition: viewTransform.inverse().apply(to: simd_float3()),
+            viewPosition: viewTransform.inverse().act(on: simd_float3()),
             projection: projectionMatrix()
         )
         

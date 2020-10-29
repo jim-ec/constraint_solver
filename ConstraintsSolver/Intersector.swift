@@ -30,7 +30,7 @@ func intersectCubeWithGround(cube: Cube) -> Contact {
         cube.sideLength * .e3 + .e1 + .e2
     ]
     
-    let vertices = canonicalVertices.map(cube.transform.apply)
+    let vertices = canonicalVertices.map(cube.transform.act)
     
     let deepestVertex = vertices.reduce(simd_float3(0, 0, .infinity)) { (reduction, vertex) in
         if vertex.z < reduction.z {

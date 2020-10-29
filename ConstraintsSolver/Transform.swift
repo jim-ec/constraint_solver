@@ -70,7 +70,7 @@ struct Transform {
     }
     
     /// Applies this transform to some vector.
-    func apply(to x: simd_float3) -> simd_float3 {
+    func act(on x: simd_float3) -> simd_float3 {
         rotation.act(x) + translation
     }
     
