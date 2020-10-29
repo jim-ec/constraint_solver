@@ -8,7 +8,8 @@
 import Foundation
 
 struct Contact {
-    let penetration: simd_float3
+    let direction: simd_float3
+    let magnitude: Float
     let penetratingVertex: simd_float3
 }
 
@@ -32,7 +33,7 @@ struct Cuboid {
 }
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
-func intersectCuboidWithGround(cube: Cuboid) -> Contact {
+func intersectCuboidWithGround(cube: Cuboid) -> Contact? {
     let canonicalVertices: [simd_float3] = [
         simd_float3(0, 0, 0),
         simd_float3(cube.extent.x, 0, 0),
@@ -46,10 +47,16 @@ func intersectCuboidWithGround(cube: Cuboid) -> Contact {
     
     let vertices = canonicalVertices.map(cube.transform.act)
     let deepestVertex = vertices.min { a, b in a.z < b.z }!
+    
+    if deepestVertex.z >= 0 {
+        return .none
+    }
+    
     let deepestVertexRestSpace = cube.transform.inverse().then(cube.restTransform()).act(on: deepestVertex)
     
-    return Contact(
-        penetration: simd_float3(0, 0, deepestVertex.z),
+    return .some(Contact(
+        direction: simd_float3(0, 0, -1),
+        magnitude: -deepestVertex.z,
         penetratingVertex: deepestVertexRestSpace
-    )
+    ))
 }
