@@ -53,7 +53,7 @@ class ViewController: NSViewController, FrameDelegate {
 //        cuboid.velocity += velocity
 //        cuboid.transform.translation += cuboid.velocity
         
-        solveConstraints(cuboid: cuboid, timeStep: dt)
+        solveConstraints(cuboid: cuboid)
         
         cube.transform = cuboid.transform
         

@@ -82,20 +82,13 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
     )
 }
 
-func solveConstraints(cuboid: Cuboid, timeStep: Float) {
+func solveConstraints(cuboid: Cuboid) {
     if let contact = intersectCuboidWithGround(cuboid) {
-        let compliance: Float = 0
         let inverseMass: Float = 1 / contact.body.mass
         let conormal = cross(contact.penetratingVertex, contact.normal)
         let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
         
-        let complianceByTimeStep = compliance / timeStep.sqare()
-        var lagrangeMultiplier: Float = 0
-        
-        let deltaLagrangeMultiplier = (-contact.magnitude - complianceByTimeStep * lagrangeMultiplier) / (generalizedInverseMass + complianceByTimeStep)
-        lagrangeMultiplier += deltaLagrangeMultiplier
-        
-        let impulse = deltaLagrangeMultiplier * contact.normal
+        let impulse = -contact.magnitude / generalizedInverseMass * contact.normal
         let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
         
         let deltaTranslation = impulse / contact.body.mass
