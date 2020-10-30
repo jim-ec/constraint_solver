@@ -83,20 +83,23 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
 }
 
 func solveConstraints(cuboid: Cuboid) {
-    if let contact = intersectCuboidWithGround(cuboid) {
-        let inverseMass: Float = 1 / contact.body.mass
-        let conormal = cross(contact.penetratingVertex, contact.normal)
-        let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
-        
-        let impulse = -contact.magnitude / generalizedInverseMass * contact.normal
-        let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
-        
-        let deltaTranslation = impulse / contact.body.mass
-        let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
-        
-        contact.body.transform.translation += deltaTranslation
-        
-        contact.body.transform.rotation += deltaRotation
-        contact.body.transform.rotation = contact.body.transform.rotation.normalized
+    let countOfSubSteps = 5
+    for _ in 0..<countOfSubSteps {
+        if let contact = intersectCuboidWithGround(cuboid) {
+            let inverseMass: Float = 1 / contact.body.mass
+            let conormal = cross(contact.penetratingVertex, contact.normal)
+            let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
+            
+            let impulse = -contact.magnitude / generalizedInverseMass * contact.normal
+            let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
+            
+            let deltaTranslation = impulse / contact.body.mass
+            let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
+            
+            contact.body.transform.translation += deltaTranslation
+            
+            contact.body.transform.rotation += deltaRotation
+            contact.body.transform.rotation = contact.body.transform.rotation.normalized
+        }
     }
 }
