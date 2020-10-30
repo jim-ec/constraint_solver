@@ -72,10 +72,11 @@ func intersectCuboidWithGround(cuboid: Cuboid) -> Contact? {
     }
     
     let deepestVertexRestSpace = cuboid.transform.inverse().then(cuboid.restTransform()).act(on: deepestVertex)
+    let collisionNormalRestSpace = cuboid.restTransform().act(on: simd_float3(0, 0, -1))
     
     return Contact(
         body: cuboid,
-        normal: simd_float3(0, 0, -1),
+        normal: collisionNormalRestSpace,
         magnitude: -deepestVertex.z,
         penetratingVertex: deepestVertexRestSpace
     )
@@ -84,24 +85,21 @@ func intersectCuboidWithGround(cuboid: Cuboid) -> Contact? {
 func contactConstraint(contact: inout Contact, timeSubStep: Float) {
     let compliance: Float = 0
     let inverseMass: Float = 1 / contact.body.mass
-    let normal = cross(contact.penetratingVertex, contact.normal)
-    let w1 = inverseMass + dot(normal, contact.body.inverseInertiaTensor() * normal)
-    let w2 = Float.zero
+    let conormal = cross(contact.penetratingVertex, contact.normal)
+    let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
     
     let complianceByTimeStep = compliance / timeSubStep.sqare()
     var lagrangeMultiplier: Float = 0
     
-    let lagrangeMultiplierDeltaUpdate = (-contact.magnitude - complianceByTimeStep * lagrangeMultiplier) / (w1 + w2 + complianceByTimeStep)
-    lagrangeMultiplier += lagrangeMultiplierDeltaUpdate
+    let deltaLagrangeMultiplier = (-contact.magnitude - complianceByTimeStep * lagrangeMultiplier) / (generalizedInverseMass + complianceByTimeStep)
+    lagrangeMultiplier += deltaLagrangeMultiplier
     
-    let impulse = lagrangeMultiplierDeltaUpdate * contact.normal
-    let w = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
+    let impulse = deltaLagrangeMultiplier * contact.normal
+    let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
     
     let deltaTranslation = impulse / contact.body.mass
-//    let deltaRotation = 0.5 * w * timeSubStep
-    let deltaRotation = exp(0.5 * w * timeSubStep)
+    let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
     
-//    contact.body.velocity = deltaTranslation
     contact.body.transform.translation += deltaTranslation
     
     contact.body.transform.rotation += deltaRotation
