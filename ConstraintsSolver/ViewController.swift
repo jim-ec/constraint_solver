@@ -6,6 +6,7 @@ class ViewController: NSViewController, FrameDelegate {
     var renderer: Renderer!
     var mtkView: MTKView!
     var cube: Geometry!
+    var cuboid = Cuboid(mass: 1.0, extent: simd_float3(1, 1, 1))
     var triangle: Geometry!
     
     override func loadView() {
@@ -19,7 +20,10 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.viewOrbitRadius = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.map(by: Transform.translation(-cube.findCenterOfMass()))
+        //cube.map(by: Transform.translation(-cube.findCenterOfMass()))
+//        cube.transform.translation.z = 2
+        cube.transform.rotation = .init(angle: .pi / 6, axis: normalize(simd_float3(2, 1, 0)))
+        cube.transform.translation.z = 1
         
         let X = renderer.makeCube(name: "x", color: .red)
         X.map(by: Transform.translation(-X.findCenterOfMass()))
@@ -40,9 +44,36 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Float, t: Float) {
-        cube.transform = Transform.around(z: t)
-            .then(.translation(.e2))
-            .then(.around(x: t))
+        let timeSubStep = dt
+        let externalForce = simd_float3(0, 0, -0.05)
+        
+//        let velocity = timeSubStep * externalForce / mass
+        
+        cube.transform.translation.z -= 0.5 * timeSubStep
+        
+        cuboid.transform = cube.transform
+//        cuboid.velocity += velocity
+//        cuboid.transform.translation += cuboid.velocity
+
+        if var contact = intersectCuboidWithGround(cuboid: cuboid) {
+            contactConstraint(contact: &contact, timeSubStep: timeSubStep)
+        }
+        
+        cube.transform = cuboid.transform
+        
+//
+//        cuboid.transform.translation.z -= 1
+//
+//        if var contact = intersectCuboidWithGround(cuboid: cuboid) {
+//            contactConstraint(contact: &contact, timeSubStep: timeSubStep)
+//        }
+//
+//        cube.transform = cuboid.transform
+        
+        
+//        cube.transform = Transform.around(z: t)
+//            .then(.translation(.e2))
+//            .then(.around(x: t))
     }
     
     override func keyDown(with event: NSEvent) {

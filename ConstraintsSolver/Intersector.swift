@@ -8,7 +8,7 @@
 import Foundation
 
 struct Contact {
-    let body: Cuboid
+    var body: Cuboid
     let normal: simd_float3
     let magnitude: Float
     let penetratingVertex: simd_float3
@@ -21,10 +21,18 @@ extension Float {
 }
 
 /// A cuboid located at the origin, extending in the positive axis directions.
-struct Cuboid {
+class Cuboid {
     let mass: Float
+    var velocity: simd_float3
     let extent: simd_float3
-    let transform: Transform
+    var transform: Transform
+    
+    init(mass: Float, extent: simd_float3) {
+        self.mass = mass
+        self.extent = extent
+        self.velocity = .zero
+        self.transform = .identity()
+    }
     
     func restTransform() -> Transform {
         .translation(simd_float3(-extent.x, -extent.y, -extent.z))
@@ -73,9 +81,8 @@ func intersectCuboidWithGround(cuboid: Cuboid) -> Contact? {
     )
 }
 
-func contactConstraint(contact: Contact) -> Transform {
+func contactConstraint(contact: inout Contact, timeSubStep: Float) {
     let compliance: Float = 0
-    let timeSubStep: Float = 1
     let inverseMass: Float = 1 / contact.body.mass
     let normal = cross(contact.penetratingVertex, contact.normal)
     let w1 = inverseMass + dot(normal, contact.body.inverseInertiaTensor() * normal)
@@ -88,9 +95,15 @@ func contactConstraint(contact: Contact) -> Transform {
     lagrangeMultiplier += lagrangeMultiplierDeltaUpdate
     
     let impulse = lagrangeMultiplierDeltaUpdate * contact.normal
+    let w = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
     
-    let translation = contact.body.transform.translation + impulse / contact.body.mass
-    let rotation = contact.body.transform.rotation + 0.5 * simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse)) * contact.body.transform.rotation
+    let deltaTranslation = impulse / contact.body.mass
+//    let deltaRotation = 0.5 * w * timeSubStep
+    let deltaRotation = exp(0.5 * w * timeSubStep)
     
-    return Transform(translation: translation, rotation: rotation)
+//    contact.body.velocity = deltaTranslation
+    contact.body.transform.translation += deltaTranslation
+    
+    contact.body.transform.rotation += deltaRotation
+    contact.body.transform.rotation = contact.body.transform.rotation.normalized
 }
