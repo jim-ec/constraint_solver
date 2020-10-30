@@ -60,13 +60,34 @@ struct Transform {
     
     /// Positions the viewer along the negative y-axis, offsets from that axis are given in angle quantities.
     static func look(azimuth: Float, elevation: Float, radius: Float) -> Transform {
-        return Transform.around(z: azimuth).then(.around(x: elevation)).then(.translation(simd_float3(0, radius, 0)))
+        .around(z: azimuth) *
+            .around(x: elevation) *
+            .translation(simd_float3(0, radius, 0))
     }
     
-    func then(_ other: Transform) -> Transform {
-        let rotation = other.rotation * self.rotation
-        let translation = other.rotation.act(self.translation) + other.translation
+    /// Composition of two transforms.
+    /// The resultant transform describes the first transform as happening within the second transform.
+    /// The second transform therefore acts as a parent transform.
+    static func *(_ a: Transform, _ b: Transform) -> Transform {
+        let rotation = b.rotation * a.rotation
+        let translation = b.rotation.act(a.translation) + b.translation
         return Transform(translation: translation, rotation: rotation)
+    }
+    
+    /// The inverse composition of two transforms.
+    /// The resultant transform relative to to the second transform desbribes the first transform.
+    static func /(_ a: Transform, _ b: Transform) -> Transform {
+        a * b.inverse()
+    }
+    
+    /// Concatenates two transforms.
+    static func +(_ a: Transform, _ b: Transform) -> Transform {
+        Transform(translation: a.translation + b.translation, rotation: a.rotation * b.rotation)
+    }
+    
+    /// The difference between two transforms.
+    static func -(_ a: Transform, _ b: Transform) -> Transform {
+        a + b.inverse()
     }
     
     /// Applies this transform to some vector.

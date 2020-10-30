@@ -71,7 +71,7 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
         return .none
     }
     
-    let deepestVertexRestSpace = cuboid.transform.inverse().then(cuboid.restTransform()).act(on: deepestVertex)
+    let deepestVertexRestSpace = (cuboid.transform.inverse() * cuboid.restTransform()).act(on: deepestVertex)
     let collisionNormalRestSpace = cuboid.restTransform().act(on: simd_float3(0, 0, -1))
     
     return Contact(
