@@ -44,20 +44,16 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Float, t: Float) {
-        let timeSubStep = dt
-        let externalForce = simd_float3(0, 0, -0.05)
         
 //        let velocity = timeSubStep * externalForce / mass
         
-        cube.transform.translation.z -= 0.5 * timeSubStep
+        cube.transform.translation.z -= 0.5 * dt
         
         cuboid.transform = cube.transform
 //        cuboid.velocity += velocity
 //        cuboid.transform.translation += cuboid.velocity
-
-        if var contact = intersectCuboidWithGround(cuboid: cuboid) {
-            contactConstraint(contact: &contact, timeSubStep: timeSubStep)
-        }
+        
+        solveConstraints(cuboid: cuboid, timeStep: dt)
         
         cube.transform = cuboid.transform
         

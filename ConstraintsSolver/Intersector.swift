@@ -52,7 +52,7 @@ class Cuboid {
 }
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
-func intersectCuboidWithGround(cuboid: Cuboid) -> Contact? {
+func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
     let canonicalVertices: [simd_float3] = [
         simd_float3(0, 0, 0),
         simd_float3(cuboid.extent.x, 0, 0),
@@ -82,26 +82,28 @@ func intersectCuboidWithGround(cuboid: Cuboid) -> Contact? {
     )
 }
 
-func contactConstraint(contact: inout Contact, timeSubStep: Float) {
-    let compliance: Float = 0
-    let inverseMass: Float = 1 / contact.body.mass
-    let conormal = cross(contact.penetratingVertex, contact.normal)
-    let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
-    
-    let complianceByTimeStep = compliance / timeSubStep.sqare()
-    var lagrangeMultiplier: Float = 0
-    
-    let deltaLagrangeMultiplier = (-contact.magnitude - complianceByTimeStep * lagrangeMultiplier) / (generalizedInverseMass + complianceByTimeStep)
-    lagrangeMultiplier += deltaLagrangeMultiplier
-    
-    let impulse = deltaLagrangeMultiplier * contact.normal
-    let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
-    
-    let deltaTranslation = impulse / contact.body.mass
-    let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
-    
-    contact.body.transform.translation += deltaTranslation
-    
-    contact.body.transform.rotation += deltaRotation
-    contact.body.transform.rotation = contact.body.transform.rotation.normalized
+func solveConstraints(cuboid: Cuboid, timeStep: Float) {
+    if let contact = intersectCuboidWithGround(cuboid) {
+        let compliance: Float = 0
+        let inverseMass: Float = 1 / contact.body.mass
+        let conormal = cross(contact.penetratingVertex, contact.normal)
+        let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
+        
+        let complianceByTimeStep = compliance / timeStep.sqare()
+        var lagrangeMultiplier: Float = 0
+        
+        let deltaLagrangeMultiplier = (-contact.magnitude - complianceByTimeStep * lagrangeMultiplier) / (generalizedInverseMass + complianceByTimeStep)
+        lagrangeMultiplier += deltaLagrangeMultiplier
+        
+        let impulse = deltaLagrangeMultiplier * contact.normal
+        let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
+        
+        let deltaTranslation = impulse / contact.body.mass
+        let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
+        
+        contact.body.transform.translation += deltaTranslation
+        
+        contact.body.transform.rotation += deltaRotation
+        contact.body.transform.rotation = contact.body.transform.rotation.normalized
+    }
 }
