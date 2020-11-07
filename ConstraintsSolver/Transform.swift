@@ -95,6 +95,11 @@ struct Transform {
         rotation.act(x) + translation
     }
     
+    /// Applies only the rotational part of this transform to the given vector.
+    func rotate(_ x: simd_float3) -> simd_float3 {
+        rotation.act(x)
+    }
+    
     func inverse() -> Transform {
         let inverseRotation = rotation.inverse
         let inverseTranslaton = -inverseRotation.act(translation)
