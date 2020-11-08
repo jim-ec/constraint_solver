@@ -3,25 +3,25 @@ import MetalKit
 import simd
 
 protocol FrameDelegate {
-    func onFrame(dt: Float, t: Float)
+    func onFrame(dt: Double, t: Double)
 }
 
 class Renderer: NSObject, MTKViewDelegate {
     
     var frameDelegate: FrameDelegate? = .none
-    var startTime = Float(CACurrentMediaTime())
-    var lastFrameTime = Float(CACurrentMediaTime())
+    var startTime = Double(CACurrentMediaTime())
+    var lastFrameTime = Double(CACurrentMediaTime())
     
     public let device: MTLDevice
     let commandQueue: MTLCommandQueue
     var pipelineState: MTLRenderPipelineState
     var depthState: MTLDepthStencilState
     
-    var aspectRatio: Float = 1
-    var viewOrbitAzimuth: Float = .pi * 2 / 3
-    var viewOrbitElevation: Float = .pi * 1 / 8
-    var viewOrbitRadius = Float(4)
-    var viewPanning = simd_float3()
+    var aspectRatio: Double = 1
+    var viewOrbitAzimuth: Double = .pi * 2 / 3
+    var viewOrbitElevation: Double = .pi * 1 / 8
+    var viewOrbitRadius = Double(4)
+    var viewPanning = simd_double3()
     
     var geometries: [Geometry] = []
     
@@ -72,7 +72,7 @@ class Renderer: NSObject, MTKViewDelegate {
     
     func draw(in view: MTKView) {
         if let frameDelegate = frameDelegate {
-            let currentTime = Float(CACurrentMediaTime())
+            let currentTime = Double(CACurrentMediaTime())
             let deltaTime = currentTime - lastFrameTime
             if deltaTime > 0 {
                 frameDelegate.onFrame(dt: deltaTime, t: currentTime - startTime)
@@ -103,7 +103,7 @@ class Renderer: NSObject, MTKViewDelegate {
         var uniforms = Uniforms(
             model: simd_float4x4(diagonal: .one),
             view: viewTransform.matrix(),
-            viewPosition: viewTransform.inverse().act(on: simd_float3()),
+            viewPosition: simd_float3(viewTransform.inverse().act(on: .zero)),
             projection: projectionMatrix()
         )
         
@@ -133,22 +133,22 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-        aspectRatio = Float(size.width / size.height)
+        aspectRatio = Double(size.width / size.height)
     }
     
     func projectionMatrix() -> simd_float4x4 {
-        let fovY = Float(1.0472)
-        let ys = 1 / tanf(fovY * 0.5)
+        let fovY = 1.0472
+        let ys = 1 / tan(fovY * 0.5)
         let xs = ys / aspectRatio
-        let nearZ = Float(0.1)
-        let farZ = Float(100)
+        let nearZ = 0.1
+        let farZ = 100.0
         let zs = farZ / (nearZ - farZ)
         
         return simd_float4x4(columns: (
-            simd_float4(xs, 0, 0, 0),
-            simd_float4(0, ys, 0, 0),
-            simd_float4(0, 0, zs, -1),
-            simd_float4(0, 0, zs * nearZ, 0)
+            simd_float4(Float(xs), 0, 0, 0),
+            simd_float4(0, Float(ys), 0, 0),
+            simd_float4(0, 0, Float(zs), -1),
+            simd_float4(0, 0, Float(zs * nearZ), 0)
         ))
     }
     

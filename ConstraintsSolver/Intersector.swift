@@ -9,25 +9,25 @@ import Foundation
 
 struct Contact {
     var body: Cuboid
-    let normal: simd_float3
-    let magnitude: Float
-    let penetratingVertex: simd_float3
+    let normal: simd_double3
+    let magnitude: Double
+    let penetratingVertex: simd_double3
 }
 
-extension Float {
-    func sqare() -> Float {
+extension Double {
+    func sqare() -> Double {
         self * self
     }
 }
 
 /// A cuboid located at the origin, extending in the positive axis directions.
 class Cuboid {
-    let mass: Float
-    var velocity: simd_float3
-    let extent: simd_float3
+    let mass: Double
+    var velocity: simd_double3
+    let extent: simd_double3
     var transform: Transform
     
-    init(mass: Float, extent: simd_float3) {
+    init(mass: Double, extent: simd_double3) {
         self.mass = mass
         self.extent = extent
         self.velocity = .zero
@@ -35,33 +35,33 @@ class Cuboid {
     }
     
     func restTransform() -> Transform {
-        .translation(0.5 * simd_float3(-extent.x, -extent.y, -extent.z))
+        .translation(0.5 * simd_double3(-extent.x, -extent.y, -extent.z))
     }
     
-    func inertiaTensor() -> simd_float3 {
-        1.0 / 12.0 * mass * simd_float3(
+    func inertiaTensor() -> simd_double3 {
+        1.0 / 12.0 * mass * simd_double3(
             extent.y * extent.y + extent.z * extent.z,
             extent.x * extent.x + extent.z * extent.z,
             extent.x * extent.x + extent.y * extent.y
         )
     }
     
-    func inverseInertiaTensor() -> simd_float3 {
+    func inverseInertiaTensor() -> simd_double3 {
         1 / inertiaTensor()
     }
 }
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
 func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
-    let canonicalVertices: [simd_float3] = [
-        simd_float3(0, 0, 0),
-        simd_float3(cuboid.extent.x, 0, 0),
-        simd_float3(0, cuboid.extent.y, 0),
-        simd_float3(cuboid.extent.x, cuboid.extent.y, 0),
-        simd_float3(0, 0, cuboid.extent.z),
-        simd_float3(cuboid.extent.x, 0, cuboid.extent.z),
-        simd_float3(0, cuboid.extent.y, cuboid.extent.z),
-        simd_float3(cuboid.extent.x, cuboid.extent.y, cuboid.extent.z)
+    let canonicalVertices: [simd_double3] = [
+        .init(0, 0, 0),
+        .init(cuboid.extent.x, 0, 0),
+        .init(0, cuboid.extent.y, 0),
+        .init(cuboid.extent.x, cuboid.extent.y, 0),
+        .init(0, 0, cuboid.extent.z),
+        .init(cuboid.extent.x, 0, cuboid.extent.z),
+        .init(0, cuboid.extent.y, cuboid.extent.z),
+        .init(cuboid.extent.x, cuboid.extent.y, cuboid.extent.z)
     ]
     
     let vertices = canonicalVertices.map(cuboid.transform.act)
@@ -71,7 +71,7 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
         return .none
     }
     
-    let normal = simd_float3(0, 0, 1)
+    let normal = simd_double3(0, 0, 1)
     let deepestVertexRestSpace = (cuboid.restTransform() * cuboid.transform.inverse()).act(on: deepestVertex)
     let normalRestSpace = (cuboid.restTransform() * cuboid.transform.inverse()).rotate(normal)
     
@@ -87,13 +87,13 @@ func solveConstraints(cuboid: Cuboid) {
     let countOfSubSteps = 10
     for _ in 0..<countOfSubSteps {
         if let contact = intersectCuboidWithGround(cuboid) {
-            let inverseMass: Float = 1 / contact.body.mass
+            let inverseMass = 1.0 / contact.body.mass
             let conormal = cross(contact.penetratingVertex, contact.normal)
             let tau = dot(conormal * contact.body.inverseInertiaTensor(), conormal)
             let generalizedInverseMass = inverseMass + tau
             
             let impulse = -contact.magnitude / generalizedInverseMass * contact.normal
-            let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
+            let angularVelocity = simd_quatd(real: 0, imag: cross(contact.penetratingVertex, impulse))
             
             let deltaTranslation = impulse / contact.body.mass
             let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation

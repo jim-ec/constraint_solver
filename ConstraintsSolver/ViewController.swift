@@ -6,7 +6,7 @@ class ViewController: NSViewController, FrameDelegate {
     var renderer: Renderer!
     var mtkView: MTKView!
     var cube: Geometry!
-    var cuboid = Cuboid(mass: 2.0, extent: simd_float3(1, 1, 1))
+    var cuboid = Cuboid(mass: 2.0, extent: simd_double3(1, 1, 1))
     var triangle: Geometry!
     
     override func loadView() {
@@ -42,7 +42,7 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView.allowedTouchTypes = .indirect
     }
     
-    func onFrame(dt: Float, t: Float) {
+    func onFrame(dt: Double, t: Double) {
         
 //        let velocity = timeSubStep * externalForce / mass
         
@@ -78,19 +78,19 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func mouseDragged(with event: NSEvent) {
-        let sensitivity: Float = 0.01
-        renderer.viewOrbitAzimuth += Float(event.deltaX) * sensitivity
-        renderer.viewOrbitElevation += Float(event.deltaY) * sensitivity
+        let sensitivity = 0.01
+        renderer.viewOrbitAzimuth += Double(event.deltaX) * sensitivity
+        renderer.viewOrbitElevation += Double(event.deltaY) * sensitivity
     }
     
     override func scrollWheel(with event: NSEvent) {
-        let sensitivity: Float = 0.001 * renderer.viewOrbitRadius
-        renderer.viewPanning.x += Float(-event.scrollingDeltaX) * sensitivity
-        renderer.viewPanning.z += Float(event.scrollingDeltaY) * sensitivity
+        let sensitivity = 0.001 * renderer.viewOrbitRadius
+        renderer.viewPanning.x += Double(-event.scrollingDeltaX) * sensitivity
+        renderer.viewPanning.z += Double(event.scrollingDeltaY) * sensitivity
     }
     
     override func magnify(with event: NSEvent) {
-        renderer.viewOrbitRadius *= Float(1 - event.magnification)
+        renderer.viewOrbitRadius *= Double(1 - event.magnification)
     }
     
 }

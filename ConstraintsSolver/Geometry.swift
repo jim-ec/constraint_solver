@@ -23,18 +23,20 @@ class Geometry {
         GeometryBuilder(geometry: self)
     }
     
-    func findCenterOfMass() -> simd_float3 {
-        var centerOfMass = simd_float3()
+    func findCenterOfMass() -> simd_double3 {
+        var centerOfMass = simd_double3()
         for vertex in vertices {
-            centerOfMass += vertex.position
+            centerOfMass += simd_double3(vertex.position)
         }
-        centerOfMass /= Float(vertices.count)
+        centerOfMass /= Double(vertices.count)
         return centerOfMass
     }
     
     /// Applies the given transform to all position vectors of this geometry.
     func map(by transform: Transform) {
-        map(by: transform.act)
+        map { x in
+            simd_float3(transform.act(on: simd_double3(x)))
+        }
     }
     
     /// Maps all position vectors of this geometry according to mapping function.
