@@ -78,13 +78,13 @@ extension Renderer {
     
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
         let builder = makeGeometry(name: name, vertexCount: 6).builder()
-                
-        builder.push(vertex: Vertex(position: -.e1 - .e3, normal: -.e2, color: colors.0.rgb))
-        builder.push(vertex: Vertex(position: .e1 - .e3, normal: -.e2, color: colors.1.rgb))
-        builder.push(vertex: Vertex(position: .e3, normal: -.e2, color: colors.2.rgb))
-        builder.push(vertex: Vertex(position: -.e1 - .e3, normal: .e2, color: colors.0.rgb))
-        builder.push(vertex: Vertex(position: .e3, normal: .e2, color: colors.2.rgb))
-        builder.push(vertex: Vertex(position: .e1 - .e3, normal: .e2, color: colors.1.rgb))
+        
+        builder.push(vertex: Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.0.rgb))
+        builder.push(vertex: Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
+        builder.push(vertex: Vertex(position: simd_float3(0, 0, 1), normal: simd_float3(0, -1, 0), color: colors.2.rgb))
+        builder.push(vertex: Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, 1, 0), color: colors.0.rgb))
+        builder.push(vertex: Vertex(position: simd_float3(0, 0, 1), normal: simd_float3(0, -1, 0), color: colors.2.rgb))
+        builder.push(vertex: Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
         
         return builder.geometry
     }
@@ -92,8 +92,8 @@ extension Renderer {
     func makeQuadliteral(name: String, color: Color) -> Geometry {
         let builder = makeGeometry(name: name, vertexCount: 6).builder()
         
-        builder.push(.zero, .e1, .e1 + .e2, color: color)
-        builder.push(.zero, .e1 + .e2, .e2, color: color)
+        builder.push(.zero, simd_float3(1, 0, 0), simd_float3(1, 1, 0), color: color)
+        builder.push(.zero, simd_float3(1, 1, 0), simd_float3(0, 1, 0), color: color)
         
         return builder.geometry
     }
@@ -101,23 +101,23 @@ extension Renderer {
     func makeCube(name: String, color: Color) -> Geometry {
         let builder = makeGeometry(name: name, vertexCount: 36).builder()
         
-        builder.push(.zero, .e1, .e1 + .e3, color: color)
-        builder.push(.zero, .e1 + .e3, .e3, color: color)
+        builder.push(.zero, simd_float3(1, 0, 0), simd_float3(1, 0, 1), color: color)
+        builder.push(.zero, simd_float3(1, 0, 1), simd_float3(0, 0, 1), color: color)
         
-        builder.push(.zero, .e2 + .e1, .e1, color: color)
-        builder.push(.zero, .e2, .e2 + .e1, color: color)
+        builder.push(.zero, simd_float3(1, 1, 0), simd_float3(1, 0, 0), color: color)
+        builder.push(.zero, simd_float3(0, 1, 0), simd_float3(1, 1, 0), color: color)
         
-        builder.push(.zero, .e3, .e3 + .e2, color: color)
-        builder.push(.zero, .e3 + .e2, .e2, color: color)
+        builder.push(.zero, simd_float3(0, 0, 1), simd_float3(0, 1, 1), color: color)
+        builder.push(.zero, simd_float3(0, 1, 1), simd_float3(0, 1, 0), color: color)
         
-        builder.push(.e1, .e1 + .e2 + .e3, .e1 + .e3, color: color)
-        builder.push(.e1, .e1 + .e2, .e1 + .e2 + .e3, color: color)
+        builder.push(simd_float3(1, 0, 0), simd_float3(1, 1, 1), simd_float3(1, 0, 1), color: color)
+        builder.push(simd_float3(1, 0, 0), simd_float3(1, 1, 0), simd_float3(1, 1, 1), color: color)
         
-        builder.push(.e2, .e1 + .e2 + .e3, .e1 + .e2, color: color)
-        builder.push(.e2, .e2 + .e3, .e1 + .e2 + .e3, color: color)
+        builder.push(simd_float3(0, 1, 0), simd_float3(1, 1, 1), simd_float3(1, 1, 0), color: color)
+        builder.push(simd_float3(0, 1, 0), simd_float3(0, 1, 1), simd_float3(1, 1, 1), color: color)
         
-        builder.push(.e3, .e1 + .e3, .e1 + .e2 + .e3, color: color)
-        builder.push(.e3, .e1 + .e2 + .e3, .e2 + .e3, color: color)
+        builder.push(simd_float3(0, 0, 1), simd_float3(1, 0, 1), simd_float3(1, 1, 1), color: color)
+        builder.push(simd_float3(0, 0, 1), simd_float3(1, 1, 1), simd_float3(0, 1, 1), color: color)
         
         return builder.geometry
     }
