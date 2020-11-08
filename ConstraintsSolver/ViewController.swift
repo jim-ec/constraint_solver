@@ -20,9 +20,9 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.viewOrbitRadius = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.map(by: Transform.translation(-cube.findCenterOfMass()))
+//        cube.map(by: Transform.translation(-cube.findCenterOfMass()))
         cube.transform.rotation = .init(angle: atan(1 / 2), axis: .e2 + 0.5 * .e1)
-        cube.transform.translation.z = 4
+        cube.transform.translation.z = 2
         
         let X = renderer.makeCube(name: "x", color: .red)
         X.map(by: Transform.translation(-X.findCenterOfMass()))
