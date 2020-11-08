@@ -26,9 +26,9 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
     VertexOut out;
     
     out.color = in.color;
-    out.normal = uniforms.rotation * in.normal;
-    out.position = uniforms.rotation * in.position + uniforms.translation;
-    out.clipSpacePosition = toClipSpace(uniforms.projection) * float4(uniforms.viewRotation * out.position + uniforms.viewTranslation, 1.0);
+    out.normal = (uniforms.model * float4(in.normal, 0)).xyz;
+    out.position = (uniforms.model * float4(in.position, 1)).xyz;
+    out.clipSpacePosition = toClipSpace(uniforms.projection) * uniforms.view * float4(out.position, 1);
     
     return out;
 }

@@ -101,10 +101,8 @@ class Renderer: NSObject, MTKViewDelegate {
         viewTransform.translation -= viewPanning
         
         var uniforms = Uniforms(
-            rotation: .identity,
-            translation: .zero,
-            viewRotation: simd_float3x3(viewTransform.rotation),
-            viewTranslation: viewTransform.translation,
+            model: simd_float4x4(diagonal: .one),
+            view: viewTransform.matrix(),
             viewPosition: viewTransform.inverse().act(on: simd_float3()),
             projection: projectionMatrix()
         )
@@ -114,8 +112,7 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            uniforms.rotation = simd_float3x3(geometry.transform.rotation)
-            uniforms.translation = geometry.transform.translation
+            uniforms.model = geometry.transform.matrix()
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))

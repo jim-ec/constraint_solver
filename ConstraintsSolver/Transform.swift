@@ -30,6 +30,11 @@ struct Transform {
     var translation: simd_float3
     var rotation: simd_quatf
     
+    func matrix() -> simd_float4x4 {
+        let upperLeft3x3 = simd_float3x3(rotation)
+        return simd_float4x4(simd_float4(upperLeft3x3.columns.0, 0), simd_float4(upperLeft3x3.columns.1, 0), simd_float4(upperLeft3x3.columns.2, 0), simd_float4(translation, 1))
+    }
+    
     static func identity() -> Transform {
         return Transform(translation: .zero, rotation: .identity)
     }
