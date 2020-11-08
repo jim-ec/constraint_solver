@@ -6,7 +6,7 @@ class ViewController: NSViewController, FrameDelegate {
     var renderer: Renderer!
     var mtkView: MTKView!
     var cube: Geometry!
-    var cuboid = Cuboid(mass: 2.0, extent: simd_float3(3, 0, 3))
+    var cuboid = Cuboid(mass: 2.0, extent: simd_float3(1, 1, 1))
     var triangle: Geometry!
     
     override func loadView() {
@@ -20,17 +20,9 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.viewOrbitRadius = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.map { x in 3 * x }
         cube.map(by: Transform.translation(-cube.findCenterOfMass()))
-//        cube.transform.translation.z = 2
-//        cube.transform.rotation = .init(angle: .pi / 6, axis: normalize(simd_float3(0, 1, 0)))
-        cube.transform.rotation = .init(angle: atan(1 / 2), axis: .e2)
-        cube.transform.translation.z = 1.5
-                
-//        let cuboid = Cuboid(mass: 2.0, extent: simd_float3(3, 0, 3))
-//        cuboid.transform = cube.transform
-//        solveConstraints(cuboid: cuboid)
-//        cube.transform = cuboid.transform
+        cube.transform.rotation = .init(angle: atan(1 / 2), axis: .e2 + 0.5 * .e1)
+        cube.transform.translation.z = 4
         
         let X = renderer.makeCube(name: "x", color: .red)
         X.map(by: Transform.translation(-X.findCenterOfMass()))
