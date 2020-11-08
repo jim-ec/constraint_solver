@@ -6,7 +6,7 @@ class ViewController: NSViewController, FrameDelegate {
     var renderer: Renderer!
     var mtkView: MTKView!
     var cube: Geometry!
-    var cuboid = Cuboid(mass: 1.0, extent: simd_float3(1, 1, 1))
+    var cuboid = Cuboid(mass: 2.0, extent: simd_float3(3, 0, 3))
     var triangle: Geometry!
     
     override func loadView() {
@@ -20,10 +20,17 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.viewOrbitRadius = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-        //cube.map(by: Transform.translation(-cube.findCenterOfMass()))
+        cube.map { x in 3 * x }
+        cube.map(by: Transform.translation(-cube.findCenterOfMass()))
 //        cube.transform.translation.z = 2
-        cube.transform.rotation = .init(angle: .pi / 6, axis: normalize(simd_float3(2, 1, 0)))
-        cube.transform.translation.z = 1
+//        cube.transform.rotation = .init(angle: .pi / 6, axis: normalize(simd_float3(0, 1, 0)))
+        cube.transform.rotation = .init(angle: atan(1 / 2), axis: .e2)
+        cube.transform.translation.z = 1.5
+                
+//        let cuboid = Cuboid(mass: 2.0, extent: simd_float3(3, 0, 3))
+//        cuboid.transform = cube.transform
+//        solveConstraints(cuboid: cuboid)
+//        cube.transform = cuboid.transform
         
         let X = renderer.makeCube(name: "x", color: .red)
         X.map(by: Transform.translation(-X.findCenterOfMass()))
@@ -47,14 +54,14 @@ class ViewController: NSViewController, FrameDelegate {
         
 //        let velocity = timeSubStep * externalForce / mass
         
-        cube.transform.translation.z -= 0.5 * dt
-        
+        cube.transform.translation.z -= 1 * dt
+//
         cuboid.transform = cube.transform
-//        cuboid.velocity += velocity
-//        cuboid.transform.translation += cuboid.velocity
-        
+////        cuboid.velocity += velocity
+////        cuboid.transform.translation += cuboid.velocity
+//
         solveConstraints(cuboid: cuboid)
-        
+//
         cube.transform = cuboid.transform
         
 //

@@ -20,7 +20,9 @@ extension Float {
     }
 }
 
+/// TODO: Resting or not?
 /// A cuboid located at the origin, extending in the positive axis directions.
+/// A resting cuboid.
 class Cuboid {
     let mass: Float
     var velocity: simd_float3
@@ -35,7 +37,8 @@ class Cuboid {
     }
     
     func restTransform() -> Transform {
-        .translation(simd_float3(-extent.x, -extent.y, -extent.z))
+        //.translation(simd_float3(-extent.x, -extent.y, -extent.z))
+        .identity()
     }
     
     func inertiaTensor() -> simd_float3 {
@@ -44,6 +47,7 @@ class Cuboid {
             extent.x * extent.x + extent.z * extent.z,
             extent.x * extent.x + extent.y * extent.y
         )
+//        .e2 * (1 / 12 * mass * (extent.x * extent.x + extent.z * extent.z))
     }
     
     func inverseInertiaTensor() -> simd_float3 {
@@ -64,33 +68,36 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
         simd_float3(cuboid.extent.x, cuboid.extent.y, cuboid.extent.z)
     ]
     
-    let vertices = canonicalVertices.map(cuboid.transform.act)
+    let vertices = canonicalVertices.map { x in x - 0.5 * cuboid.extent }.map(cuboid.transform.act)
     let deepestVertex = vertices.min { a, b in a.z < b.z }!
     
     if deepestVertex.z >= 0 {
         return .none
     }
     
-    let deepestVertexRestSpace = (cuboid.transform.inverse() * cuboid.restTransform()).act(on: deepestVertex)
-    let collisionNormalRestSpace = cuboid.restTransform().act(on: simd_float3(0, 0, -1))
+    let normal = simd_float3(0, 0, 1)
+    let deepestVertexRestSpace = (cuboid.restTransform() * cuboid.transform.inverse()).act(on: deepestVertex)
+//    let collisionNormalRestSpace = cuboid.restTransform().act(on: simd_float3(0, 0, -1))
+    let normalRestSpace = (cuboid.restTransform() * cuboid.transform.inverse()).rotate(normal)
     
     return Contact(
         body: cuboid,
-        normal: collisionNormalRestSpace,
+        normal: normalRestSpace,
         magnitude: -deepestVertex.z,
         penetratingVertex: deepestVertexRestSpace
     )
 }
 
 func solveConstraints(cuboid: Cuboid) {
-    let countOfSubSteps = 5
+    let countOfSubSteps = 50
     for _ in 0..<countOfSubSteps {
         if let contact = intersectCuboidWithGround(cuboid) {
             let inverseMass: Float = 1 / contact.body.mass
             let conormal = cross(contact.penetratingVertex, contact.normal)
-            let generalizedInverseMass = inverseMass + dot(conormal, contact.body.inverseInertiaTensor() * conormal)
+            let tau = dot(conormal * contact.body.inverseInertiaTensor(), conormal)
+            let generalizedInverseMass = inverseMass + tau
             
-            let impulse = -contact.magnitude / generalizedInverseMass * contact.normal
+            let impulse = contact.magnitude / generalizedInverseMass * contact.normal
             let angularVelocity = simd_quatf(real: 0, imag: cross(contact.penetratingVertex, impulse))
             
             let deltaTranslation = impulse / contact.body.mass
