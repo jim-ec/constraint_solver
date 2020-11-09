@@ -91,11 +91,11 @@ func solveConstraints(dt: Double, cuboid: Cuboid) {
         cuboid.previousTransform = cuboid.transform
         
         cuboid.velocity += h * cuboid.externalForce / cuboid.mass
-        cuboid.transform.translation += h * cuboid.velocity
+        cuboid.transform.position += h * cuboid.velocity
         
         //        cuboid.angularVelocity += dt *
-        cuboid.transform.rotation += h * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.rotation
-        cuboid.transform.rotation = cuboid.transform.rotation.normalized
+        cuboid.transform.orientation += h * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.orientation
+        cuboid.transform.orientation = cuboid.transform.orientation.normalized
         
         if let constraint = intersectCuboidWithGround(cuboid) {
             let conormal = cuboid.transform.inverse().rotate(cross(constraint.r, constraint.n))
@@ -105,20 +105,20 @@ func solveConstraints(dt: Double, cuboid: Cuboid) {
             let impulse = -constraint.c / generalizedInverseMass * constraint.n
             let angularVelocity = simd_quatd(real: 0, imag: cross(constraint.r, impulse))
             
-            let deltaTranslation = impulse / constraint.body.mass
-            let deltaRotation = 0.5 * angularVelocity * constraint.body.transform.rotation
+            let translation = impulse / constraint.body.mass
+            let rotation = 0.5 * angularVelocity * constraint.body.transform.orientation
             
-            constraint.body.transform.translation -= deltaTranslation
+            constraint.body.transform.position -= translation
             
-            constraint.body.transform.rotation -= deltaRotation
-            constraint.body.transform.rotation = constraint.body.transform.rotation.normalized
+            constraint.body.transform.orientation -= rotation
+            constraint.body.transform.orientation = constraint.body.transform.orientation.normalized
         }
         
-        cuboid.velocity = (cuboid.transform.translation - cuboid.previousTransform.translation) / h
+        cuboid.velocity = (cuboid.transform.position - cuboid.previousTransform.position) / h
         
-        let deltaRotation = (cuboid.transform.rotation * cuboid.previousTransform.rotation.inverse).normalized
-        cuboid.angularVelocity = 2.0 * deltaRotation.imag / h
-        if deltaRotation.real < 0 {
+        let rotation = (cuboid.transform.orientation * cuboid.previousTransform.orientation.inverse).normalized
+        cuboid.angularVelocity = 2.0 * rotation.imag / h
+        if rotation.real < 0 {
             cuboid.angularVelocity = -cuboid.angularVelocity
         }
     }

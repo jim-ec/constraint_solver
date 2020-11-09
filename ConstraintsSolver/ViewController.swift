@@ -21,24 +21,24 @@ class ViewController: NSViewController, FrameDelegate {
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.map { x in x - simd_float3(0.5, 0.5, 0.5) }
-//        cube.transform.rotation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
-        cube.transform.translation.z = 4
+        cube.transform.orientation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
+        cube.transform.position.z = 4
         
         cuboid.externalForce.z = -5
-//        cuboid.angularVelocity = .init(1, 2, 0.5)
+        cuboid.angularVelocity = .init(1, 2, 0.5)
         
         let X = renderer.makeCube(name: "x", color: .red)
-        X.map(by: Transform.translation(-X.findCenterOfMass()))
+        X.map(by: Transform.position(-X.findCenterOfMass()))
         X.map { x in x * 0.5 }
-        X.transform.translation.x = 4
+        X.transform.position.x = 4
         
         let Y = renderer.makeCube(name: "y", color: .green)
-        Y.map(by: Transform.translation(-Y.findCenterOfMass()))
+        Y.map(by: Transform.position(-Y.findCenterOfMass()))
         Y.map { x in x * 0.5 }
-        Y.transform.translation.y = 4
+        Y.transform.position.y = 4
         
         let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
-        floor.map(by: Transform.translation(-floor.findCenterOfMass()))
+        floor.map(by: Transform.position(-floor.findCenterOfMass()))
         floor.map { position in position * 10 }
         
         view = mtkView

@@ -41,59 +41,59 @@ extension Array where Element == simd_double3 {
 }
 
 struct Transform {
-    var translation: simd_double3
-    var rotation: simd_quatd
+    var position: simd_double3
+    var orientation: simd_quatd
     
     func matrix() -> simd_float4x4 {
-        let upperLeft3x3 = simd_float3x3(simd_quatf(vector: simd_float4(rotation.vector)))
+        let upperLeft3x3 = simd_float3x3(simd_quatf(vector: simd_float4(orientation.vector)))
         return simd_float4x4(simd_float4(upperLeft3x3.columns.0, 0),
                              simd_float4(upperLeft3x3.columns.1, 0),
                              simd_float4(upperLeft3x3.columns.2, 0),
-                             simd_float4(simd_float3(translation), 1))
+                             simd_float4(simd_float3(position), 1))
     }
     
     static func identity() -> Transform {
-        return Transform(translation: .zero, rotation: .identity)
+        return Transform(position: .zero, orientation: .identity)
     }
     
-    static func translation(_ translation: simd_double3) -> Transform {
-        return Transform(translation: translation, rotation: .identity)
+    static func position(_ position: simd_double3) -> Transform {
+        return Transform(position: position, orientation: .identity)
     }
     
-    static func rotation(_ rotation: simd_quatd) -> Transform {
-        return Transform(translation: .zero, rotation: rotation)
+    static func orientation(_ orientation: simd_quatd) -> Transform {
+        return Transform(position: .zero, orientation: orientation)
     }
     
     static func around(x angle: Double) -> Transform {
-        return Transform(translation: .zero, rotation: simd_quatd(angle: angle, axis: .e1))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .e1))
     }
     
     static func around(y angle: Double) -> Transform {
-        return Transform(translation: .zero, rotation: simd_quatd(angle: angle, axis: .e2))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .e2))
     }
     
     static func around(z angle: Double) -> Transform {
-        return Transform(translation: .zero, rotation: simd_quatd(angle: angle, axis: .e3))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .e3))
     }
     
     static func around(axis: simd_double3, angle: Double) -> Transform {
-        return Transform(translation: .zero, rotation: simd_quatd(angle: angle, axis: axis))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: axis))
     }
     
     /// Positions the viewer along the negative y-axis, offsets from that axis are given in angle quantities.
     static func look(azimuth: Double, elevation: Double, radius: Double) -> Transform {
         .around(z: azimuth) *
             .around(x: elevation) *
-            .translation(simd_double3(0, radius, 0))
+            .position(simd_double3(0, radius, 0))
     }
     
     /// Composition of two transforms.
     /// The resultant transform describes the first transform as happening within the second transform.
     /// The second transform therefore acts as a parent transform.
     static func *(_ a: Transform, _ b: Transform) -> Transform {
-        let rotation = b.rotation * a.rotation
-        let translation = b.rotation.act(a.translation) + b.translation
-        return Transform(translation: translation, rotation: rotation)
+        let orientation = b.orientation * a.orientation
+        let position = b.orientation.act(a.position) + b.position
+        return Transform(position: position, orientation: orientation)
     }
     
     /// The inverse composition of two transforms.
@@ -104,7 +104,7 @@ struct Transform {
     
     /// Concatenates two transforms.
     static func +(_ a: Transform, _ b: Transform) -> Transform {
-        Transform(translation: a.translation + b.translation, rotation: a.rotation * b.rotation)
+        Transform(position: a.position + b.position, orientation: a.orientation * b.orientation)
     }
     
     /// The difference between two transforms.
@@ -114,17 +114,17 @@ struct Transform {
     
     /// Applies this transform to some vector.
     func act(on x: simd_double3) -> simd_double3 {
-        rotation.act(x) + translation
+        orientation.act(x) + position
     }
     
     /// Applies only the rotational part of this transform to the given vector.
     func rotate(_ x: simd_double3) -> simd_double3 {
-        rotation.act(x)
+        orientation.act(x)
     }
     
     func inverse() -> Transform {
-        let inverseRotation = rotation.inverse
-        let inverseTranslaton = -inverseRotation.act(translation)
-        return Transform(translation: inverseTranslaton, rotation: inverseRotation)
+        let inverseOrientation = orientation.inverse
+        let inversePosition = -inverseOrientation.act(position)
+        return Transform(position: inversePosition, orientation: inverseOrientation)
     }
 }
