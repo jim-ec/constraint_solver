@@ -76,8 +76,8 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
         return .none
     }
     
-    var deepestVertex = verticesBelowGround[0]
-    for v in verticesBelowGround.dropFirst(1) {
+    var deepestVertex = simd_double3.zero
+    for v in verticesBelowGround {
         deepestVertex += v
     }
     deepestVertex /= Double(verticesBelowGround.count)
@@ -116,7 +116,7 @@ func solveConstraints(dt: Double, cuboid: Cuboid) {
         
         if let contact = intersectCuboidWithGround(cuboid) {
             let inverseMass = 1.0 / contact.body.mass
-            let conormal = cuboid.transform.inverse().act(on: cross(contact.r, contact.n))
+            let conormal = cuboid.transform.inverse().rotate(cross(contact.r, contact.n))
             let tau = dot(conormal * contact.body.inverseInertiaTensor(), conormal)
             let generalizedInverseMass = inverseMass + tau
             
