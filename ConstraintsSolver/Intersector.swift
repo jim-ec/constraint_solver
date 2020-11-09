@@ -9,9 +9,9 @@ import Foundation
 
 struct Contact {
     var body: Cuboid
-    let normal: simd_double3
-    let magnitude: Double
-    let penetratingVertex: simd_double3
+    let n: simd_double3
+    let c: Double
+    let r: simd_double3
 }
 
 extension Double {
@@ -94,9 +94,9 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
 
     return Contact(
         body: cuboid,
-        normal: normalRestSpace,
-        magnitude: -deepestVertex.z,
-        penetratingVertex: deepestVertexRestSpace
+        n: normalRestSpace,
+        c: -deepestVertex.z,
+        r: deepestVertexRestSpace
     )
 }
 
@@ -116,12 +116,12 @@ func solveConstraints(dt: Double, cuboid: Cuboid) {
         
         if let contact = intersectCuboidWithGround(cuboid) {
             let inverseMass = 1.0 / contact.body.mass
-            let conormal = cross(contact.penetratingVertex, contact.normal)
+            let conormal = cross(contact.r, contact.n)
             let tau = dot(conormal * contact.body.inverseInertiaTensor(), conormal)
             let generalizedInverseMass = inverseMass + tau
             
-            let impulse = -contact.magnitude / generalizedInverseMass * contact.normal
-            let angularVelocity = simd_quatd(real: 0, imag: cross(contact.penetratingVertex, impulse))
+            let impulse = -contact.c / generalizedInverseMass * contact.n
+            let angularVelocity = simd_quatd(real: 0, imag: cross(contact.r, impulse))
             
             let deltaTranslation = impulse / contact.body.mass
             let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation

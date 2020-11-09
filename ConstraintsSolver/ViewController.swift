@@ -21,11 +21,11 @@ class ViewController: NSViewController, FrameDelegate {
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.map { x in x - simd_float3(0.5, 0.5, 0.5) }
-        cube.transform.rotation = .init(angle: .pi / 8, axis: .e2 + 0.9 * .e1)
-        cube.transform.translation.z = 5
+        cube.transform.rotation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
+        cube.transform.translation.z = 1.2
         
 //        cuboid.velocity.z = -10
-        cuboid.externalForce.z = -10
+        cuboid.externalForce.z = -1
 //        cuboid.angularVelocity = .init(1, 0, 0)
         
         let X = renderer.makeCube(name: "x", color: .red)
