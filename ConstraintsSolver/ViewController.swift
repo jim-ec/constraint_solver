@@ -6,7 +6,7 @@ class ViewController: NSViewController, FrameDelegate {
     var renderer: Renderer!
     var mtkView: MTKView!
     var cube: Geometry!
-    var cuboid = Cuboid(mass: 2.0, extent: simd_double3(1, 1, 1))
+    var cuboid = Cuboid(mass: 1, extent: simd_double3(1, 1, 1))
     var triangle: Geometry!
     
     override func loadView() {
@@ -21,10 +21,11 @@ class ViewController: NSViewController, FrameDelegate {
         
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.map { x in x - simd_float3(0.5, 0.5, 0.5) }
-        cube.transform.rotation = .init(angle: atan(1 / 2), axis: .e2 + 0.5 * .e1)
-        cube.transform.translation.z = 1.2
+        cube.transform.rotation = .init(angle: .pi / 8, axis: .e2 + 0.9 * .e1)
+        cube.transform.translation.z = 5
         
-        cuboid.externalForce.z = -1
+//        cuboid.velocity.z = -10
+        cuboid.externalForce.z = -10
 //        cuboid.angularVelocity = .init(1, 0, 0)
         
         let X = renderer.makeCube(name: "x", color: .red)
@@ -47,26 +48,7 @@ class ViewController: NSViewController, FrameDelegate {
     
     func onFrame(dt: Double, t: Double) {
         cuboid.transform = cube.transform
-        
-        cuboid.previousTransform = cuboid.transform
-        
-        cuboid.velocity += dt * cuboid.externalForce / cuboid.mass
-        cuboid.transform.translation += dt * cuboid.velocity
-        
-//        cuboid.angularVelocity += dt *
-        cuboid.transform.rotation += dt * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.rotation
-        cuboid.transform.rotation = cuboid.transform.rotation.normalized
-        
-        solveConstraints(cuboid: cuboid)
-        
-        cuboid.velocity = (cuboid.transform.translation - cuboid.previousTransform.translation) / dt
-        
-        let deltaRotation = (cuboid.transform.rotation * cuboid.previousTransform.rotation.inverse).normalized
-        cuboid.angularVelocity = 2.0 * deltaRotation.imag / dt
-        if deltaRotation.real < 0 {
-            cuboid.angularVelocity = -cuboid.angularVelocity
-        }
-        
+        solveConstraints(dt: dt, cuboid: cuboid)
         cube.transform = cuboid.transform
     }
     

@@ -70,16 +70,28 @@ class Cuboid {
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
 func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
-    let deepestVertex = cuboid.vertices().min { a, b in a.z < b.z }!
+    let verticesBelowGround = cuboid.vertices().filter { v in v.z < 0 }
     
-    if deepestVertex.z >= 0 {
+    if verticesBelowGround.isEmpty {
         return .none
     }
     
+    var deepestVertex = verticesBelowGround[0]
+    for v in verticesBelowGround.dropFirst(1) {
+        deepestVertex += v
+    }
+    deepestVertex /= Double(verticesBelowGround.count)
+    
+//    let deepestVertex = cuboid.vertices().min { a, b in a.z < b.z }!
+//
+//    if deepestVertex.z >= 0 {
+//        return .none
+//    }
+//
     let normal = simd_double3(0, 0, 1)
     let deepestVertexRestSpace = cuboid.transform.inverse().act(on: deepestVertex)
     let normalRestSpace = cuboid.transform.inverse().rotate(normal)
-    
+
     return Contact(
         body: cuboid,
         normal: normalRestSpace,
@@ -88,9 +100,20 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
     )
 }
 
-func solveConstraints(cuboid: Cuboid) {
-    let countOfSubSteps = 10
+func solveConstraints(dt: Double, cuboid: Cuboid) {
+    let countOfSubSteps = 100
+    let h = dt / Double(countOfSubSteps)
+    
     for _ in 0..<countOfSubSteps {
+        cuboid.previousTransform = cuboid.transform
+        
+        cuboid.velocity += h * cuboid.externalForce / cuboid.mass
+        cuboid.transform.translation += h * cuboid.velocity
+        
+        //        cuboid.angularVelocity += dt *
+        cuboid.transform.rotation += h * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.rotation
+        cuboid.transform.rotation = cuboid.transform.rotation.normalized
+        
         if let contact = intersectCuboidWithGround(cuboid) {
             let inverseMass = 1.0 / contact.body.mass
             let conormal = cross(contact.penetratingVertex, contact.normal)
@@ -103,10 +126,22 @@ func solveConstraints(cuboid: Cuboid) {
             let deltaTranslation = impulse / contact.body.mass
             let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
             
-            contact.body.transform.translation -= deltaTranslation
+            let deltaTranslationGlobal = cuboid.transform.rotate(deltaTranslation)
+            let deltaRotationGlobal = cuboid.transform.rotation * deltaRotation
             
-            contact.body.transform.rotation -= deltaRotation
+            contact.body.transform.translation -= deltaTranslationGlobal
+            
+            contact.body.transform.rotation -= deltaRotationGlobal
             contact.body.transform.rotation = contact.body.transform.rotation.normalized
         }
+        
+        cuboid.velocity = (cuboid.transform.translation - cuboid.previousTransform.translation) / h
+        
+        let deltaRotation = (cuboid.transform.rotation * cuboid.previousTransform.rotation.inverse).normalized
+        cuboid.angularVelocity = 2.0 * deltaRotation.imag / h
+        if deltaRotation.real < 0 {
+            cuboid.angularVelocity = -cuboid.angularVelocity
+        }
     }
+    
 }

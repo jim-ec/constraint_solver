@@ -14,6 +14,12 @@ extension simd_double3 {
     }
 }
 
+extension simd_double3 {
+    public var string: String {
+        get { "(\(x), \(y), \(z))" }
+    }
+}
+
 extension simd_float3x3 {
     public static var identity: simd_float3x3 {
         get { simd_float3x3(diagonal: .one) }
