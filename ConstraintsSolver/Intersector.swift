@@ -70,31 +70,17 @@ class Cuboid {
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
 func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
-    let verticesBelowGround = cuboid.vertices().filter { v in v.z < 0 }
+    let penetratingVertices = cuboid.vertices().filter { v in v.z < 0 }
     
-    if verticesBelowGround.isEmpty {
+    if penetratingVertices.isEmpty {
         return .none
     }
     
-    var deepestVertex = simd_double3.zero
-    for v in verticesBelowGround {
-        deepestVertex += v
-    }
-    deepestVertex /= Double(verticesBelowGround.count)
+    let deepestVertex = penetratingVertices.average()
     
-//    let deepestVertex = cuboid.vertices().min { a, b in a.z < b.z }!
-//
-//    if deepestVertex.z >= 0 {
-//        return .none
-//    }
-//
-    let normal = simd_double3(0, 0, 1)
-//    let deepestVertexRestSpace = cuboid.transform.inverse().act(on: deepestVertex)
-//    let normalRestSpace = cuboid.transform.inverse().rotate(normal)
-
     return Contact(
         body: cuboid,
-        n: normal,
+        n: .e3,
         c: -deepestVertex.z,
         r: deepestVertex - cuboid.transform.act(on: .zero)
     )

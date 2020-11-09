@@ -32,6 +32,14 @@ extension simd_quatd {
     }
 }
 
+extension Sequence where Element == simd_double3 {
+    func sum() -> Element { reduce(.zero, +) }
+}
+
+extension Array where Element == simd_double3 {
+    func average() -> Element { sum() / Double(count) }
+}
+
 struct Transform {
     var translation: simd_double3
     var rotation: simd_quatd
