@@ -20,9 +20,12 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.viewOrbitRadius = 10
         
         cube = renderer.makeCube(name: "Cube", color: .white)
-//        cube.map(by: Transform.translation(-cube.findCenterOfMass()))
+        cube.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         cube.transform.rotation = .init(angle: atan(1 / 2), axis: .e2 + 0.5 * .e1)
-        cube.transform.translation.z = 2
+        cube.transform.translation.z = 1.2
+        
+        cuboid.externalForce.z = -1
+//        cuboid.angularVelocity = .init(1, 0, 0)
         
         let X = renderer.makeCube(name: "x", color: .red)
         X.map(by: Transform.translation(-X.findCenterOfMass()))
@@ -43,32 +46,28 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Double, t: Double) {
-        
-//        let velocity = timeSubStep * externalForce / mass
-        
-        cube.transform.translation.z -= 1 * dt
-//
         cuboid.transform = cube.transform
-////        cuboid.velocity += velocity
-////        cuboid.transform.translation += cuboid.velocity
-//
+        
+        cuboid.previousTransform = cuboid.transform
+        
+        cuboid.velocity += dt * cuboid.externalForce / cuboid.mass
+        cuboid.transform.translation += dt * cuboid.velocity
+        
+//        cuboid.angularVelocity += dt *
+        cuboid.transform.rotation += dt * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.rotation
+        cuboid.transform.rotation = cuboid.transform.rotation.normalized
+        
         solveConstraints(cuboid: cuboid)
-//
+        
+        cuboid.velocity = (cuboid.transform.translation - cuboid.previousTransform.translation) / dt
+        
+        let deltaRotation = (cuboid.transform.rotation * cuboid.previousTransform.rotation.inverse).normalized
+        cuboid.angularVelocity = 2.0 * deltaRotation.imag / dt
+        if deltaRotation.real < 0 {
+            cuboid.angularVelocity = -cuboid.angularVelocity
+        }
+        
         cube.transform = cuboid.transform
-        
-//
-//        cuboid.transform.translation.z -= 1
-//
-//        if var contact = intersectCuboidWithGround(cuboid: cuboid) {
-//            contactConstraint(contact: &contact, timeSubStep: timeSubStep)
-//        }
-//
-//        cube.transform = cuboid.transform
-        
-        
-//        cube.transform = Transform.around(z: t)
-//            .then(.translation(.e2))
-//            .then(.around(x: t))
     }
     
     override func keyDown(with event: NSEvent) {
