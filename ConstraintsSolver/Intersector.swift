@@ -89,19 +89,19 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> Contact? {
 //    }
 //
     let normal = simd_double3(0, 0, 1)
-    let deepestVertexRestSpace = cuboid.transform.inverse().act(on: deepestVertex)
-    let normalRestSpace = cuboid.transform.inverse().rotate(normal)
+//    let deepestVertexRestSpace = cuboid.transform.inverse().act(on: deepestVertex)
+//    let normalRestSpace = cuboid.transform.inverse().rotate(normal)
 
     return Contact(
         body: cuboid,
-        n: normalRestSpace,
+        n: normal,
         c: -deepestVertex.z,
-        r: deepestVertexRestSpace
+        r: deepestVertex - cuboid.transform.act(on: .zero)
     )
 }
 
 func solveConstraints(dt: Double, cuboid: Cuboid) {
-    let countOfSubSteps = 100
+    let countOfSubSteps = 10
     let h = dt / Double(countOfSubSteps)
     
     for _ in 0..<countOfSubSteps {
@@ -116,7 +116,7 @@ func solveConstraints(dt: Double, cuboid: Cuboid) {
         
         if let contact = intersectCuboidWithGround(cuboid) {
             let inverseMass = 1.0 / contact.body.mass
-            let conormal = cross(contact.r, contact.n)
+            let conormal = cuboid.transform.inverse().act(on: cross(contact.r, contact.n))
             let tau = dot(conormal * contact.body.inverseInertiaTensor(), conormal)
             let generalizedInverseMass = inverseMass + tau
             
@@ -126,12 +126,12 @@ func solveConstraints(dt: Double, cuboid: Cuboid) {
             let deltaTranslation = impulse / contact.body.mass
             let deltaRotation = 0.5 * angularVelocity * contact.body.transform.rotation
             
-            let deltaTranslationGlobal = cuboid.transform.rotate(deltaTranslation)
-            let deltaRotationGlobal = cuboid.transform.rotation * deltaRotation
+//            let deltaTranslationGlobal = cuboid.transform.rotate(deltaTranslation)
+//            let deltaRotationGlobal = cuboid.transform.rotation * deltaRotation
             
-            contact.body.transform.translation -= deltaTranslationGlobal
+            contact.body.transform.translation -= deltaTranslation
             
-            contact.body.transform.rotation -= deltaRotationGlobal
+            contact.body.transform.rotation -= deltaRotation
             contact.body.transform.rotation = contact.body.transform.rotation.normalized
         }
         
