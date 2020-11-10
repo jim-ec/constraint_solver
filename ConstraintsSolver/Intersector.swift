@@ -89,6 +89,9 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
     let subStepCount = 10
     let subDeltaTime = deltaTime / Double(subStepCount)
     
+    let compliance = 0.0000001
+    let timeStepCompliance = compliance / (subDeltaTime * subDeltaTime)
+    
     for _ in 0..<subStepCount {
         let currentPosition = cuboid.position
         let currentOrientation = cuboid.orientation
@@ -112,7 +115,8 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
             let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
             
-            let impulse = constraint.magnitude / (generalizedInverseMass0 + generalizedInverseMass1) * constraint.direction
+            let lagrangeMultiplier = constraint.magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
+            let impulse = lagrangeMultiplier * constraint.direction
             
             let translation0 = impulse * cuboid.inverseMass
             let translation1 = impulse * groundInverseMass
