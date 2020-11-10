@@ -22,7 +22,7 @@ class ViewController: NSViewController, FrameDelegate {
         cube = renderer.makeCube(name: "Cube", color: .white)
         cube.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         cube.transform.orientation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
-        cube.transform.position.z = 4
+        cube.transform.position = simd_double3(0, 0, 4)
         
         cuboid.externalForce.z = -5
         cuboid.angularVelocity = .init(1, 2, 0.5)
@@ -49,7 +49,8 @@ class ViewController: NSViewController, FrameDelegate {
         cuboid.position = cube.transform.position
         cuboid.orientation = cube.transform.orientation
         solveConstraints(deltaTime: dt, cuboid: cuboid)
-        cube.transform = cuboid.transform()
+        cube.transform.position = cuboid.position
+        cube.transform.orientation = cuboid.orientation
     }
     
     override func keyDown(with event: NSEvent) {

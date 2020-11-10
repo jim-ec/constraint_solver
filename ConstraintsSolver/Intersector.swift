@@ -47,8 +47,12 @@ class Cuboid {
         self.inverseInertia = 1 / inertia
     }
     
-    func transform() -> Transform {
-        Transform(position: position, orientation: orientation)
+    func intoRestAttidue(_ x: simd_double3) -> simd_double3 {
+        orientation.inverse.act(x - position)
+    }
+    
+    func fromRestAttidue(_ x: simd_double3) -> simd_double3 {
+        orientation.act(x) + position
     }
     
     func vertices() -> [simd_double3] {
@@ -64,7 +68,7 @@ class Cuboid {
         ]
         
         let verticesRestSpace = cube.map { v in 0.5 * extent * v }
-        return verticesRestSpace.map { v in transform().act(on: v) }
+        return verticesRestSpace.map(fromRestAttidue)
     }
 }
 
@@ -109,7 +113,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         let groundTransformInverse = Transform.identity()
         
         if let constraint = intersectCuboidWithGround(cuboid) {
-            let angularImpulseDual0 = cuboid.transform().inverse().rotate(cross(constraint.positions.0, constraint.direction))
+            let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, constraint.direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, constraint.direction))
             
             let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
