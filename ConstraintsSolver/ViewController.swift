@@ -53,7 +53,7 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func keyDown(with event: NSEvent) {
-        if event.keyCode == 12 && event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command {
+        if event.keyCode == 12 && event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting(.capsLock) == .command {
             NSApplication.shared.terminate(self)
         }
     }
