@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct UnilateralPositionalCorrection {
+struct PositionalConstraint {
     let direction: simd_double3
     let magnitude: Double
-    let position: simd_double3
+    let positions: (simd_double3, simd_double3)
 }
 
 extension Double {
@@ -69,7 +69,7 @@ class Cuboid {
 }
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
-func intersectCuboidWithGround(_ cuboid: Cuboid) -> UnilateralPositionalCorrection? {
+func intersectCuboidWithGround(_ cuboid: Cuboid) -> PositionalConstraint? {
     let penetratingVertices = cuboid.vertices().filter { v in v.z < 0 }
     
     if penetratingVertices.isEmpty {
@@ -78,10 +78,10 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> UnilateralPositionalCorrecti
     
     let deepestVertex = penetratingVertices.reduce(simd_double3.zero, +) / Double(penetratingVertices.count)
     
-    return UnilateralPositionalCorrection(
+    return PositionalConstraint(
         direction: .e3,
         magnitude: -deepestVertex.z,
-        position: deepestVertex - cuboid.position
+        positions: (deepestVertex - cuboid.position, simd_double3(deepestVertex.x, deepestVertex.y, 0))
     )
 }
 
@@ -99,18 +99,32 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         cuboid.orientation += subDeltaTime * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.orientation
         cuboid.orientation = cuboid.orientation.normalized
         
+        var groundPosition = simd_double3.zero
+        var groundOrientation = simd_quatd.identity
+        let groundInverseMass = 0.0
+        let groundInverseInertia = simd_double3.zero
+        let groundTransformInverse = Transform.identity()
+        
         if let constraint = intersectCuboidWithGround(cuboid) {
-            let angularImpulseDual = cuboid.transform().inverse().rotate(cross(constraint.position, constraint.direction))
-            let generalizedInverseMass = cuboid.inverseMass + dot(angularImpulseDual * cuboid.inverseInertia, angularImpulseDual)
+            let angularImpulseDual0 = cuboid.transform().inverse().rotate(cross(constraint.positions.0, constraint.direction))
+            let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, constraint.direction))
             
-            let impulse = constraint.magnitude / generalizedInverseMass * constraint.direction
-            let angularVelocity = simd_quatd(real: 0, imag: cross(constraint.position, impulse))
+            let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
+            let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
             
-            let translation = impulse / cuboid.mass
-            let rotation = 0.5 * angularVelocity * cuboid.orientation
+            let impulse = constraint.magnitude / (generalizedInverseMass0 + generalizedInverseMass1) * constraint.direction
             
-            cuboid.position = cuboid.position + translation
-            cuboid.orientation = (cuboid.orientation + rotation).normalized
+            let translation0 = impulse * cuboid.inverseMass
+            let translation1 = impulse * groundInverseMass
+            
+            let rotation0 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.0, impulse)) * cuboid.orientation
+            let rotation1 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
+            
+            cuboid.position += translation0
+            cuboid.orientation = (cuboid.orientation + rotation0).normalized
+            
+            groundPosition += translation1
+            groundOrientation = (groundOrientation + rotation1).normalized
         }
         
         cuboid.velocity = (cuboid.position - currentPosition) / subDeltaTime
