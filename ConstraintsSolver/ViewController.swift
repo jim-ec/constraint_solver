@@ -47,7 +47,7 @@ class ViewController: NSViewController, FrameDelegate {
     
     func onFrame(dt: Double, t: Double) {
         cuboid.transform = cube.transform
-        solveConstraints(dt: dt, cuboid: cuboid)
+        solveConstraints(deltaTime: dt, cuboid: cuboid)
         cube.transform = cuboid.transform
     }
     

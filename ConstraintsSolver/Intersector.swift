@@ -9,9 +9,9 @@ import Foundation
 
 struct UnilateralPositionalCorrection {
     var body: Cuboid
-    let n: simd_double3
-    let c: Double
-    let r: simd_double3
+    let direction: simd_double3
+    let magnitude: Double
+    let position: simd_double3
 }
 
 extension Double {
@@ -77,47 +77,44 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> UnilateralPositionalCorrecti
     
     return UnilateralPositionalCorrection(
         body: cuboid,
-        n: .e3,
-        c: -deepestVertex.z,
-        r: deepestVertex - cuboid.transform.act(on: .zero)
+        direction: .e3,
+        magnitude: -deepestVertex.z,
+        position: deepestVertex - cuboid.transform.act(on: .zero)
     )
 }
 
-func solveConstraints(dt: Double, cuboid: Cuboid) {
-    let countOfSubSteps = 10
-    let h = dt / Double(countOfSubSteps)
+func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
+    let subStepCount = 10
+    let subDeltaTime = deltaTime / Double(subStepCount)
     
-    for _ in 0..<countOfSubSteps {
+    for _ in 0..<subStepCount {
         cuboid.previousTransform = cuboid.transform
         
-        cuboid.velocity += h * cuboid.externalForce / cuboid.mass
-        cuboid.transform.position += h * cuboid.velocity
+        cuboid.velocity += subDeltaTime * cuboid.externalForce / cuboid.mass
+        cuboid.transform.position += subDeltaTime * cuboid.velocity
         
         //        cuboid.angularVelocity += dt *
-        cuboid.transform.orientation += h * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.orientation
+        cuboid.transform.orientation += subDeltaTime * 0.5 * simd_quatd(real: .zero, imag: cuboid.angularVelocity) * cuboid.transform.orientation
         cuboid.transform.orientation = cuboid.transform.orientation.normalized
         
         if let constraint = intersectCuboidWithGround(cuboid) {
-            let conormal = cuboid.transform.inverse().rotate(cross(constraint.r, constraint.n))
-            let tau = dot(conormal * constraint.body.inverseInertia, conormal)
-            let generalizedInverseMass = constraint.body.inverseMass + tau
+            let angularImpulseDual = cuboid.transform.inverse().rotate(cross(constraint.position, constraint.direction))
+            let generalizedInverseMass = constraint.body.inverseMass + dot(angularImpulseDual * constraint.body.inverseInertia, angularImpulseDual)
             
-            let impulse = -constraint.c / generalizedInverseMass * constraint.n
-            let angularVelocity = simd_quatd(real: 0, imag: cross(constraint.r, impulse))
+            let impulse = constraint.magnitude / generalizedInverseMass * constraint.direction
+            let angularVelocity = simd_quatd(real: 0, imag: cross(constraint.position, impulse))
             
             let translation = impulse / constraint.body.mass
             let rotation = 0.5 * angularVelocity * constraint.body.transform.orientation
             
-            constraint.body.transform.position -= translation
-            
-            constraint.body.transform.orientation -= rotation
-            constraint.body.transform.orientation = constraint.body.transform.orientation.normalized
+            constraint.body.transform.position = constraint.body.transform.position + translation
+            constraint.body.transform.orientation = (constraint.body.transform.orientation + rotation).normalized
         }
         
-        cuboid.velocity = (cuboid.transform.position - cuboid.previousTransform.position) / h
+        cuboid.velocity = (cuboid.transform.position - cuboid.previousTransform.position) / subDeltaTime
         
-        let rotation = (cuboid.transform.orientation * cuboid.previousTransform.orientation.inverse).normalized
-        cuboid.angularVelocity = 2.0 * rotation.imag / h
+        let rotation = cuboid.transform.orientation * cuboid.previousTransform.orientation.inverse
+        cuboid.angularVelocity = 2.0 * rotation.imag / subDeltaTime
         if rotation.real < 0 {
             cuboid.angularVelocity = -cuboid.angularVelocity
         }
