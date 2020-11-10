@@ -73,20 +73,27 @@ class Cuboid {
 }
 
 /// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
-func intersectCuboidWithGround(_ cuboid: Cuboid) -> PositionalConstraint? {
-    let penetratingVertices = cuboid.vertices().filter { v in v.z < 0 }
-    
-    if penetratingVertices.isEmpty {
-        return .none
+func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
+    cuboid.vertices().map { vertex in
+        PositionalConstraint(
+            direction: .e3,
+            magnitude: -vertex.z,
+            positions: (vertex - cuboid.position, simd_double3(vertex.x, vertex.z, 0))
+        )
     }
-    
-    let deepestVertex = penetratingVertices.reduce(simd_double3.zero, +) / Double(penetratingVertices.count)
-    
-    return PositionalConstraint(
-        direction: .e3,
-        magnitude: -deepestVertex.z,
-        positions: (deepestVertex - cuboid.position, simd_double3(deepestVertex.x, deepestVertex.y, 0))
-    )
+//    let penetratingVertices = cuboid.vertices().filter { v in v.z < 0 }
+//
+//    if penetratingVertices.isEmpty {
+//        return .none
+//    }
+//
+//    let deepestVertex = penetratingVertices.reduce(simd_double3.zero, +) / Double(penetratingVertices.count)
+//
+//    return PositionalConstraint(
+//        direction: .e3,
+//        magnitude: -deepestVertex.z,
+//        positions: (deepestVertex - cuboid.position, simd_double3(deepestVertex.x, deepestVertex.y, 0))
+//    )
 }
 
 func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
@@ -112,7 +119,14 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         let groundInverseInertia = simd_double3.zero
         let groundTransformInverse = Transform.identity()
         
-        if let constraint = intersectCuboidWithGround(cuboid) {
+        let constraints = intersectCuboidWithGround(cuboid)
+        for i in 0..<constraints.count {
+            let constraint = constraints[i]
+            
+            if constraint.magnitude < 0 {
+                continue
+            }
+
             let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, constraint.direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, constraint.direction))
             
