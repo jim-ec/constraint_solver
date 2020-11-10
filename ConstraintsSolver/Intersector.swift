@@ -103,6 +103,8 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
     let compliance = 0.0000001
     let timeStepCompliance = compliance / (subDeltaTime * subDeltaTime)
     
+    var positions: [Optional<simd_double3>] = .init(repeating: .none, count: 8)
+    
     for _ in 0..<subStepCount {
         let currentPosition = cuboid.position
         let currentOrientation = cuboid.orientation
@@ -124,9 +126,22 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let constraint = constraints[i]
             
             if constraint.magnitude < 0 {
+                positions[i] = .none
                 continue
             }
-
+            
+            var direction: simd_double3
+            let position = constraint.positions.0 + cuboid.position
+            if let previousPosition = positions[i] {
+                let deltaPosition = position - previousPosition
+                let tangentialDeltaPosition = deltaPosition - dot(deltaPosition, constraint.direction) * constraint.direction
+                direction = normalize(constraint.direction * constraint.magnitude - tangentialDeltaPosition)
+            }
+            else {
+                direction = constraint.direction
+                positions[i] = .some(position)
+            }
+            
             let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, constraint.direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, constraint.direction))
             
@@ -134,7 +149,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
             
             let lagrangeMultiplier = constraint.magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
-            let impulse = lagrangeMultiplier * constraint.direction
+            let impulse = lagrangeMultiplier * direction
             
             let translation0 = impulse * cuboid.inverseMass
             let translation1 = impulse * groundInverseMass
