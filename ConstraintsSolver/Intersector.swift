@@ -72,7 +72,6 @@ class Cuboid {
     }
 }
 
-/// Intersects a cube with the plane defined by `z = 0`, returning the penetration vector.
 func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
     cuboid.vertices().map { vertex in
         PositionalConstraint(
@@ -81,19 +80,6 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
             positions: (vertex - cuboid.position, simd_double3(vertex.x, vertex.z, 0))
         )
     }
-//    let penetratingVertices = cuboid.vertices().filter { v in v.z < 0 }
-//
-//    if penetratingVertices.isEmpty {
-//        return .none
-//    }
-//
-//    let deepestVertex = penetratingVertices.reduce(simd_double3.zero, +) / Double(penetratingVertices.count)
-//
-//    return PositionalConstraint(
-//        direction: .e3,
-//        magnitude: -deepestVertex.z,
-//        positions: (deepestVertex - cuboid.position, simd_double3(deepestVertex.x, deepestVertex.y, 0))
-//    )
 }
 
 func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
