@@ -46,9 +46,10 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Double, t: Double) {
-        cuboid.transform = cube.transform
+        cuboid.position = cube.transform.position
+        cuboid.orientation = cube.transform.orientation
         solveConstraints(deltaTime: dt, cuboid: cuboid)
-        cube.transform = cuboid.transform
+        cube.transform = cuboid.transform()
     }
     
     override func keyDown(with event: NSEvent) {
