@@ -5,9 +5,10 @@ class ViewController: NSViewController, FrameDelegate {
     
     var renderer: Renderer!
     var mtkView: MTKView!
-    var cube: Geometry!
-    var cuboid = Cuboid(mass: 1, extent: simd_double3(1, 1, 1))
+    var cubeGeometry: Geometry!
     var triangle: Geometry!
+    let system = System(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: simd_double3(1, 1, 1))))
+    var cube: RigidBody!
     
     override func loadView() {
         mtkView = MTKView(frame: AppDelegate.windowRect)
@@ -19,13 +20,14 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.frameDelegate = self
         renderer.viewOrbitRadius = 10
         
-        cube = renderer.makeCube(name: "Cube", color: .white)
-        cube.map { x in x - simd_float3(0.5, 0.5, 0.5) }
-        cube.transform.orientation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
-        cube.transform.position = simd_double3(0, 0, 4)
+        cubeGeometry = renderer.makeCube(name: "Cube", color: .white)
+        cubeGeometry.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         
-        cuboid.externalForce.z = -5
-        cuboid.angularVelocity = .init(1, 2, 0.5)
+        cube = system.collisionGroup.rigidBody
+        cube.orientation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
+        cube.position = simd_double3(0, 0, 4)
+        cube.externalForce.z = -5
+        cube.angularVelocity = .init(1, 2, 0.5)
         
         let X = renderer.makeCube(name: "x", color: .red)
         X.map(by: Transform.position(-X.findCenterOfMass()))
@@ -46,11 +48,9 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Double, t: Double) {
-        cuboid.position = cube.transform.position
-        cuboid.orientation = cube.transform.orientation
-        solveConstraints(deltaTime: dt, cuboid: cuboid)
-        cube.transform.position = cuboid.position
-        cube.transform.orientation = cuboid.orientation
+        system.step(by: dt)
+        cubeGeometry.transform.position = cube.position
+        cubeGeometry.transform.orientation = cube.orientation
     }
     
     override func keyDown(with event: NSEvent) {
