@@ -30,6 +30,8 @@ class Cuboid {
     var angularVelocity: simd_double3
     var position: simd_double3
     var orientation: simd_quatd
+    var previousPosition: simd_double3
+    var previousOrientation: simd_quatd
     
     init(mass: Double, extent: simd_double3) {
         self.mass = mass
@@ -39,6 +41,8 @@ class Cuboid {
         self.angularVelocity = .zero
         self.position = .zero
         self.orientation = .identity
+        self.previousPosition = position
+        self.previousOrientation = orientation
         self.externalForce = .zero
         self.inertia = 1.0 / 12.0 * mass * simd_double3(
             extent.y * extent.y + extent.z * extent.z,
@@ -89,11 +93,9 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
     let compliance = 0.0000001
     let timeStepCompliance = compliance / (subDeltaTime * subDeltaTime)
     
-    var positions: [Optional<simd_double3>] = .init(repeating: .none, count: 8)
-    
     for _ in 0..<subStepCount {
-        let currentPosition = cuboid.position
-        let currentOrientation = cuboid.orientation
+        cuboid.previousPosition = cuboid.position
+        cuboid.previousOrientation = cuboid.orientation
         
         cuboid.velocity += subDeltaTime * cuboid.externalForce / cuboid.mass
         cuboid.position += subDeltaTime * cuboid.velocity
@@ -112,21 +114,15 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let constraint = constraints[i]
             
             if constraint.magnitude < 0 {
-                positions[i] = .none
                 continue
             }
             
-            var direction: simd_double3
             let position = constraint.positions.0 + cuboid.position
-            if let previousPosition = positions[i] {
-                let deltaPosition = position - previousPosition
-                let tangentialDeltaPosition = deltaPosition - dot(deltaPosition, constraint.direction) * constraint.direction
-                direction = normalize(constraint.direction * constraint.magnitude - tangentialDeltaPosition)
-            }
-            else {
-                direction = constraint.direction
-                positions[i] = .some(position)
-            }
+            let positionRestAttidude = cuboid.orientation.inverse.act(constraint.positions.0)
+            let previousPosition = cuboid.previousOrientation.act(positionRestAttidude) + cuboid.previousPosition
+            let deltaPosition = position - previousPosition
+            let tangentialDeltaPosition = deltaPosition - project(deltaPosition, constraint.direction)
+            let direction = normalize(constraint.direction - tangentialDeltaPosition / constraint.magnitude)
             
             let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, constraint.direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, constraint.direction))
@@ -142,7 +138,6 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             
             let rotation0 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.0, impulse)) * cuboid.orientation
             let rotation1 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
-            
             cuboid.position += translation0
             cuboid.orientation = (cuboid.orientation + rotation0).normalized
             
@@ -150,9 +145,9 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             groundOrientation = (groundOrientation + rotation1).normalized
         }
         
-        cuboid.velocity = (cuboid.position - currentPosition) / subDeltaTime
+        cuboid.velocity = (cuboid.position - cuboid.previousPosition) / subDeltaTime
         
-        let rotation = cuboid.orientation * currentOrientation.inverse
+        let rotation = cuboid.orientation * cuboid.previousOrientation.inverse
         cuboid.angularVelocity = 2.0 * rotation.imag / subDeltaTime
         if rotation.real < 0 {
             cuboid.angularVelocity = -cuboid.angularVelocity
