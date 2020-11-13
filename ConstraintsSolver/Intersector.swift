@@ -81,7 +81,7 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
         PositionalConstraint(
             direction: .e3,
             magnitude: -vertex.z,
-            positions: (vertex - cuboid.position, simd_double3(vertex.x, vertex.z, 0))
+            positions: (vertex, simd_double3(vertex.x, vertex.z, 0))
         )
     }
 }
@@ -115,14 +115,14 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
                 continue
             }
             
-            let position = constraint.positions.0 + cuboid.position
-            let positionRestAttidude = cuboid.orientation.inverse.act(constraint.positions.0)
+            let position = constraint.positions.0
+            let positionRestAttidude = cuboid.intoRestAttidue(constraint.positions.0)
             let previousPosition = cuboid.previousOrientation.act(positionRestAttidude) + cuboid.previousPosition
             let deltaPosition = position - previousPosition
             let tangentialDeltaPosition = deltaPosition - project(deltaPosition, constraint.direction)
             let direction = normalize(constraint.direction - tangentialDeltaPosition / constraint.magnitude)
             
-            let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, direction))
+            let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0 - cuboid.position, direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
             
             let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
@@ -134,7 +134,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let translation0 = impulse * cuboid.inverseMass
             let translation1 = impulse * groundInverseMass
             
-            let rotation0 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.0, impulse)) * cuboid.orientation
+            let rotation0 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.0 - cuboid.position, impulse)) * cuboid.orientation
             let rotation1 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
             cuboid.position += translation0
             cuboid.orientation = (cuboid.orientation + rotation0).normalized
