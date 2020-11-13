@@ -77,7 +77,7 @@ class Cuboid {
 }
 
 func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
-    cuboid.vertices().map { vertex in
+    cuboid.vertices().filter { vertex in vertex.z < 0 }.map { vertex in
         PositionalConstraint(
             direction: .e3,
             magnitude: -vertex.z,
@@ -111,16 +111,12 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         
         let constraints = intersectCuboidWithGround(cuboid)
         for constraint in constraints {            
-            if constraint.magnitude <= 0 {
-                continue
-            }
-            
             let position = constraint.positions.0
             let positionRestAttidude = cuboid.intoRestAttidue(constraint.positions.0)
             let previousPosition = cuboid.previousOrientation.act(positionRestAttidude) + cuboid.previousPosition
             let deltaPosition = position - previousPosition
             let tangentialDeltaPosition = deltaPosition - project(deltaPosition, constraint.direction)
-            let direction = normalize(constraint.direction - tangentialDeltaPosition / constraint.magnitude)
+            let direction = normalize(constraint.magnitude * constraint.direction - tangentialDeltaPosition)
             
             let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0 - cuboid.position, direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
