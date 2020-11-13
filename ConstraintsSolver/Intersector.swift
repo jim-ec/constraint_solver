@@ -113,7 +113,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         for i in 0..<constraints.count {
             let constraint = constraints[i]
             
-            if constraint.magnitude < 0 {
+            if constraint.magnitude <= 0 {
                 continue
             }
             
