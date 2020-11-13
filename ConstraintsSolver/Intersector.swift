@@ -8,9 +8,8 @@
 import Foundation
 
 struct PositionalConstraint {
-    let direction: simd_double3
-    let magnitude: Double
     let positions: (simd_double3, simd_double3)
+    let distance: Double
 }
 
 extension Double {
@@ -79,9 +78,8 @@ class Cuboid {
 func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
     cuboid.vertices().filter { vertex in vertex.z < 0 }.map { vertex in
         PositionalConstraint(
-            direction: .e3,
-            magnitude: -vertex.z,
-            positions: (vertex, simd_double3(vertex.x, vertex.y, 0))
+            positions: (vertex, simd_double3(vertex.x, vertex.y, 0)),
+            distance: 0
         )
     }
 }
@@ -110,13 +108,16 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         let groundTransformInverse = Transform.identity()
         
         let constraints = intersectCuboidWithGround(cuboid)
-        for constraint in constraints {            
+        for constraint in constraints {
+            let difference = constraint.positions.1 - constraint.positions.0
+            let magnitude = length(difference) - constraint.distance
+            
             let position = constraint.positions.0
             let positionRestAttidude = cuboid.intoRestAttidue(constraint.positions.0)
             let previousPosition = cuboid.previousOrientation.act(positionRestAttidude) + cuboid.previousPosition
             let deltaPosition = position - previousPosition
-            let tangentialDeltaPosition = deltaPosition - project(deltaPosition, constraint.direction)
-            let direction = normalize(constraint.magnitude * constraint.direction - tangentialDeltaPosition)
+            let tangentialDeltaPosition = deltaPosition - project(deltaPosition, normalize(difference))
+            let direction = normalize(difference - tangentialDeltaPosition)
             
             let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0 - cuboid.position, direction))
             let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
@@ -124,7 +125,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
             let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
             
-            let lagrangeMultiplier = constraint.magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
+            let lagrangeMultiplier = magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
             let impulse = lagrangeMultiplier * direction
             
             let translation0 = impulse * cuboid.inverseMass
