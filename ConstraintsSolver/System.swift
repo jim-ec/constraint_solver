@@ -58,14 +58,8 @@ class System {
             for constraint in collisionGroup.generateConstraints() {
                 let difference = constraint.positions.1 - constraint.positions.0
                 let magnitude = length(difference) - constraint.distance
-                
-                let position = constraint.positions.0
-                let positionRestAttidude = constraint.body.intoRestAttidue(constraint.positions.0)
-                let previousPosition = constraint.body.previousOrientation.act(positionRestAttidude) + constraint.body.previousPosition
-                let deltaPosition = position - previousPosition
-                let tangentialDeltaPosition = deltaPosition - project(deltaPosition, normalize(difference))
-                let direction = normalize(difference - tangentialDeltaPosition)
-                
+                let direction = normalize(difference)
+                                
                 let angularImpulseDual0 = constraint.body.orientation.inverse.act(cross(constraint.positions.0 - constraint.body.position, direction))
                 let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
                 

@@ -68,6 +68,11 @@ class RigidBody {
         orientation.act(x) + position
     }
     
+    /// Computes where the given vertex in the current attitude would be in the previous one.
+    func intoPreviousAttidue(_ x: simd_double3) -> simd_double3 {
+        previousOrientation.act(intoRestAttidue(x)) + previousPosition
+    }
+    
     func vertices() -> [simd_double3] {
         let cube: [simd_double3] = [
             .init(-1, -1, -1),
