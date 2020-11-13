@@ -60,22 +60,24 @@ class System {
                 let magnitude = length(difference) - constraint.distance
                 let direction = normalize(difference)
                 
-                let angularImpulseDual0 = constraint.body.orientation.inverse.act(cross(constraint.positions.0 - constraint.body.position, direction))
-                let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
+                let angularImpulseDual =
+                    (constraint.body.orientation.inverse.act(cross(constraint.positions.0 - constraint.body.position, direction)),
+                     groundTransformInverse.rotate(cross(constraint.positions.1, direction)))
                 
-                let generalizedInverseMass0 = constraint.body.inverseMass + dot(angularImpulseDual0 * constraint.body.inverseInertia, angularImpulseDual0)
-                let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
+                let generalizedInverseMass =
+                    (constraint.body.inverseMass + dot(angularImpulseDual.0 * constraint.body.inverseInertia, angularImpulseDual.0),
+                     groundInverseMass + dot(angularImpulseDual.1 * groundInverseInertia, angularImpulseDual.1))
                 
                 let timeStepCompliance = constraint.compliance / (subDeltaTime * subDeltaTime)
-                let lagrangeMultiplier = magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
+                let lagrangeMultiplier = magnitude / (generalizedInverseMass.0 + generalizedInverseMass.1 + timeStepCompliance)
                 let impulse = lagrangeMultiplier * direction
                 
                 constraint.body.applyLinearImpulse(impulse, at: constraint.positions.0)
                 
-                let translation1 = impulse * groundInverseMass
-                let rotation1 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
-                groundPosition += translation1
-                groundOrientation = (groundOrientation + rotation1).normalized
+                let groundTranslation = impulse * groundInverseMass
+                let groundRotation = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
+                groundPosition += groundTranslation
+                groundOrientation = (groundOrientation + groundRotation).normalized
             }
             
             collisionGroup.deriveVelocities(by: subDeltaTime)
