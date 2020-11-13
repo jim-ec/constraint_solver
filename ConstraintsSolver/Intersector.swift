@@ -81,7 +81,7 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
         PositionalConstraint(
             direction: .e3,
             magnitude: -vertex.z,
-            positions: (vertex, simd_double3(vertex.x, vertex.z, 0))
+            positions: (vertex, simd_double3(vertex.x, vertex.y, 0))
         )
     }
 }
