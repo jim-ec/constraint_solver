@@ -10,6 +10,7 @@ import Foundation
 struct PositionalConstraint {
     let positions: (simd_double3, simd_double3)
     let distance: Double
+    let compliance: Double
 }
 
 extension Double {
@@ -79,7 +80,8 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
     cuboid.vertices().filter { vertex in vertex.z < 0 }.map { vertex in
         PositionalConstraint(
             positions: (vertex, simd_double3(vertex.x, vertex.y, 0)),
-            distance: 0
+            distance: 0,
+            compliance: 0.0000001
         )
     }
 }
@@ -87,9 +89,6 @@ func intersectCuboidWithGround(_ cuboid: Cuboid) -> [PositionalConstraint] {
 func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
     let subStepCount = 10
     let subDeltaTime = deltaTime / Double(subStepCount)
-    
-    let compliance = 0.0000001
-    let timeStepCompliance = compliance / (subDeltaTime * subDeltaTime)
     
     for _ in 0..<subStepCount {
         cuboid.previousPosition = cuboid.position
@@ -125,6 +124,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
             let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
             
+            let timeStepCompliance = constraint.compliance / (subDeltaTime * subDeltaTime)
             let lagrangeMultiplier = magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
             let impulse = lagrangeMultiplier * direction
             
