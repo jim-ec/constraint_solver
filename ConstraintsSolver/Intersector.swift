@@ -124,8 +124,8 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
             let tangentialDeltaPosition = deltaPosition - project(deltaPosition, constraint.direction)
             let direction = normalize(constraint.direction - tangentialDeltaPosition / constraint.magnitude)
             
-            let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, constraint.direction))
-            let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, constraint.direction))
+            let angularImpulseDual0 = cuboid.orientation.inverse.act(cross(constraint.positions.0, direction))
+            let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
             
             let generalizedInverseMass0 = cuboid.inverseMass + dot(angularImpulseDual0 * cuboid.inverseInertia, angularImpulseDual0)
             let generalizedInverseMass1 = groundInverseMass + dot(angularImpulseDual1 * groundInverseInertia, angularImpulseDual1)
