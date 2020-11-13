@@ -60,6 +60,15 @@ class RigidBody {
         }
     }
     
+    /// Applies a linear impulse in a given direction and magnitude at a given location.
+    /// Results in changes in both position and orientation.
+    func applyLinearImpulse(_ impulse: simd_double3, at vertex: simd_double3) {
+        position += impulse * inverseMass
+        
+        let rotation = 0.5 * simd_quatd(real: 0, imag: cross(vertex - position, impulse)) * orientation
+        orientation = (orientation + rotation).normalized
+    }
+    
     func intoRestAttidue(_ x: simd_double3) -> simd_double3 {
         orientation.inverse.act(x - position)
     }

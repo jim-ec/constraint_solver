@@ -59,7 +59,7 @@ class System {
                 let difference = constraint.positions.1 - constraint.positions.0
                 let magnitude = length(difference) - constraint.distance
                 let direction = normalize(difference)
-                                
+                
                 let angularImpulseDual0 = constraint.body.orientation.inverse.act(cross(constraint.positions.0 - constraint.body.position, direction))
                 let angularImpulseDual1 = groundTransformInverse.rotate(cross(constraint.positions.1, direction))
                 
@@ -70,14 +70,10 @@ class System {
                 let lagrangeMultiplier = magnitude / (generalizedInverseMass0 + generalizedInverseMass1 + timeStepCompliance)
                 let impulse = lagrangeMultiplier * direction
                 
-                let translation0 = impulse * constraint.body.inverseMass
+                constraint.body.applyLinearImpulse(impulse, at: constraint.positions.0)
+                
                 let translation1 = impulse * groundInverseMass
-                
-                let rotation0 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.0 - constraint.body.position, impulse)) * constraint.body.orientation
                 let rotation1 = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
-                constraint.body.position += translation0
-                constraint.body.orientation = (constraint.body.orientation + rotation0).normalized
-                
                 groundPosition += translation1
                 groundOrientation = (groundOrientation + rotation1).normalized
             }
