@@ -110,9 +110,7 @@ func solveConstraints(deltaTime: Double, cuboid: Cuboid) {
         let groundTransformInverse = Transform.identity()
         
         let constraints = intersectCuboidWithGround(cuboid)
-        for i in 0..<constraints.count {
-            let constraint = constraints[i]
-            
+        for constraint in constraints {            
             if constraint.magnitude <= 0 {
                 continue
             }
