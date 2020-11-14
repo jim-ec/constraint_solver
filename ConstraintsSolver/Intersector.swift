@@ -24,105 +24,140 @@ func intersectGround(_ rigidBody: RigidBody) -> [PositionalConstraint] {
     }
 }
 
-fileprivate enum Simplex {
-    case point(simd_float3)
-    case line(simd_float3, simd_float3)
-    case triangle(simd_float3, simd_float3, simd_float3)
-    case tetrahedron(simd_float3, simd_float3, simd_float3, simd_float3)
+protocol ConvexVolume {
+    func furthestPoint(in direction: simd_double3) -> simd_double3
 }
 
-func gjk(a: (simd_float3) -> simd_float3, b: (simd_float3) -> simd_float3) -> Bool {
+/// 0-, 1-, or 2-simplices which arise during the iterations of the GJK algorithm.
+fileprivate enum IntermediateSimplex {
+    case point(simd_double3)
+    case line(simd_double3, simd_double3)
+    case triangle(simd_double3, simd_double3, simd_double3)
+}
+
+/// The simplex after an iteration is either still an intermediate one, or the final tetrahedron which contains the origin.
+fileprivate enum NextSimplex {
+    case intermediate(IntermediateSimplex)
+    case containingTetrahedron(simd_double3, simd_double3, simd_double3, simd_double3)
+}
+
+func gjk(a: ConvexVolume, b: ConvexVolume) -> Bool {
     
     /// Returns the point within the Minkowski difference which is furthest away from the origin in the given direction.
-    func support(in direction: simd_float3) -> simd_float3 {
-        a(direction) - b(-direction)
+    func support(in direction: simd_double3) -> simd_double3 {
+        a.furthestPoint(in: direction) - b.furthestPoint(in: -direction)
     }
     
-    let initialSearchDirection = support(in: simd_float3.random(in: 0...1))
-    var simplex = Simplex.point(initialSearchDirection)
-    var searchDirection = -initialSearchDirection
+    let initialPoint = support(in: simd_double3.random(in: 0...1))
+    var simplex = IntermediateSimplex.point(initialPoint)
+    var searchDirection = -initialPoint
     
     while true {
         let nextPoint = support(in: searchDirection)
         
-        if dot(nextPoint, searchDirection) < 0 {
+        if dot(nextPoint, searchDirection) <= 0 {
+            // No collision possible anymore.
             return false
         }
         
-        if nextSimplex(simplex: &simplex, direction: &searchDirection) {
+        switch nextSimplex(simplex: simplex, point: nextPoint, direction: &searchDirection) {
+        case let .intermediate(nextSimplex):
+            simplex = nextSimplex
+        case .containingTetrahedron:
             return true
         }
     }
 }
 
-fileprivate func nextSimplex(simplex: inout Simplex, direction a: inout simd_float3) -> Bool {
-    
-    /// Returns true if the given direction points to the origin.
-    func test(_ x: simd_float3) -> Bool {
-        dot(x, -a) > 0
-    }
-    
-    /// Triple cross product.
-    func cross3(_ x: simd_float3, _ y: simd_float3, _ z: simd_float3) -> simd_float3 {
-        cross(cross(x, y), z)
-    }
-    
+fileprivate func nextSimplex(simplex: IntermediateSimplex, point a: simd_double3, direction: inout simd_double3) -> NextSimplex {
     switch simplex {
     case let .point(b):
-        if test(cross(a, b)) {
-            simplex = .line(a, b)
-            a = cross3(b - a, -a, b - a)
-        }
-        else {
-            simplex = .point(a)
-            a = -a
-        }
+        return .intermediate(processLine(a, b, direction: &direction))
     case let .line(b, c):
-        let ao = -a
-        let ab = b - a
-        let ac = c - a
-        let abc = cross(ab, ac)
-        if test(cross(abc, ac)) {
-            if test(ac) {
-                simplex = .line(a, c)
-                a = cross3(ac, ao, ac)
-            }
-            else {
-                if test(ab) {
-                    simplex = .line(a, b)
-                    a = cross3(ab, ao, ab)
-                }
-                else {
-                    simplex = .point(a)
-                    a = ao
-                }
-            }
+        return .intermediate(processTriangle(a, b, c, direction: &direction))
+    case let .triangle(b, c, d):
+        if let simplex = processTetrahedron(a, b, c, d, direction: &direction) {
+            return .intermediate(simplex)
         }
         else {
-            if test(cross(ab, abc)) {
-                if test(ab) {
-                    simplex = .line(a, b)
-                    a = cross3(ab, ao, ab)
-                }
-                else {
-                    simplex = .point(a)
-                    a = ao
-                }
-            }
-            else {
-                if test(abc) {
-                    simplex = .triangle(a, b, c)
-                    a = abc
-                }
-                else {
-                    simplex = .triangle(a, c, b)
-                    a = -abc
-                }
-            }
+            return .containingTetrahedron(a, b, c, d)
         }
-    default:
-        fatalError()
     }
+}
+
+fileprivate extension simd_double3 {
+    func cross(_ x: simd_double3) -> simd_double3 {
+        simd.cross(self, x)
+    }
+}
+
+fileprivate func sameDirection(_ a: simd_double3, _ b: simd_double3) -> Bool {
+    dot(a, b) > 0
+}
+
+fileprivate func processLine(_ a: simd_double3, _ b: simd_double3, direction: inout simd_double3) -> IntermediateSimplex {
+    let ao = -a
+    let ab = b - a
+    if sameDirection(cross(a, b), ao) {
+        direction = ab.cross(ao).cross(ab)
+        return .line(a, b)
+    }
+    else {
+        direction = ao
+        return .point(a)
+    }
+}
+
+fileprivate func processTriangle(_ a: simd_double3, _ b: simd_double3, _ c: simd_double3, direction: inout simd_double3) -> IntermediateSimplex {
+    let ao = -a
+    let ab = b - a
+    let ac = c - a
+    let abc = ab.cross(ac)
     
-    return true
+    if sameDirection(abc.cross(ac), ao) {
+        if sameDirection(ac, ao) {
+            direction = ac.cross(ao).cross(ac)
+            return .line(a, c)
+        }
+        else {
+            return processLine(a, b, direction: &direction)
+        }
+    }
+    else {
+        if sameDirection(ab.cross(abc), ao) {
+            return processLine(a, b, direction: &direction)
+        }
+        else if sameDirection(abc, ao) {
+            direction = abc
+            return .triangle(a, b, c)
+        }
+        else {
+            direction = -abc
+            return .triangle(a, c, b)
+        }
+    }
+}
+
+fileprivate func processTetrahedron(_ a: simd_double3, _ b: simd_double3, _ c: simd_double3, _ d: simd_double3, direction: inout simd_double3) -> IntermediateSimplex? {
+    let ab = b - a
+    let ac = c - a
+    let ad = d - a
+    let ao = -a
+    
+    let abc = ab.cross(ac)
+    let acd = ac.cross(ad)
+    let adb = ad.cross(ab)
+    
+    if sameDirection(abc, ao) {
+        return processTriangle(a, b, c, direction: &direction)
+    }
+    else if sameDirection(acd, ao) {
+        return processTriangle(a, c, d, direction: &direction)
+    }
+    else if sameDirection(adb, ao) {
+        return processTriangle(a, d, b, direction: &direction)
+    }
+    else {
+        return .none
+    }
 }
