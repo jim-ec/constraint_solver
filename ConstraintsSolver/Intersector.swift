@@ -24,6 +24,19 @@ func intersectGround(_ rigidBody: RigidBody) -> [PositionalConstraint] {
     }
 }
 
+struct MinkowskiDifference {
+    let convexVolumes: (ConvexVolume, ConvexVolume)
+    
+    init(_ a: ConvexVolume, _ b: ConvexVolume) {
+        convexVolumes = (a, b)
+    }
+    
+    /// Returns the point within the Minkowski difference which is furthest away from the origin in the given direction.
+    subscript (in direction: simd_double3) -> simd_double3 {
+        convexVolumes.0.furthestPoint(in: direction) - convexVolumes.1.furthestPoint(in: -direction)
+    }
+}
+
 protocol ConvexVolume {
     func furthestPoint(in direction: simd_double3) -> simd_double3
 }
@@ -35,25 +48,23 @@ fileprivate enum IntermediateSimplex {
     case triangle(simd_double3, simd_double3, simd_double3)
 }
 
+typealias Tetrahedron = (simd_double3, simd_double3, simd_double3, simd_double3)
+
 /// The simplex after an iteration is either still an intermediate one, or the final tetrahedron which contains the origin.
 fileprivate enum NextSimplex {
     case intermediate(IntermediateSimplex)
-    case containingTetrahedron(simd_double3, simd_double3, simd_double3, simd_double3)
+    case containingTetrahedron(Tetrahedron)
 }
 
 func gjk(a: ConvexVolume, b: ConvexVolume) -> Bool {
+    let support = MinkowskiDifference(a, b)
     
-    /// Returns the point within the Minkowski difference which is furthest away from the origin in the given direction.
-    func support(in direction: simd_double3) -> simd_double3 {
-        a.furthestPoint(in: direction) - b.furthestPoint(in: -direction)
-    }
-    
-    let initialPoint = support(in: simd_double3.random(in: 0...1))
+    let initialPoint = support[in: simd_double3.random(in: 0...1)]
     var simplex = IntermediateSimplex.point(initialPoint)
     var searchDirection = -initialPoint
     
     while true {
-        let nextPoint = support(in: searchDirection)
+        let nextPoint = support[in: searchDirection]
         
         if dot(nextPoint, searchDirection) <= 0 {
             // No collision possible anymore.
@@ -80,14 +91,18 @@ fileprivate func nextSimplex(simplex: IntermediateSimplex, point a: simd_double3
             return .intermediate(simplex)
         }
         else {
-            return .containingTetrahedron(a, b, c, d)
+            return .containingTetrahedron(Tetrahedron(a, b, c, d))
         }
     }
 }
 
-fileprivate extension simd_double3 {
+extension simd_double3 {
     func cross(_ x: simd_double3) -> simd_double3 {
         simd.cross(self, x)
+    }
+    
+    func dot(_ x: simd_double3) -> Double {
+        simd.dot(self, x)
     }
 }
 
