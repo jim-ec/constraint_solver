@@ -10,7 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                           styleMask: [.miniaturizable, .closable, .resizable, .titled],
                           backing: .buffered,
                           defer: false)
-        window?.title = "Metal Hello Triangle"
+        window?.title = "Constraints Solver"
         window?.makeKeyAndOrderFront(nil)
         
         let viewController = ViewController()
