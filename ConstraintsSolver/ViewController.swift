@@ -60,18 +60,28 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func mouseDragged(with event: NSEvent) {
+        // Pan
         let sensitivity = 0.01
         renderer.viewOrbitAzimuth += Double(event.deltaX) * sensitivity
         renderer.viewOrbitElevation += Double(event.deltaY) * sensitivity
     }
     
     override func scrollWheel(with event: NSEvent) {
-        let sensitivity = 0.001 * renderer.viewOrbitRadius
-        renderer.viewPanning.x += Double(-event.scrollingDeltaX) * sensitivity
-        renderer.viewPanning.z += Double(event.scrollingDeltaY) * sensitivity
+        if event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting(.capsLock) == .shift {
+            // Zoom
+            let sensitivity = 0.002
+            renderer.viewOrbitRadius *= 1 + sensitivity * Double(event.scrollingDeltaY)
+        }
+        else {
+            // Pan
+            let sensitivity = 0.001 * renderer.viewOrbitRadius
+            renderer.viewPanning.x += Double(-event.scrollingDeltaX) * sensitivity
+            renderer.viewPanning.z += Double(event.scrollingDeltaY) * sensitivity
+        }
     }
     
     override func magnify(with event: NSEvent) {
+        // Zoom
         renderer.viewOrbitRadius *= Double(1 - event.magnification)
     }
     
