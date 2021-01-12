@@ -73,7 +73,7 @@ fileprivate struct ExpandingPolytope {
         
         for i in 0..<triangles.count {
             if vanishingTriangles[i] {
-                triangles.remove(at: i)
+                triangles.remove(at: i) // TODO: invalidates next indices
             }
         }
         
