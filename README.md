@@ -8,3 +8,4 @@ References:
 1. [Detailed Rigid Body Simulation with Extended Position Based Dynamics, 2020](https://matthias-research.github.io/pages/publications/PBDBodies.pdf)
 2. [Small Steps in Physics Simulation, 2019](http://mmacklin.com/smallsteps.pdf)
 3. [Position-Based Simulation Methods in Computer Graphics, 2015](http://mmacklin.com/EG2015PBD.pdf)
+
