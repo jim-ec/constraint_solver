@@ -9,6 +9,7 @@ References:
 2. [Small Steps in Physics Simulation, 2019](http://mmacklin.com/smallsteps.pdf)
 3. [Position-Based Simulation Methods in Computer Graphics, 2015](http://mmacklin.com/EG2015PBD.pdf)
 
+---
 
 ![Screen Recording](figures/ScreenRecording_2021-03-25_at_20.09.43_@720.mov)
 
