@@ -5,19 +5,19 @@ typealias quat = simd_quatd
 
 extension double3 {
     static var ex: double3 {
-        get { double3(1, 0, 0) }
+        double3(1, 0, 0)
     }
     
     static var ey: double3 {
-        get { double3(0, 1, 0) }
+        double3(0, 1, 0)
     }
     
     static var ez: double3 {
-        get { double3(0, 0, 1) }
+        double3(0, 0, 1)
     }
     
     var string: String {
-        get { "(\(x), \(y), \(z))" }
+        "(\(x), \(y), \(z))"
     }
     
     var normalize: Self {
