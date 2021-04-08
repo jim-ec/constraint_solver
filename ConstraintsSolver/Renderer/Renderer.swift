@@ -23,7 +23,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var camera = Camera()
     
     fileprivate let grid: Grid
-    private var geometries: [(Geometry, MTLBuffer)] = []
+    private var meshBuffers: [(Mesh, MTLBuffer)] = []
     
     init(mtkView: MTKView) {
         device = mtkView.device!
@@ -87,19 +87,19 @@ class Renderer: NSObject, MTKViewDelegate {
         uniforms.view = camera.viewMatrix.singlePrecision
         uniforms.projection = projectionMatrix.singlePrecision
         
-        renderEncoder.pushDebugGroup("Draw Geometries")
+        renderEncoder.pushDebugGroup("Draw Meshes")
         
-        for (geometry, buffer) in geometries {
-            renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
+        for (mesh, buffer) in meshBuffers {
+            renderEncoder.pushDebugGroup("Draw Mesh '\(mesh.name)'")
             
-            uniforms.model = geometry.transform.matrix.singlePrecision
+            uniforms.model = mesh.transform.matrix.singlePrecision
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             
             renderEncoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
 
-            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: geometry.vertices.count)
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: mesh.vertices.count)
             
             renderEncoder.popDebugGroup()
         }
@@ -132,18 +132,18 @@ class Renderer: NSObject, MTKViewDelegate {
         return perspectiveMatrix
     }
     
-    func insertGeometry(_ newGeometry: Geometry) {
-        for (geometry, buffer) in geometries {
-            if (geometry === newGeometry) {
-                if (newGeometry.vertices.count != buffer.length / MemoryLayout<Vertex>.stride) {
-                    fatalError("Cannot update geometry when the vertex count is different")
+    func registerMesh(_ newMesh: Mesh) {
+        for (mesh, buffer) in meshBuffers {
+            if (mesh === newMesh) {
+                if (newMesh.vertices.count != buffer.length / MemoryLayout<Vertex>.stride) {
+                    fatalError("Cannot update mesh when the vertex count is different")
                 }
-                buffer.contents().copyMemory(from: newGeometry.vertices, byteCount: newGeometry.vertices.count * MemoryLayout<Vertex>.stride)
+                buffer.contents().copyMemory(from: newMesh.vertices, byteCount: newMesh.vertices.count * MemoryLayout<Vertex>.stride)
             }
         }
         
-        let buffer = device.makeBuffer(bytes: newGeometry.vertices, length: newGeometry.vertices.count * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
-        geometries.append((newGeometry, buffer))
+        let buffer = device.makeBuffer(bytes: newMesh.vertices, length: newMesh.vertices.count * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
+        meshBuffers.append((newMesh, buffer))
     }
 }
 
@@ -175,7 +175,7 @@ fileprivate class Grid {
     }
     
     func render(into encoder: MTLRenderCommandEncoder, uniforms: inout Uniforms) {
-        encoder.pushDebugGroup("Draw Grid Geometry")
+        encoder.pushDebugGroup("Draw Grid")
         uniforms.model = simd_float4x4(1)
         encoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))

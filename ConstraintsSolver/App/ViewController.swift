@@ -4,8 +4,8 @@ import MetalKit
 class ViewController: NSViewController, FrameDelegate {
     private var renderer: Renderer!
     private var mtkView: MTKView!
-    private var cubeGeometry: Geometry!
-    private var triangle: Geometry!
+    private var cubeMesh: Mesh!
+    private var triangle: Mesh!
     private let system = System(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
     private var cube: RigidBody!
     
@@ -20,9 +20,9 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.frameDelegate = self
         renderer.camera.look(at: .zero, from: double3(4, 4, 4), up: .ez)
         
-        cubeGeometry = GeometryBuilder.makeCube(name: "Cube", color: .white)
-        cubeGeometry.map { x in x - simd_float3(0.5, 0.5, 0.5) }
-        renderer.insertGeometry(cubeGeometry)
+        cubeMesh = MeshBuilder.makeCube(name: "Cube", color: .white)
+        cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
+        renderer.registerMesh(cubeMesh)
         
         cube = system.collisionGroup.rigidBody
         cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
@@ -30,23 +30,23 @@ class ViewController: NSViewController, FrameDelegate {
         cube.externalForce.z = -5
         cube.angularVelocity = .init(1, 2, 0.5)
         
-        let X = GeometryBuilder.makeCube(name: "x", color: .red)
+        let X = MeshBuilder.makeCube(name: "x", color: .red)
         X.map(by: Transform.position(-X.findCenterOfMass()))
         X.map { x in x * 0.5 }
         X.transform.position.x = 4
-        renderer.insertGeometry(X)
+        renderer.registerMesh(X)
         
-        let Y = GeometryBuilder.makeCube(name: "y", color: .green)
+        let Y = MeshBuilder.makeCube(name: "y", color: .green)
         Y.map(by: Transform.position(-Y.findCenterOfMass()))
         Y.map { x in x * 0.5 }
         Y.transform.position.y = 4
-        renderer.insertGeometry(Y)
+        renderer.registerMesh(Y)
     }
     
     func onFrame(dt: Double, t: Double) {
         system.step(by: dt)
-        cubeGeometry.transform.position = cube.position
-        cubeGeometry.transform.orientation = cube.orientation
+        cubeMesh.transform.position = cube.position
+        cubeMesh.transform.orientation = cube.orientation
     }
     
     override func mouseDragged(with event: NSEvent) {
