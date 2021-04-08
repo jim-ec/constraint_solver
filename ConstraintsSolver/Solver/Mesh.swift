@@ -40,18 +40,15 @@ class Mesh {
 /// A type soley for the purpose of pushing vertices into a mesh.
 class MeshBuilder {
     let mesh: Mesh
-    var index: Int
     
     /// The builder will start overwriting vertices from the start.
     init(mesh: Mesh) {
         self.mesh = mesh
-        self.index = 0
     }
     
     /// Push a single vertex.
     func push(vertex: Vertex) {
         mesh.vertices.append(vertex)
-        index += 1
     }
     
     /// Push a uni-colored triangle.
