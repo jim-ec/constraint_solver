@@ -100,7 +100,7 @@ class Renderer: NSObject, MTKViewDelegate {
         for geometry in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
-            uniforms.model = geometry.transform.matrix()
+            uniforms.model = geometry.transform.matrix.singlePrecision
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))

@@ -70,12 +70,13 @@ struct Transform {
     var position: double3
     var orientation: quat
     
-    func matrix() -> simd_float4x4 {
-        let upperLeft3x3 = float3x3(simd_quatf(vector: simd_float4(orientation.vector)))
-        return simd_float4x4(simd_float4(upperLeft3x3.columns.0, 0),
-                             simd_float4(upperLeft3x3.columns.1, 0),
-                             simd_float4(upperLeft3x3.columns.2, 0),
-                             simd_float4(simd_float3(position), 1))
+    var matrix: simd_double4x4 {
+        let upperLeft = simd_double3x3(orientation)
+        return simd_double4x4(
+            simd_double4(upperLeft[0], 0),
+            simd_double4(upperLeft[1], 0),
+            simd_double4(upperLeft[2], 0),
+            simd_double4(position, 1))
     }
     
     static func identity() -> Transform {
