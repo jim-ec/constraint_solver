@@ -62,7 +62,7 @@ class ViewController: NSViewController, FrameDelegate {
         }
         else {
             // Pan
-            let sensitivity = 0.01
+            let sensitivity = 0.001 * renderer.camera.radius
             renderer.camera.pan(rightwards: sensitivity * Double(-event.scrollingDeltaX), upwards: sensitivity * Double(event.scrollingDeltaY))
         }
     }
