@@ -35,8 +35,9 @@ class Renderer: NSObject, MTKViewDelegate {
         commandQueue = device.makeCommandQueue()!
         
         metalKitView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
-        metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm_srgb
+        metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm
         metalKitView.sampleCount = 1
+        metalKitView.clearColor = MTLClearColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0)
         
         let library = device.makeDefaultLibrary()!
         
@@ -82,7 +83,6 @@ class Renderer: NSObject, MTKViewDelegate {
         let commandBuffer = commandQueue.makeCommandBuffer()!
         
         let renderPassDescriptor = view.currentRenderPassDescriptor!
-        renderPassDescriptor.colorAttachments[0].clearColor = .init(red: 0.01, green: 0.01, blue: 0.01, alpha: 0.0)
         
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
         

@@ -36,7 +36,7 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
 fragment float4 fragmentShader(VertexOut in [[stage_in]],
                                constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]])
 {
-    float3 ambientLight = float3(0.01);
+    float3 ambientLight = float3(0.1);
 
     float3 v = normalize(float3(0, 0, 1) - in.position);
     float NoV = dot(in.normal, v);
