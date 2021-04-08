@@ -22,8 +22,8 @@ class Renderer: NSObject, MTKViewDelegate {
     var aspectRatio = 1.0
     var camera = Camera()
     
-    fileprivate let grid: Grid
     private var meshBuffers: [(Mesh, MTLBuffer)] = []
+    fileprivate let grid: Grid
     
     init(mtkView: MTKView) {
         device = mtkView.device!
