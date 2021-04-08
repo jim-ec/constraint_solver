@@ -53,12 +53,6 @@ class ViewController: NSViewController, FrameDelegate {
         cubeGeometry.transform.orientation = cube.orientation
     }
     
-    override func keyDown(with event: NSEvent) {
-        if event.keyCode == 12 && event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting(.capsLock) == .command {
-            NSApplication.shared.terminate(self)
-        }
-    }
-    
     override func mouseDragged(with event: NSEvent) {
         // Pan
         let sensitivity = 0.01
