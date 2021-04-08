@@ -49,7 +49,6 @@ class Geometry {
 
 /// A type soley for the purpose of pushing vertices into a geometry.
 class GeometryBuilder {
-    
     let geometry: Geometry
     var index: Int
     
@@ -73,11 +72,9 @@ class GeometryBuilder {
         push(vertex: Vertex(position: b, normal: normal, color: color.rgb))
         push(vertex: Vertex(position: c, normal: normal, color: color.rgb))
     }
-    
 }
 
 extension Renderer {
-    
     func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
         let builder = makeGeometry(name: name, vertexCount: 6).builder()
         
@@ -123,5 +120,4 @@ extension Renderer {
         
         return builder.geometry
     }
-    
 }

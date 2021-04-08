@@ -2,7 +2,6 @@ import Cocoa
 import MetalKit
 
 class ViewController: NSViewController, FrameDelegate {
-    
     var renderer: Renderer!
     var mtkView: MTKView!
     var cubeGeometry: Geometry!
@@ -78,5 +77,4 @@ class ViewController: NSViewController, FrameDelegate {
         // Zoom
         renderer.viewOrbitRadius *= Double(1 - event.magnification)
     }
-    
 }

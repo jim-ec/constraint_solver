@@ -7,7 +7,6 @@ protocol FrameDelegate {
 }
 
 class Renderer: NSObject, MTKViewDelegate {
-    
     var frameDelegate: FrameDelegate? = .none
     var startTime = Double(CACurrentMediaTime())
     var lastFrameTime = Double(CACurrentMediaTime())

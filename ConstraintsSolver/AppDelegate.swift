@@ -1,7 +1,6 @@
 import Cocoa
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    
     private var window: NSWindow!
     static let windowRect = NSMakeRect(0, 0, NSScreen.main!.frame.width, NSScreen.main!.frame.height)
     
@@ -43,5 +42,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
-    
 }
