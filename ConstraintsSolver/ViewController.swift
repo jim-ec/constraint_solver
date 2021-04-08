@@ -68,8 +68,8 @@ class ViewController: NSViewController, FrameDelegate {
         else {
             // Pan
             let sensitivity = 0.001 * renderer.viewOrbitRadius
-            renderer.viewPanning.x += Double(-event.scrollingDeltaX) * sensitivity
-            renderer.viewPanning.z += Double(event.scrollingDeltaY) * sensitivity
+            renderer.viewPanning.x += Double(event.scrollingDeltaX) * sensitivity
+            renderer.viewPanning.z += Double(-event.scrollingDeltaY) * sensitivity
         }
     }
     

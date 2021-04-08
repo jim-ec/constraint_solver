@@ -96,8 +96,8 @@ class Renderer: NSObject, MTKViewDelegate {
         
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
-        var viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
-        viewTransform.position -= viewPanning
+        let viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
+            * Transform.position(viewPanning)
         
         var uniforms = Uniforms(
             model: simd_float4x4(diagonal: .one),
