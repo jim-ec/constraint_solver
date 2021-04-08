@@ -56,14 +56,18 @@ class ViewController: NSViewController, FrameDelegate {
 
     override func scrollWheel(with event: NSEvent) {
         if event.modifierFlags.contains(.shift) {
-            // Zoom
-            let sensitivity = 0.002
-            renderer.camera.zoom(by: 1 + sensitivity * Double(event.scrollingDeltaY))
-        }
-        else {
             // Pan
             let sensitivity = 0.001 * renderer.camera.radius
             renderer.camera.pan(rightwards: sensitivity * Double(-event.scrollingDeltaX), upwards: sensitivity * Double(event.scrollingDeltaY))
+        }
+        else {
+            // Pan relative to ground
+            let sensitivity = 0.001 * renderer.camera.radius
+            let dx = sensitivity * Double(-event.scrollingDeltaX)
+            let dy = sensitivity * Double(event.scrollingDeltaY)
+            renderer.camera.position +=
+                dx * renderer.camera.right +
+                dy * double3(renderer.camera.forward.x, renderer.camera.forward.y, 0).normalize
         }
     }
 
