@@ -9,7 +9,7 @@ class Mesh {
         self.name = name
     }
     
-    func builder() -> MeshBuilder {
+    fileprivate func builder() -> MeshBuilder {
         MeshBuilder(mesh: self)
     }
     
@@ -35,40 +35,16 @@ class Mesh {
             vertices[i].position = function(vertices[i].position)
         }
     }
-}
-
-/// A type soley for the purpose of pushing vertices into a mesh.
-class MeshBuilder {
-    let mesh: Mesh
-    
-    /// The builder will start overwriting vertices from the start.
-    init(mesh: Mesh) {
-        self.mesh = mesh
-    }
-    
-    /// Push a single vertex.
-    func push(vertex: Vertex) {
-        mesh.vertices.append(vertex)
-    }
-    
-    /// Push a uni-colored triangle.
-    /// The normal is computed automatically, assuming counter-clockwise winding.
-    func push(_ a: simd_float3, _ b: simd_float3, _ c: simd_float3, color: Color) {
-        let normal = normalize(cross(b - a, c - a))
-        push(vertex: Vertex(position: a, normal: normal, color: color.rgb))
-        push(vertex: Vertex(position: b, normal: normal, color: color.rgb))
-        push(vertex: Vertex(position: c, normal: normal, color: color.rgb))
-    }
     
     static func makeTriangle(name: String, colors: (Color, Color, Color)) -> Mesh {
         let builder = Mesh(name: name).builder()
         
-        builder.push(vertex: Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.0.rgb))
-        builder.push(vertex: Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
-        builder.push(vertex: Vertex(position: simd_float3(0, 0, 1), normal: simd_float3(0, -1, 0), color: colors.2.rgb))
-        builder.push(vertex: Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, 1, 0), color: colors.0.rgb))
-        builder.push(vertex: Vertex(position: simd_float3(0, 0, 1), normal: simd_float3(0, -1, 0), color: colors.2.rgb))
-        builder.push(vertex: Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
+        builder.push(Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.0.rgb))
+        builder.push(Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
+        builder.push(Vertex(position: simd_float3(0, 0, 1), normal: simd_float3(0, -1, 0), color: colors.2.rgb))
+        builder.push(Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, 1, 0), color: colors.0.rgb))
+        builder.push(Vertex(position: simd_float3(0, 0, 1), normal: simd_float3(0, -1, 0), color: colors.2.rgb))
+        builder.push(Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
         
         return builder.mesh
     }
@@ -104,5 +80,24 @@ class MeshBuilder {
         builder.push(simd_float3(0, 0, 1), simd_float3(1, 1, 1), simd_float3(0, 1, 1), color: color)
         
         return builder.mesh
+    }
+}
+
+fileprivate class MeshBuilder {
+    let mesh: Mesh
+    
+    init(mesh: Mesh) {
+        self.mesh = mesh
+    }
+    
+    func push(_ vertex: Vertex) {
+        mesh.vertices.append(vertex)
+    }
+    
+    func push(_ a: simd_float3, _ b: simd_float3, _ c: simd_float3, color: Color) {
+        let normal = normalize(cross(b - a, c - a))
+        push(Vertex(position: a, normal: normal, color: color.rgb))
+        push(Vertex(position: b, normal: normal, color: color.rgb))
+        push(Vertex(position: c, normal: normal, color: color.rgb))
     }
 }

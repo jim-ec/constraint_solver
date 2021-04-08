@@ -81,26 +81,14 @@ struct Transform {
         return Transform(position: .zero, orientation: orientation)
     }
     
-    static func around(x angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: quat(angle: angle, axis: .ex))
-    }
-    
-    static func around(y angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: quat(angle: angle, axis: .ey))
-    }
-    
-    static func around(z angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: quat(angle: angle, axis: .ez))
-    }
-    
-    static func around(axis: double3, angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: quat(angle: angle, axis: axis))
+    static func rotation(by angle: Double, around axis: double3) -> Transform {
+        Transform(position: .zero, orientation: quat(angle: angle, axis: axis))
     }
     
     /// Positions the viewer along the negative y-axis, offsets from that axis are given in angle quantities.
     static func look(azimuth: Double, elevation: Double, radius: Double) -> Transform {
-        .around(z: azimuth) *
-            .around(x: elevation) *
+        .rotation(by: azimuth, around: .ez) *
+            .rotation(by: elevation, around: .ex) *
             .position(double3(0, radius, 0))
     }
     
