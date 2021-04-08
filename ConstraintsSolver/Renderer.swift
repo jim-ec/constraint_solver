@@ -94,11 +94,9 @@ class Renderer: NSObject, MTKViewDelegate {
         let viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
             * Transform.position(viewPanning)
         
-        var uniforms = Uniforms(
-            model: simd_float4x4(diagonal: .one),
-            view: viewTransform.matrix(),
-            projection: projectionMatrix()
-        )
+        var uniforms = Uniforms()
+        uniforms.view = viewTransform.matrix()
+        uniforms.projection = projectionMatrix()
         
         renderEncoder.pushDebugGroup("Draw Geometries")
         
