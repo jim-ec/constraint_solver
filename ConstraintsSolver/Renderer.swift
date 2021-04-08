@@ -22,6 +22,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var aspectRatio = 1.0
     var camera = Camera()
     
+    fileprivate let grid: Grid
     var geometries: [Geometry] = []
     
     private var vertexBuffer: MTLBuffer
@@ -61,6 +62,8 @@ class Renderer: NSObject, MTKViewDelegate {
         
         vertexBuffer = device.makeBuffer(length: Renderer.maximalVertexCount * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
         vertices = vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: Renderer.maximalVertexCount)
+        
+        grid = Grid(device: device, sections: 25)
         
         super.init()
     }
@@ -111,6 +114,8 @@ class Renderer: NSObject, MTKViewDelegate {
             renderEncoder.popDebugGroup()
         }
         
+        grid.render(into: renderEncoder, uniforms: &uniforms)
+        
         renderEncoder.popDebugGroup()
         
         renderEncoder.endEncoding()
@@ -148,6 +153,44 @@ class Renderer: NSObject, MTKViewDelegate {
         let geometry = Geometry(name: name, vertices: pointer)
         geometries.append(geometry)
         return geometry
+    }
+}
+
+fileprivate class Grid {
+    let buffer: MTLBuffer
+    private let vertexCount: Int
+    
+    init(device: MTLDevice, sections: Int) {
+        var vertices: [Vertex] = []
+        
+        let color = simd_float3(repeating: 0.8)
+        let normal = simd_float3(0, 0, 1)
+        
+        let fullExtent = 2 * sections + 1
+        for ix in 0..<fullExtent {
+            for iy in 0..<fullExtent {
+                let x = Float(ix - sections) / 2
+                let y = Float(iy - sections) / 2
+                
+                vertices.append(Vertex(position: simd_float3(x, -y, 0), normal: normal, color: color))
+                vertices.append(Vertex(position: simd_float3(x, y, 0), normal: normal, color: color))
+                vertices.append(Vertex(position: simd_float3(x, y, 0), normal: normal, color: color))
+                vertices.append(Vertex(position: simd_float3(-x, y, 0), normal: normal, color: color))
+            }
+        }
+        
+        vertexCount = vertices.count
+        buffer = device.makeBuffer(bytes: &vertices, length: vertices.count * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
+    }
+    
+    func render(into encoder: MTLRenderCommandEncoder, uniforms: inout Uniforms) {
+        encoder.pushDebugGroup("Draw Grid Geometry")
+        uniforms.model = simd_float4x4(1)
+        encoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+        encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+        encoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
+        encoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: vertexCount)
+        encoder.popDebugGroup()
     }
 }
 

@@ -37,11 +37,7 @@ class ViewController: NSViewController, FrameDelegate {
         Y.map(by: Transform.position(-Y.findCenterOfMass()))
         Y.map { x in x * 0.5 }
         Y.transform.position.y = 4
-        
-        let floor = renderer.makeQuadliteral(name: "Floor", color: Color(0.2))
-        floor.map(by: Transform.position(-floor.findCenterOfMass()))
-        floor.map { position in position * 10 }
-        
+                
         view = mtkView
         mtkView.allowedTouchTypes = .indirect
     }
