@@ -36,7 +36,7 @@ class Renderer: NSObject, MTKViewDelegate {
         
         mtkView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
         mtkView.colorPixelFormat = MTLPixelFormat.bgra8Unorm
-        mtkView.sampleCount = 1
+        mtkView.sampleCount = 4
         mtkView.clearColor = MTLClearColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0)
         
         let library = device.makeDefaultLibrary()!
