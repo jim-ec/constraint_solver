@@ -211,6 +211,7 @@ fileprivate class Axes {
     let buffer: MTLBuffer
     let size: Double = 120
     let margin: Double = 10
+    let cicleColor = simd_float3(repeating: 0.2)
     let cicleSubdivisions = 50
     let axesVertexOffset: Int
     
@@ -222,9 +223,9 @@ fileprivate class Axes {
             let t1 = 2 * .pi * Double(i) / Double(cicleSubdivisions)
             let t2 = 2 * .pi * Double(i + 1) / Double(cicleSubdivisions)
             
-            push(0, 0, simd_float3(1, 1, 1))
-            push(cos(t1), sin(t1), simd_float3(1, 1, 1))
-            push(cos(t2), sin(t2), simd_float3(1, 1, 1))
+            push(0, 0, cicleColor)
+            push(cos(t1), sin(t1), cicleColor)
+            push(cos(t2), sin(t2), cicleColor)
         }
     }
     
@@ -244,15 +245,43 @@ fileprivate class Axes {
         uniforms.model[3, 0] = Float(width - size / 2 - margin)
         uniforms.model[3, 1] = Float(height - size / 2 - margin)
         
+        // Overwrite axes vertices from last frame.
         vertices.removeLast(vertices.count - axesVertexOffset)
         
+        // Get axes in the current view space.
         let ex = viewMatrix * simd_float4(1, 0, 0, 0)
         let ey = viewMatrix * simd_float4(0, 1, 0, 0)
         let ez = viewMatrix * simd_float4(0, 0, 1, 0)
         
-        pushQuad(ex, color: simd_float3(1, 0, 0))
-        pushQuad(ey, color: simd_float3(0, 1, 0))
-        pushQuad(ez, color: simd_float3(0, 0, 1))
+        // Sort axes by depth.
+        var axes: [(simd_float4, simd_float3)] = []
+        axes.append((ex, simd_float3(1, 0.5, 0.5)))
+        axes.append((ey, simd_float3(0.5, 1, 0.5)))
+        axes.append((ez, simd_float3(0.5, 0.5, 1)))
+        axes.sort { (a, b) -> Bool in
+            a.0.z < b.0.z
+        }
+        
+        for (axis, color) in axes {
+            // Generate a thin quad from the line spanning from the origin to the computed axis end-point.
+            let p = 0.95 * simd_float2(axis.x, -axis.y)
+            let n = 0.03 * simd_normalize(simd_float2(axis.y, axis.x))
+            let p1 = n
+            let p2 = -n
+            let p3 = p + n
+            let p4 = p - n
+            
+            // Axes which point away from the camera are grayed out.
+            let c = axis.z > 0 ? color : simd_float3(repeating: 0.6)
+            
+            push(Double(p1.x), Double(p1.y), c)
+            push(Double(p2.x), Double(p2.y), c)
+            push(Double(p4.x), Double(p4.y), c)
+            
+            push(Double(p1.x), Double(p1.y), c)
+            push(Double(p4.x), Double(p4.y), c)
+            push(Double(p3.x), Double(p3.y), c)
+        }
         
         buffer.contents().copyMemory(from: vertices, byteCount: buffer.length)
         
@@ -261,31 +290,6 @@ fileprivate class Axes {
         encoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
         encoder.popDebugGroup()
-    }
-    
-    func pushQuad(_ v: simd_float4, color: simd_float3) {
-        let p = 0.95 * simd_float2(v.x, -v.y)
-        let n = 0.05 * simd_normalize(simd_float2(v.y, v.x))
-        let p1 = n
-        let p2 = -n
-        let p3 = p + n
-        let p4 = p - n
-        
-        let c: simd_float3
-        if v.z > 0 {
-            c = color
-        }
-        else {
-            c = simd_float3(repeating: 0.6)
-        }
-        
-        push(Double(p1.x), Double(p1.y), c)
-        push(Double(p2.x), Double(p2.y), c)
-        push(Double(p4.x), Double(p4.y), c)
-        
-        push(Double(p1.x), Double(p1.y), c)
-        push(Double(p4.x), Double(p4.y), c)
-        push(Double(p3.x), Double(p3.y), c)
     }
 }
 
