@@ -2,12 +2,12 @@ import Cocoa
 import MetalKit
 
 class ViewController: NSViewController, FrameDelegate {
-    var renderer: Renderer!
-    var mtkView: MTKView!
-    var cubeGeometry: Geometry!
-    var triangle: Geometry!
-    let system = System(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
-    var cube: RigidBody!
+    private var renderer: Renderer!
+    private var mtkView: MTKView!
+    private var cubeGeometry: Geometry!
+    private var triangle: Geometry!
+    private let system = System(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
+    private var cube: RigidBody!
     
     override func loadView() {
         mtkView = MTKView(frame: AppDelegate.windowRect)

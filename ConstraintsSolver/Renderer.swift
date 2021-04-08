@@ -8,13 +8,13 @@ protocol FrameDelegate {
 
 class Renderer: NSObject, MTKViewDelegate {
     var frameDelegate: FrameDelegate? = .none
-    var startTime = Double(CACurrentMediaTime())
-    var lastFrameTime = Double(CACurrentMediaTime())
+    private var startTime = Double(CACurrentMediaTime())
+    private var lastFrameTime = Double(CACurrentMediaTime())
     
     public let device: MTLDevice
-    let commandQueue: MTLCommandQueue
-    var pipelineState: MTLRenderPipelineState
-    var depthState: MTLDepthStencilState
+    private let commandQueue: MTLCommandQueue
+    private var pipelineState: MTLRenderPipelineState
+    private var depthState: MTLDepthStencilState
     
     var aspectRatio: Double = 1
     var viewOrbitAzimuth: Double = .pi * 2 / 3
@@ -24,8 +24,8 @@ class Renderer: NSObject, MTKViewDelegate {
     
     var geometries: [Geometry] = []
     
-    var vertexBuffer: MTLBuffer
-    var vertices: UnsafeMutablePointer<Vertex>
+    private var vertexBuffer: MTLBuffer
+    private var vertices: UnsafeMutablePointer<Vertex>
     
     var currentVertexCount = 0
     static let maximalVertexCount = 1024
