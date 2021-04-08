@@ -53,7 +53,7 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     override func mouseDragged(with event: NSEvent) {
-        // Pan
+        // Orbit
         let sensitivity = 0.01
         renderer.viewOrbitAzimuth += Double(event.deltaX) * sensitivity
         renderer.viewOrbitElevation += Double(event.deltaY) * sensitivity
