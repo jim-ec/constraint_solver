@@ -40,7 +40,6 @@ class Renderer: NSObject, MTKViewDelegate {
         mtkView.clearColor = MTLClearColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0)
         
         let library = device.makeDefaultLibrary()!
-        
         let vertexFunction = library.makeFunction(name: "vertexShader")
         let fragmentFunction = library.makeFunction(name: "fragmentShader")
         
@@ -52,11 +51,7 @@ class Renderer: NSObject, MTKViewDelegate {
         pipelineDescriptor.depthAttachmentPixelFormat = mtkView.depthStencilPixelFormat
         pipelineDescriptor.stencilAttachmentPixelFormat = mtkView.depthStencilPixelFormat
         
-        do {
-            pipelineState = try device.makeRenderPipelineState(descriptor: pipelineDescriptor)
-        } catch {
-            fatalError("Unable to compile render pipeline state: \(error)")
-        }
+        pipelineState = try! device.makeRenderPipelineState(descriptor: pipelineDescriptor)
         
         let depthStencilDescriptor = MTLDepthStencilDescriptor()
         depthStencilDescriptor.depthCompareFunction = .less
