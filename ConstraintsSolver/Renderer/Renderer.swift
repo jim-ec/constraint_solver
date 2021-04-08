@@ -23,13 +23,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var camera = Camera()
     
     fileprivate let grid: Grid
-    var geometries: [Geometry] = []
-    
-    private var vertexBuffer: MTLBuffer
-    private var vertices: UnsafeMutablePointer<Vertex>
-    
-    var currentVertexCount = 0
-    static let maximalVertexCount = 1024
+    private var geometries: [(Geometry, MTLBuffer)] = []
     
     init(mtkView: MTKView) {
         device = mtkView.device!
@@ -60,9 +54,6 @@ class Renderer: NSObject, MTKViewDelegate {
         
         depthState = device.makeDepthStencilState(descriptor: depthStencilDescriptor)!
         
-        vertexBuffer = device.makeBuffer(length: Renderer.maximalVertexCount * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
-        vertices = vertexBuffer.contents().bindMemory(to: Vertex.self, capacity: Renderer.maximalVertexCount)
-        
         grid = Grid(device: device, sections: 25)
         
         super.init()
@@ -92,24 +83,23 @@ class Renderer: NSObject, MTKViewDelegate {
         renderEncoder.setRenderPipelineState(pipelineState)
         renderEncoder.setDepthStencilState(depthState)
         
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
-        
         var uniforms = Uniforms()
         uniforms.view = camera.viewMatrix.singlePrecision
         uniforms.projection = projectionMatrix.singlePrecision
         
         renderEncoder.pushDebugGroup("Draw Geometries")
         
-        for geometry in geometries {
+        for (geometry, buffer) in geometries {
             renderEncoder.pushDebugGroup("Draw Geometry '\(geometry.name)'")
             
             uniforms.model = geometry.transform.matrix.singlePrecision
             
             renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+            
+            renderEncoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
 
-            let vertexStart = geometry.vertices.baseAddress! - vertices
-            renderEncoder.drawPrimitives(type: .triangle, vertexStart: vertexStart, vertexCount: geometry.vertices.count)
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: geometry.vertices.count)
             
             renderEncoder.popDebugGroup()
         }
@@ -129,7 +119,7 @@ class Renderer: NSObject, MTKViewDelegate {
         aspectRatio = Double(size.width / size.height)
     }
     
-    var projectionMatrix: simd_double4x4 {
+    private var projectionMatrix: simd_double4x4 {
         let tanHalfFovy = tan(0.5 * fovY)
 
         var perspectiveMatrix = simd_double4x4(1)
@@ -142,17 +132,18 @@ class Renderer: NSObject, MTKViewDelegate {
         return perspectiveMatrix
     }
     
-    func makeGeometry(name: String, vertexCount: Int) -> Geometry {
-        if currentVertexCount + vertexCount >= Renderer.maximalVertexCount {
-            fatalError("Vertex buffer is out of memory")
+    func insertGeometry(_ newGeometry: Geometry) {
+        for (geometry, buffer) in geometries {
+            if (geometry === newGeometry) {
+                if (newGeometry.vertices.count != buffer.length / MemoryLayout<Vertex>.stride) {
+                    fatalError("Cannot update geometry when the vertex count is different")
+                }
+                buffer.contents().copyMemory(from: newGeometry.vertices, byteCount: newGeometry.vertices.count * MemoryLayout<Vertex>.stride)
+            }
         }
         
-        let pointer = UnsafeMutableBufferPointer(start: vertices.advanced(by: currentVertexCount), count: vertexCount)
-        currentVertexCount += vertexCount
-        
-        let geometry = Geometry(name: name, vertices: pointer)
-        geometries.append(geometry)
-        return geometry
+        let buffer = device.makeBuffer(bytes: newGeometry.vertices, length: newGeometry.vertices.count * MemoryLayout<Vertex>.stride, options: .cpuCacheModeWriteCombined)!
+        geometries.append((newGeometry, buffer))
     }
 }
 

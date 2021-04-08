@@ -12,6 +12,7 @@ class ViewController: NSViewController, FrameDelegate {
     override func loadView() {
         mtkView = MTKView(frame: AppDelegate.windowRect)
         mtkView.device = MTLCreateSystemDefaultDevice()!
+        view = mtkView
         
         renderer = Renderer(mtkView: mtkView)
         mtkView.delegate = renderer
@@ -19,8 +20,9 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.frameDelegate = self
         renderer.camera.look(at: .zero, from: double3(4, 4, 4), up: .ez)
         
-        cubeGeometry = renderer.makeCube(name: "Cube", color: .white)
+        cubeGeometry = GeometryBuilder.makeCube(name: "Cube", color: .white)
         cubeGeometry.map { x in x - simd_float3(0.5, 0.5, 0.5) }
+        renderer.insertGeometry(cubeGeometry)
         
         cube = system.collisionGroup.rigidBody
         cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
@@ -28,18 +30,17 @@ class ViewController: NSViewController, FrameDelegate {
         cube.externalForce.z = -5
         cube.angularVelocity = .init(1, 2, 0.5)
         
-        let X = renderer.makeCube(name: "x", color: .red)
+        let X = GeometryBuilder.makeCube(name: "x", color: .red)
         X.map(by: Transform.position(-X.findCenterOfMass()))
         X.map { x in x * 0.5 }
         X.transform.position.x = 4
+        renderer.insertGeometry(X)
         
-        let Y = renderer.makeCube(name: "y", color: .green)
+        let Y = GeometryBuilder.makeCube(name: "y", color: .green)
         Y.map(by: Transform.position(-Y.findCenterOfMass()))
         Y.map { x in x * 0.5 }
         Y.transform.position.y = 4
-        
-        view = mtkView
-        mtkView.allowedTouchTypes = .indirect
+        renderer.insertGeometry(Y)
     }
     
     func onFrame(dt: Double, t: Double) {

@@ -2,21 +2,11 @@ import Foundation
 
 class Geometry {
     let name: String
-    let vertices: UnsafeMutableBufferPointer<Vertex>
+    var vertices: [Vertex] = []
     var transform = Transform.identity
     
-    init(name: String, vertices: UnsafeMutableBufferPointer<Vertex>) {
+    init(name: String) {
         self.name = name
-        self.vertices = vertices
-    }
-    
-    subscript(index: Int) -> Vertex {
-        get {
-            vertices[index]
-        }
-        set {
-            vertices[index] = newValue
-        }
     }
     
     func builder() -> GeometryBuilder {
@@ -60,7 +50,7 @@ class GeometryBuilder {
     
     /// Push a single vertex.
     func push(vertex: Vertex) {
-        geometry[index] = vertex
+        geometry.vertices.append(vertex)
         index += 1
     }
     
@@ -72,11 +62,9 @@ class GeometryBuilder {
         push(vertex: Vertex(position: b, normal: normal, color: color.rgb))
         push(vertex: Vertex(position: c, normal: normal, color: color.rgb))
     }
-}
-
-extension Renderer {
-    func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
-        let builder = makeGeometry(name: name, vertexCount: 6).builder()
+    
+    static func makeTriangle(name: String, colors: (Color, Color, Color)) -> Geometry {
+        let builder = Geometry(name: name).builder()
         
         builder.push(vertex: Vertex(position: simd_float3(-1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.0.rgb))
         builder.push(vertex: Vertex(position: simd_float3(1, 0, -1), normal: simd_float3(0, -1, 0), color: colors.1.rgb))
@@ -88,8 +76,8 @@ extension Renderer {
         return builder.geometry
     }
     
-    func makeQuadliteral(name: String, color: Color) -> Geometry {
-        let builder = makeGeometry(name: name, vertexCount: 6).builder()
+    static func makeQuadliteral(name: String, color: Color) -> Geometry {
+        let builder = Geometry(name: name).builder()
         
         builder.push(.zero, simd_float3(1, 0, 0), simd_float3(1, 1, 0), color: color)
         builder.push(.zero, simd_float3(1, 1, 0), simd_float3(0, 1, 0), color: color)
@@ -97,8 +85,8 @@ extension Renderer {
         return builder.geometry
     }
     
-    func makeCube(name: String, color: Color) -> Geometry {
-        let builder = makeGeometry(name: name, vertexCount: 36).builder()
+    static func makeCube(name: String, color: Color) -> Geometry {
+        let builder = Geometry(name: name).builder()
         
         builder.push(.zero, simd_float3(1, 0, 0), simd_float3(1, 0, 1), color: color)
         builder.push(.zero, simd_float3(1, 0, 1), simd_float3(0, 0, 1), color: color)
