@@ -1,7 +1,7 @@
 import Foundation
 
 struct Color {
-    let rgb: SIMD3<Float>
+    let rgb: simd_float3
     
     init(_ red: Float, _ green: Float, _ blue: Float) {
         rgb = .init(red, green, blue)
