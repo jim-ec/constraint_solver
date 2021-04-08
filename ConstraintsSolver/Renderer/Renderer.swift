@@ -70,45 +70,42 @@ class Renderer: NSObject, MTKViewDelegate {
         }
         
         let commandBuffer = commandQueue.makeCommandBuffer()!
+        let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: view.currentRenderPassDescriptor!)!
         
-        let renderPassDescriptor = view.currentRenderPassDescriptor!
+        encoder.label = "Primary Render Encoder"
         
-        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+        encoder.setCullMode(.back)
+        encoder.setFrontFacing(.counterClockwise)
         
-        renderEncoder.label = "Primary Render Encoder"
-        
-        renderEncoder.setCullMode(.back)
-        renderEncoder.setFrontFacing(.counterClockwise)
-        
-        renderEncoder.setRenderPipelineState(pipelineState)
-        renderEncoder.setDepthStencilState(depthState)
+        encoder.setRenderPipelineState(pipelineState)
+        encoder.setDepthStencilState(depthState)
         
         var uniforms = Uniforms()
         uniforms.view = camera.viewMatrix.singlePrecision
         uniforms.projection = projectionMatrix.singlePrecision
         
-        renderEncoder.pushDebugGroup("Draw Meshes")
+        encoder.pushDebugGroup("Draw Meshes")
         
         for (mesh, buffer) in meshBuffers {
-            renderEncoder.pushDebugGroup("Draw Mesh '\(mesh.name)'")
+            encoder.pushDebugGroup("Draw Mesh '\(mesh.name)'")
             
             uniforms.model = mesh.transform.matrix.singlePrecision
             
-            renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
-            renderEncoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+            encoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+            encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             
-            renderEncoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
+            encoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
 
-            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: mesh.vertices.count)
+            encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: mesh.vertices.count)
             
-            renderEncoder.popDebugGroup()
+            encoder.popDebugGroup()
         }
         
-        grid.render(into: renderEncoder, uniforms: &uniforms)
+        grid.render(into: encoder, uniforms: &uniforms)
         
-        renderEncoder.popDebugGroup()
+        encoder.popDebugGroup()
         
-        renderEncoder.endEncoding()
+        encoder.endEncoding()
         
         commandBuffer.present(view.currentDrawable!)
         commandBuffer.commit()
