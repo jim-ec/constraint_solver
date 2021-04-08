@@ -2,8 +2,6 @@ import Foundation
 
 typealias double3 = simd_double3
 typealias quat = simd_quatd
-typealias float3x3 = simd_float3x3
-typealias double3x3 = simd_double3x3
 
 extension double3 {
     static var ex: double3 {
