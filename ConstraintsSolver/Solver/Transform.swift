@@ -74,11 +74,11 @@ struct Transform {
     static let identity = Transform(position: .zero, orientation: .identity)
     
     static func position(_ position: double3) -> Transform {
-        return Transform(position: position, orientation: .identity)
+        Transform(position: position, orientation: .identity)
     }
     
     static func orientation(_ orientation: quat) -> Transform {
-        return Transform(position: .zero, orientation: orientation)
+        Transform(position: .zero, orientation: orientation)
     }
     
     static func rotation(by angle: Double, around axis: double3) -> Transform {
