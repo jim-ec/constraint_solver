@@ -8,7 +8,6 @@
 struct Uniforms {
     simd_float4x4 model;
     simd_float4x4 view;
-    simd_float3 viewPosition;
     simd_float4x4 projection;
 };
 

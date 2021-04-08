@@ -102,7 +102,6 @@ class Renderer: NSObject, MTKViewDelegate {
         var uniforms = Uniforms(
             model: simd_float4x4(diagonal: .one),
             view: viewTransform.matrix(),
-            viewPosition: simd_float3(viewTransform.inverse().act(on: .zero)),
             projection: projectionMatrix()
         )
         

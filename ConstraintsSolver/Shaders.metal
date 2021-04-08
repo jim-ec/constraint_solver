@@ -26,9 +26,9 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
     VertexOut out;
     
     out.color = in.color;
-    out.normal = (uniforms.model * float4(in.normal, 0)).xyz;
-    out.position = (uniforms.model * float4(in.position, 1)).xyz;
-    out.clipSpacePosition = toClipSpace(uniforms.projection) * uniforms.view * float4(out.position, 1);
+    out.normal = (uniforms.view * uniforms.model * float4(in.normal, 0)).xyz;
+    out.position = (uniforms.view * uniforms.model * float4(in.position, 1)).xyz;
+    out.clipSpacePosition = toClipSpace(uniforms.projection) * float4(out.position, 1);
     
     return out;
 }
@@ -36,6 +36,11 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
 fragment float4 fragmentShader(VertexOut in [[stage_in]],
                                constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]])
 {
-    float3 color = in.color * dot(in.normal, normalize(uniforms.viewPosition - in.position));
+    float3 ambientLight = float3(0.01);
+
+    float3 v = normalize(float3(0, 0, 1) - in.position);
+    float NoV = dot(in.normal, v);
+
+    float3 color = in.color * NoV + ambientLight;
     return float4(color, 1.0);
 }
