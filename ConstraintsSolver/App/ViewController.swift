@@ -55,7 +55,7 @@ class ViewController: NSViewController, FrameDelegate {
     }
 
     override func scrollWheel(with event: NSEvent) {
-        if event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting(.capsLock) == .shift {
+        if event.modifierFlags.contains(.shift) {
             // Zoom
             let sensitivity = 0.002
             renderer.camera.zoom(by: 1 + sensitivity * Double(event.scrollingDeltaY))
