@@ -39,22 +39,22 @@ class RigidBody {
         self.inverseInertia = 1 / inertia
     }
     
-    func integratePosition(by deltaTime: Double) {
+    func integratePosition(by dt: Double) {
         previousPosition = position
         previousOrientation = orientation
         
-        velocity += deltaTime * externalForce / mass
-        position += deltaTime * velocity
+        velocity += dt * externalForce / mass
+        position += dt * velocity
         
-        orientation += deltaTime * 0.5 * quat(real: .zero, imag: angularVelocity) * orientation
+        orientation += dt * 0.5 * quat(real: .zero, imag: angularVelocity) * orientation
         orientation = orientation.normalized
     }
     
-    func deriveVelocity(by deltaTime: Double) {
-        velocity = (position - previousPosition) / deltaTime
+    func deriveVelocity(for dt: Double) {
+        velocity = (position - previousPosition) / dt
         
         let rotation = orientation * previousOrientation.inverse
-        angularVelocity = 2.0 * rotation.imag / deltaTime
+        angularVelocity = 2.0 * rotation.imag / dt
         if rotation.real < 0 {
             angularVelocity = -angularVelocity
         }

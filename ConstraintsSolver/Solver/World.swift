@@ -8,7 +8,7 @@
 import Foundation
 
 class World {
-    private let solver = Solver(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
+    private let integrator = SubStepIntegrator(subStepCount: 10)
     private let cubeMesh: Mesh
     private let cube: RigidBody
     
@@ -17,7 +17,7 @@ class World {
         cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         renderer.registerMesh(cubeMesh)
         
-        cube = solver.collisionGroup.rigidBody
+        cube = RigidBody(mass: 1, extent: double3(1, 1, 1))
         cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
         cube.position = double3(0, 0, 4)
         cube.externalForce.z = -5
@@ -37,7 +37,7 @@ class World {
     }
     
     func integrate(dt: Double) {
-        solver.step(by: dt)
+        integrator.integrate([cube], by: dt)
         cubeMesh.transform.position = cube.position
         cubeMesh.transform.orientation = cube.orientation
     }

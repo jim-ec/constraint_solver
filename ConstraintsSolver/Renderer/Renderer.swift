@@ -62,9 +62,9 @@ class Renderer: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         if let frameDelegate = frameDelegate {
             let currentTime = Double(CACurrentMediaTime())
-            let deltaTime = currentTime - lastFrameTime
-            if deltaTime > 0 {
-                frameDelegate.onFrame(dt: deltaTime, t: currentTime - startTime)
+            let dt = currentTime - lastFrameTime
+            if dt > 0 {
+                frameDelegate.onFrame(dt: dt, t: currentTime - startTime)
             }
             lastFrameTime = currentTime
         }
