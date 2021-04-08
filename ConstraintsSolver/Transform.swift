@@ -54,15 +54,9 @@ extension double3 {
     }
 }
 
-extension float3x3 {
-    static var identity: float3x3 {
-        get { float3x3(diagonal: .one) }
-    }
-}
-
 extension quat {
-    static var identity: quat {
-        get { quat(ix: 0, iy: 0, iz: 0, r: 1) }
+    static var identity: Self {
+        Self(ix: 0, iy: 0, iz: 0, r: 1)
     }
 }
 
@@ -79,9 +73,7 @@ struct Transform {
             simd_double4(position, 1))
     }
     
-    static func identity() -> Transform {
-        return Transform(position: .zero, orientation: .identity)
-    }
+    static let identity = Transform(position: .zero, orientation: .identity)
     
     static func position(_ position: double3) -> Transform {
         return Transform(position: position, orientation: .identity)

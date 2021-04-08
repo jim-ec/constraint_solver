@@ -53,7 +53,7 @@ class System {
             var groundOrientation = quat.identity
             let groundInverseMass = 0.0
             let groundInverseInertia = double3.zero
-            let groundTransformInverse = Transform.identity()
+            let groundTransformInverse = Transform.identity
             
             for constraint in collisionGroup.generateConstraints() {
                 let difference = constraint.positions.1 - constraint.positions.0
