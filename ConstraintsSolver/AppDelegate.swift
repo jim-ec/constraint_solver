@@ -2,7 +2,7 @@ import Cocoa
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     
-    private var window: NSWindow?
+    private var window: NSWindow!
     static let windowRect = NSMakeRect(0, 0, NSScreen.main!.frame.width, NSScreen.main!.frame.height)
     
     func applicationWillFinishLaunching(_ notification: Notification) {
@@ -22,15 +22,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         window = NSWindow(contentRect: AppDelegate.windowRect,
-                          styleMask: [.miniaturizable, .closable, .resizable, .titled],
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                           backing: .buffered,
                           defer: false)
-        window?.title = "Constraints Solver"
-        window?.makeKeyAndOrderFront(nil)
+        
+        window.title = "Constraints Solver"
+        window.level = .normal
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.acceptsMouseMovedEvents = true
+        window.makeKeyAndOrderFront(nil)
         
         let viewController = ViewController()
-        window?.contentViewController = viewController
-        window?.makeFirstResponder(viewController)
+        window.contentViewController = viewController
+        window.makeFirstResponder(viewController)
+        
+        NSApp.activate(ignoringOtherApps: true)
     }
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
