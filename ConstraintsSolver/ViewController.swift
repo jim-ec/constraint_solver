@@ -23,7 +23,7 @@ class ViewController: NSViewController, FrameDelegate {
         cubeGeometry.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         
         cube = system.collisionGroup.rigidBody
-        cube.orientation = .init(angle: .pi / 8, axis: .e2 + 0.5 * .e1)
+        cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
         cube.position = simd_double3(0, 0, 4)
         cube.externalForce.z = -5
         cube.angularVelocity = .init(1, 2, 0.5)

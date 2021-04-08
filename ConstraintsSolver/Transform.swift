@@ -1,15 +1,15 @@
 import Foundation
 
 extension simd_double3 {
-    public static var e1: simd_double3 {
+    public static var ex: simd_double3 {
         get { simd_double3(1, 0, 0) }
     }
     
-    public static var e2: simd_double3 {
+    public static var ey: simd_double3 {
         get { simd_double3(0, 1, 0) }
     }
     
-    public static var e3: simd_double3 {
+    public static var ez: simd_double3 {
         get { simd_double3(0, 0, 1) }
     }
 }
@@ -57,15 +57,15 @@ struct Transform {
     }
     
     static func around(x angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .e1))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .ex))
     }
     
     static func around(y angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .e2))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .ey))
     }
     
     static func around(z angle: Double) -> Transform {
-        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .e3))
+        return Transform(position: .zero, orientation: simd_quatd(angle: angle, axis: .ez))
     }
     
     static func around(axis: simd_double3, angle: Double) -> Transform {
