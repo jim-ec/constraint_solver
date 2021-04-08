@@ -33,7 +33,7 @@ fragment float4 fragmentShader(VertexOut in [[stage_in]],
     float3 ambientLight = float3(0.1);
 
     float3 v = normalize(float3(0, 0, 1) - in.position);
-    float NoV = dot(in.normal, v);
+    float NoV = abs(dot(in.normal, v));
 
     float3 color = in.color * NoV + ambientLight;
     return float4(color, 1.0);
