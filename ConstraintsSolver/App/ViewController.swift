@@ -4,10 +4,7 @@ import MetalKit
 class ViewController: NSViewController, FrameDelegate {
     private var renderer: Renderer!
     private var mtkView: MTKView!
-    private var cubeMesh: Mesh!
-    private var triangle: Mesh!
-    private let solver = Solver(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
-    private var cube: RigidBody!
+    private var world: World!
     
     override func loadView() {
         mtkView = MTKView(frame: AppDelegate.windowRect)
@@ -20,33 +17,11 @@ class ViewController: NSViewController, FrameDelegate {
         renderer.frameDelegate = self
         renderer.camera.look(at: .zero, from: double3(4, 4, 4), up: .ez)
         
-        cubeMesh = Mesh.makeCube(name: "Cube", color: .white)
-        cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
-        renderer.registerMesh(cubeMesh)
-        
-        cube = solver.collisionGroup.rigidBody
-        cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
-        cube.position = double3(0, 0, 4)
-        cube.externalForce.z = -5
-        cube.angularVelocity = .init(1, 2, 0.5)
-        
-        let X = Mesh.makeCube(name: "x", color: .red)
-        X.map(by: Transform.position(-X.findCenterOfMass()))
-        X.map { x in x * 0.5 }
-        X.transform.position.x = 4
-        renderer.registerMesh(X)
-        
-        let Y = Mesh.makeCube(name: "y", color: .green)
-        Y.map(by: Transform.position(-Y.findCenterOfMass()))
-        Y.map { x in x * 0.5 }
-        Y.transform.position.y = 4
-        renderer.registerMesh(Y)
+        world = World(renderer: renderer)
     }
     
     func onFrame(dt: Double, t: Double) {
-        solver.step(by: dt)
-        cubeMesh.transform.position = cube.position
-        cubeMesh.transform.orientation = cube.orientation
+        world.integrate(dt: dt)
     }
     
     override func mouseDragged(with event: NSEvent) {
