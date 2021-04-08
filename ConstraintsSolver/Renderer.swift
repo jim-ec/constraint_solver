@@ -20,7 +20,7 @@ class Renderer: NSObject, MTKViewDelegate {
     var viewOrbitAzimuth: Double = .pi * 2 / 3
     var viewOrbitElevation: Double = .pi * 1 / 8
     var viewOrbitRadius = Double(4)
-    var viewPanning = simd_double3()
+    var viewPanning = double3()
     
     var geometries: [Geometry] = []
     

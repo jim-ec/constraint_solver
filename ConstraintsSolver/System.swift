@@ -9,7 +9,7 @@ import Foundation
 
 struct PositionalConstraint {
     let body: RigidBody
-    let positions: (simd_double3, simd_double3)
+    let positions: (double3, double3)
     let distance: Double
     let compliance: Double
 }
@@ -49,10 +49,10 @@ class System {
         for _ in 0..<subStepCount {
             collisionGroup.integratePositions(by: subDeltaTime)
             
-            var groundPosition = simd_double3.zero
-            var groundOrientation = simd_quatd.identity
+            var groundPosition = double3.zero
+            var groundOrientation = quat.identity
             let groundInverseMass = 0.0
-            let groundInverseInertia = simd_double3.zero
+            let groundInverseInertia = double3.zero
             let groundTransformInverse = Transform.identity()
             
             for constraint in collisionGroup.generateConstraints() {
@@ -75,7 +75,7 @@ class System {
                 constraint.body.applyLinearImpulse(impulse, at: constraint.positions.0)
                 
                 let groundTranslation = impulse * groundInverseMass
-                let groundRotation = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
+                let groundRotation = 0.5 * quat(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
                 groundPosition += groundTranslation
                 groundOrientation = (groundOrientation + groundRotation).normalized
             }

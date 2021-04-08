@@ -8,20 +8,20 @@
 import Foundation
 
 class RigidBody {
-    let extent: simd_double3
+    let extent: double3
     let mass: Double
     let inverseMass: Double
-    let inertia: simd_double3
-    let inverseInertia: simd_double3
-    var externalForce: simd_double3
-    var velocity: simd_double3
-    var angularVelocity: simd_double3
-    var position: simd_double3
-    var orientation: simd_quatd
-    var previousPosition: simd_double3
-    var previousOrientation: simd_quatd
+    let inertia: double3
+    let inverseInertia: double3
+    var externalForce: double3
+    var velocity: double3
+    var angularVelocity: double3
+    var position: double3
+    var orientation: quat
+    var previousPosition: double3
+    var previousOrientation: quat
     
-    init(mass: Double, extent: simd_double3) {
+    init(mass: Double, extent: double3) {
         self.mass = mass
         self.inverseMass = 1 / mass
         self.extent = extent
@@ -32,7 +32,7 @@ class RigidBody {
         self.previousPosition = position
         self.previousOrientation = orientation
         self.externalForce = .zero
-        self.inertia = 1.0 / 12.0 * mass * simd_double3(
+        self.inertia = 1.0 / 12.0 * mass * double3(
             extent.y * extent.y + extent.z * extent.z,
             extent.x * extent.x + extent.z * extent.z,
             extent.x * extent.x + extent.y * extent.y)
@@ -46,7 +46,7 @@ class RigidBody {
         velocity += deltaTime * externalForce / mass
         position += deltaTime * velocity
         
-        orientation += deltaTime * 0.5 * simd_quatd(real: .zero, imag: angularVelocity) * orientation
+        orientation += deltaTime * 0.5 * quat(real: .zero, imag: angularVelocity) * orientation
         orientation = orientation.normalized
     }
     
@@ -62,28 +62,28 @@ class RigidBody {
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and orientation.
-    func applyLinearImpulse(_ impulse: simd_double3, at vertex: simd_double3) {
+    func applyLinearImpulse(_ impulse: double3, at vertex: double3) {
         position += impulse * inverseMass
         
-        let rotation = 0.5 * simd_quatd(real: 0, imag: cross(vertex - position, impulse)) * orientation
+        let rotation = 0.5 * quat(real: 0, imag: cross(vertex - position, impulse)) * orientation
         orientation = (orientation + rotation).normalized
     }
     
-    func intoRestAttidue(_ x: simd_double3) -> simd_double3 {
+    func intoRestAttidue(_ x: double3) -> double3 {
         orientation.inverse.act(x - position)
     }
     
-    func fromRestAttidue(_ x: simd_double3) -> simd_double3 {
+    func fromRestAttidue(_ x: double3) -> double3 {
         orientation.act(x) + position
     }
     
     /// Computes where the given vertex in the current attitude would be in the previous one.
-    func intoPreviousAttidue(_ x: simd_double3) -> simd_double3 {
+    func intoPreviousAttidue(_ x: double3) -> double3 {
         previousOrientation.act(intoRestAttidue(x)) + previousPosition
     }
     
-    func vertices() -> [simd_double3] {
-        let cube: [simd_double3] = [
+    func vertices() -> [double3] {
+        let cube: [double3] = [
             .init(-1, -1, -1),
             .init(1, -1, -1),
             .init(-1, 1, -1),

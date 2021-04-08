@@ -8,7 +8,7 @@
 import Foundation
 
 fileprivate struct ExpandingPolytope {
-    var points: [simd_double3] = []
+    var points: [double3] = []
     var triangles: [(Int, Int, Int)]
     
     init(from tetrahedron: Tetrahedron) {
@@ -16,9 +16,9 @@ fileprivate struct ExpandingPolytope {
         triangles = [(0, 2, 1), (0, 1, 3), (1, 2, 3), (2, 0, 3)]
     }
     
-    func nearestOrthogonalProjection() -> simd_double3 {
+    func nearestOrthogonalProjection() -> double3 {
         var minimalSquaredDistance = Double.infinity
-        var nearestOrthogonalProjection = simd_double3.zero
+        var nearestOrthogonalProjection = double3.zero
         
         for triangle in triangles {
             let points = (self.points[triangle.0], self.points[triangle.1], self.points[triangle.2])
@@ -41,7 +41,7 @@ fileprivate struct ExpandingPolytope {
     }
     
     /// Expands the polytope to the given point, while mainting convexity.
-    mutating func expand(to x: simd_double3) {
+    mutating func expand(to x: double3) {
         var seamEdges: [(Int, Int)] = []
         var vanishingEdges: [Bool] = []
         var vanishingTriangles: [Bool] = .init(repeating: false, count: triangles.count)
@@ -88,7 +88,7 @@ fileprivate struct ExpandingPolytope {
     }
 }
 
-func epa(tetrahedron: Tetrahedron, support: MinkowskiDifference) -> simd_double3 {
+func epa(tetrahedron: Tetrahedron, support: MinkowskiDifference) -> double3 {
     var polytope = ExpandingPolytope(from: tetrahedron)
     
     while true {
