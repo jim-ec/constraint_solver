@@ -13,7 +13,7 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView = MTKView(frame: AppDelegate.windowRect)
         mtkView.device = MTLCreateSystemDefaultDevice()!
         
-        renderer = Renderer(metalKitView: mtkView)
+        renderer = Renderer(mtkView: mtkView)
         mtkView.delegate = renderer
         
         renderer.frameDelegate = self

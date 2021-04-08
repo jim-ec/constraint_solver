@@ -30,14 +30,14 @@ class Renderer: NSObject, MTKViewDelegate {
     var currentVertexCount = 0
     static let maximalVertexCount = 1024
     
-    init(metalKitView: MTKView) {
-        device = metalKitView.device!
+    init(mtkView: MTKView) {
+        device = mtkView.device!
         commandQueue = device.makeCommandQueue()!
         
-        metalKitView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
-        metalKitView.colorPixelFormat = MTLPixelFormat.bgra8Unorm
-        metalKitView.sampleCount = 1
-        metalKitView.clearColor = MTLClearColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0)
+        mtkView.depthStencilPixelFormat = MTLPixelFormat.depth32Float_stencil8
+        mtkView.colorPixelFormat = MTLPixelFormat.bgra8Unorm
+        mtkView.sampleCount = 1
+        mtkView.clearColor = MTLClearColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 0)
         
         let library = device.makeDefaultLibrary()!
         
@@ -45,12 +45,12 @@ class Renderer: NSObject, MTKViewDelegate {
         let fragmentFunction = library.makeFunction(name: "fragmentShader")
         
         let pipelineDescriptor = MTLRenderPipelineDescriptor()
-        pipelineDescriptor.sampleCount = metalKitView.sampleCount
+        pipelineDescriptor.sampleCount = mtkView.sampleCount
         pipelineDescriptor.vertexFunction = vertexFunction
         pipelineDescriptor.fragmentFunction = fragmentFunction
-        pipelineDescriptor.colorAttachments[0].pixelFormat = metalKitView.colorPixelFormat
-        pipelineDescriptor.depthAttachmentPixelFormat = metalKitView.depthStencilPixelFormat
-        pipelineDescriptor.stencilAttachmentPixelFormat = metalKitView.depthStencilPixelFormat
+        pipelineDescriptor.colorAttachments[0].pixelFormat = mtkView.colorPixelFormat
+        pipelineDescriptor.depthAttachmentPixelFormat = mtkView.depthStencilPixelFormat
+        pipelineDescriptor.stencilAttachmentPixelFormat = mtkView.depthStencilPixelFormat
         
         do {
             pipelineState = try device.makeRenderPipelineState(descriptor: pipelineDescriptor)
