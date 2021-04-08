@@ -37,7 +37,7 @@ class ViewController: NSViewController, FrameDelegate {
         Y.map(by: Transform.position(-Y.findCenterOfMass()))
         Y.map { x in x * 0.5 }
         Y.transform.position.y = 4
-                
+        
         view = mtkView
         mtkView.allowedTouchTypes = .indirect
     }

@@ -52,6 +52,41 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		38806255261F67230074887A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AADF6E3D2530BCBE00681C64 /* main.swift */,
+				AADF6E1C2530B55600681C64 /* AppDelegate.swift */,
+				AADF6E1E2530B55600681C64 /* ViewController.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		38806258261F675C0074887A /* Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				AA35E4882534C0E900A6761C /* Color.swift */,
+				AADF6E202530B55600681C64 /* Renderer.swift */,
+				38806252261F4EAE0074887A /* Camera.swift */,
+				AADF6E222530B55600681C64 /* Shaders.metal */,
+				AADF6E242530B55600681C64 /* ShaderTypes.h */,
+			);
+			path = Renderer;
+			sourceTree = "<group>";
+		};
+		3880625C261F68050074887A /* Solver */ = {
+			isa = PBXGroup;
+			children = (
+				AA35E4852534C0DF00A6761C /* Geometry.swift */,
+				AA68B489255ED3AB0034421F /* RigidBody.swift */,
+				AA68B485255ECFBA0034421F /* System.swift */,
+				AABD38262549E22000F3AA37 /* Intersector.swift */,
+				AA05792E25605CF4001FA8BE /* EPA.swift */,
+				AAAC5FE125378AEA002FA47B /* Transform.swift */,
+			);
+			path = Solver;
+			sourceTree = "<group>";
+		};
 		AADF6E102530B55600681C64 = {
 			isa = PBXGroup;
 			children = (
@@ -71,21 +106,10 @@
 		AADF6E1B2530B55600681C64 /* ConstraintsSolver */ = {
 			isa = PBXGroup;
 			children = (
-				AADF6E3D2530BCBE00681C64 /* main.swift */,
-				AADF6E1C2530B55600681C64 /* AppDelegate.swift */,
-				AADF6E1E2530B55600681C64 /* ViewController.swift */,
-				AADF6E202530B55600681C64 /* Renderer.swift */,
-				38806252261F4EAE0074887A /* Camera.swift */,
-				AA35E4852534C0DF00A6761C /* Geometry.swift */,
-				AA68B489255ED3AB0034421F /* RigidBody.swift */,
-				AA68B485255ECFBA0034421F /* System.swift */,
-				AABD38262549E22000F3AA37 /* Intersector.swift */,
-				AA05792E25605CF4001FA8BE /* EPA.swift */,
-				AAAC5FE125378AEA002FA47B /* Transform.swift */,
-				AA35E4882534C0E900A6761C /* Color.swift */,
-				AADF6E222530B55600681C64 /* Shaders.metal */,
-				AADF6E242530B55600681C64 /* ShaderTypes.h */,
 				AADF6E2A2530B55800681C64 /* Info.plist */,
+				38806255261F67230074887A /* App */,
+				38806258261F675C0074887A /* Renderer */,
+				3880625C261F68050074887A /* Solver */,
 			);
 			path = ConstraintsSolver;
 			sourceTree = "<group>";
@@ -307,7 +331,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "jim-eckerlein.io.ConstraintsSolver";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "$(TARGET_NAME)/ShaderTypes.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(TARGET_NAME)/Renderer/ShaderTypes.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -328,7 +352,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "jim-eckerlein.io.ConstraintsSolver";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "$(TARGET_NAME)/ShaderTypes.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(TARGET_NAME)/Renderer/ShaderTypes.h";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
