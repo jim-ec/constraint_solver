@@ -17,7 +17,7 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView.delegate = renderer
         
         renderer.frameDelegate = self
-        renderer.viewOrbitRadius = 10
+        renderer.camera.look(at: .zero, from: double3(4, 4, 4), up: .ez)
         
         cubeGeometry = renderer.makeCube(name: "Cube", color: .white)
         cubeGeometry.map { x in x - simd_float3(0.5, 0.5, 0.5) }
@@ -55,26 +55,24 @@ class ViewController: NSViewController, FrameDelegate {
     override func mouseDragged(with event: NSEvent) {
         // Orbit
         let sensitivity = 0.01
-        renderer.viewOrbitAzimuth += Double(event.deltaX) * sensitivity
-        renderer.viewOrbitElevation += Double(event.deltaY) * sensitivity
+        renderer.camera.orbit(rightwards: sensitivity * Double(-event.deltaX), upwards: sensitivity * Double(event.deltaY))
     }
-    
+
     override func scrollWheel(with event: NSEvent) {
         if event.modifierFlags.intersection(.deviceIndependentFlagsMask).subtracting(.capsLock) == .shift {
             // Zoom
             let sensitivity = 0.002
-            renderer.viewOrbitRadius *= 1 + sensitivity * Double(event.scrollingDeltaY)
+            renderer.camera.zoom(by: 1 + sensitivity * Double(event.scrollingDeltaY))
         }
         else {
             // Pan
-            let sensitivity = 0.001 * renderer.viewOrbitRadius
-            renderer.viewPanning.x += Double(event.scrollingDeltaX) * sensitivity
-            renderer.viewPanning.z += Double(-event.scrollingDeltaY) * sensitivity
+            let sensitivity = 0.01
+            renderer.camera.pan(rightwards: sensitivity * Double(-event.scrollingDeltaX), upwards: sensitivity * Double(event.scrollingDeltaY))
         }
     }
-    
+
     override func magnify(with event: NSEvent) {
         // Zoom
-        renderer.viewOrbitRadius *= Double(1 - event.magnification)
+        renderer.camera.zoom(by: 1 + Double(event.magnification))
     }
 }

@@ -16,11 +16,11 @@ class Renderer: NSObject, MTKViewDelegate {
     private var pipelineState: MTLRenderPipelineState
     private var depthState: MTLDepthStencilState
     
-    var aspectRatio: Double = 1
-    var viewOrbitAzimuth: Double = .pi * 2 / 3
-    var viewOrbitElevation: Double = .pi * 1 / 8
-    var viewOrbitRadius = Double(4)
-    var viewPanning = double3()
+    let fovY = 1.0472
+    let zNear = 0.1
+    let zFar = 100.0
+    var aspectRatio = 1.0
+    var camera = Camera()
     
     var geometries: [Geometry] = []
     
@@ -91,12 +91,9 @@ class Renderer: NSObject, MTKViewDelegate {
         
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: Int(BufferIndexVertices))
         
-        let viewTransform = Transform.look(azimuth: viewOrbitAzimuth, elevation: viewOrbitElevation, radius: viewOrbitRadius)
-            * Transform.position(viewPanning)
-        
         var uniforms = Uniforms()
-        uniforms.view = viewTransform.matrix()
-        uniforms.projection = projectionMatrix()
+        uniforms.view = camera.viewMatrix.singlePrecision
+        uniforms.projection = projectionMatrix.singlePrecision
         
         renderEncoder.pushDebugGroup("Draw Geometries")
         
@@ -127,20 +124,17 @@ class Renderer: NSObject, MTKViewDelegate {
         aspectRatio = Double(size.width / size.height)
     }
     
-    func projectionMatrix() -> simd_float4x4 {
-        let fovY = 1.0472
-        let ys = 1 / tan(fovY * 0.5)
-        let xs = ys / aspectRatio
-        let nearZ = 0.1
-        let farZ = 100.0
-        let zs = farZ / (nearZ - farZ)
+    var projectionMatrix: simd_double4x4 {
+        let tanHalfFovy = tan(0.5 * fovY)
+
+        var perspectiveMatrix = simd_double4x4(1)
+        perspectiveMatrix[0][0] = 1 / (aspectRatio * tanHalfFovy)
+        perspectiveMatrix[1][1] = 1 / (tanHalfFovy)
+        perspectiveMatrix[2][2] = zFar / (zNear - zFar)
+        perspectiveMatrix[2][3] = -1
+        perspectiveMatrix[3][2] = -(zFar * zNear) / (zFar - zNear)
         
-        return simd_float4x4(columns: (
-            simd_float4(Float(xs), 0, 0, 0),
-            simd_float4(0, Float(ys), 0, 0),
-            simd_float4(0, 0, Float(zs), -1),
-            simd_float4(0, 0, Float(zs * nearZ), 0)
-        ))
+        return perspectiveMatrix
     }
     
     func makeGeometry(name: String, vertexCount: Int) -> Geometry {
@@ -154,5 +148,16 @@ class Renderer: NSObject, MTKViewDelegate {
         let geometry = Geometry(name: name, vertices: pointer)
         geometries.append(geometry)
         return geometry
+    }
+}
+
+extension simd_double4x4 {
+    var singlePrecision: simd_float4x4 {
+        simd_float4x4(columns: (
+            simd_float4(Float(self[0, 0]), Float(self[0, 1]), Float(self[0, 2]), Float(self[0, 3])),
+            simd_float4(Float(self[1, 0]), Float(self[1, 1]), Float(self[1, 2]), Float(self[1, 3])),
+            simd_float4(Float(self[2, 0]), Float(self[2, 1]), Float(self[2, 2]), Float(self[2, 3])),
+            simd_float4(Float(self[3, 0]), Float(self[3, 1]), Float(self[3, 2]), Float(self[3, 3]))
+        ))
     }
 }

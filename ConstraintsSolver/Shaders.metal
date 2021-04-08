@@ -12,12 +12,6 @@ struct VertexOut {
     float3 color;
 };
 
-// Implicit matrix multiplication:
-// x <- x, y <- -z, z <- y, w <- w
-float4x4 toClipSpace(float4x4 matrix) {
-    return float4x4(matrix[0], -matrix[2], matrix[1], matrix[3]);
-}
-
 vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndexVertices)]],
                               constant Uniforms& uniforms [[buffer(BufferIndexUniforms)]],
                               uint vertexId [[vertex_id]])
@@ -28,7 +22,7 @@ vertex VertexOut vertexShader(device Vertex const *vertices [[buffer(BufferIndex
     out.color = in.color;
     out.normal = (uniforms.view * uniforms.model * float4(in.normal, 0)).xyz;
     out.position = (uniforms.view * uniforms.model * float4(in.position, 1)).xyz;
-    out.clipSpacePosition = toClipSpace(uniforms.projection) * float4(out.position, 1);
+    out.clipSpacePosition = uniforms.projection * float4(out.position, 1);
     
     return out;
 }

@@ -3,6 +3,7 @@ import Foundation
 typealias double3 = simd_double3
 typealias quat = simd_quatd
 typealias float3x3 = simd_float3x3
+typealias double3x3 = simd_double3x3
 
 extension double3 {
     static var ex: double3 {
@@ -16,11 +17,40 @@ extension double3 {
     static var ez: double3 {
         get { double3(0, 0, 1) }
     }
-}
-
-extension double3 {
+    
     var string: String {
         get { "(\(x), \(y), \(z))" }
+    }
+    
+    var normalize: Self {
+        simd_normalize(self)
+    }
+    
+    func distance(to rhs: Self) -> Double {
+        simd_distance(self, rhs)
+    }
+    
+    func rotate(by angle: Double, around axis: Self) -> Self {
+        let c = cos(angle)
+        let s = sin(angle)
+        
+        let temp = (1 - c) * axis
+        
+        var rotationMatrix = simd_double4x4(diagonal: .init(repeating: 1))
+        rotationMatrix[0][0] = c + temp.x * axis.x
+        rotationMatrix[0][1] = temp.x * axis.y + s * axis.z
+        rotationMatrix[0][2] = temp.x * axis.z - s * axis.y
+
+        rotationMatrix[1][0] = temp.y * axis.x - s * axis.z
+        rotationMatrix[1][1] = c + temp.y * axis.y
+        rotationMatrix[1][2] = temp.y * axis.z + s * axis.x
+
+        rotationMatrix[2][0] = temp.z * axis.x + s * axis.y
+        rotationMatrix[2][1] = temp.z * axis.y - s * axis.x
+        rotationMatrix[2][2] = c + temp.z * axis.z
+        
+        let rotated = rotationMatrix * simd_double4(self, 1)
+        return Self(rotated.x, rotated.y, rotated.z)
     }
 }
 

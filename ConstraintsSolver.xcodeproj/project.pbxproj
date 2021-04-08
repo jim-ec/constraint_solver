@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		38806253261F4EAE0074887A /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38806252261F4EAE0074887A /* Camera.swift */; };
 		AA05792F25605CF4001FA8BE /* EPA.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05792E25605CF4001FA8BE /* EPA.swift */; };
 		AA35E4862534C0DF00A6761C /* Geometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA35E4852534C0DF00A6761C /* Geometry.swift */; };
 		AA35E4892534C0E900A6761C /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA35E4882534C0E900A6761C /* Color.swift */; };
@@ -22,6 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		38806252261F4EAE0074887A /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
 		AA05792E25605CF4001FA8BE /* EPA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EPA.swift; sourceTree = "<group>"; };
 		AA35E4852534C0DF00A6761C /* Geometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geometry.swift; sourceTree = "<group>"; };
 		AA35E4882534C0E900A6761C /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
@@ -73,6 +75,7 @@
 				AADF6E1C2530B55600681C64 /* AppDelegate.swift */,
 				AADF6E1E2530B55600681C64 /* ViewController.swift */,
 				AADF6E202530B55600681C64 /* Renderer.swift */,
+				38806252261F4EAE0074887A /* Camera.swift */,
 				AA35E4852534C0DF00A6761C /* Geometry.swift */,
 				AA68B489255ED3AB0034421F /* RigidBody.swift */,
 				AA68B485255ECFBA0034421F /* System.swift */,
@@ -164,6 +167,7 @@
 				AADF6E212530B55600681C64 /* Renderer.swift in Sources */,
 				AAAC5FE225378AEA002FA47B /* Transform.swift in Sources */,
 				AADF6E1D2530B55600681C64 /* AppDelegate.swift in Sources */,
+				38806253261F4EAE0074887A /* Camera.swift in Sources */,
 				AA05792F25605CF4001FA8BE /* EPA.swift in Sources */,
 				AABD38272549E22000F3AA37 /* Intersector.swift in Sources */,
 			);
