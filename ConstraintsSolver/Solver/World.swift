@@ -22,18 +22,6 @@ class World {
         cube.position = double3(0, 0, 4)
         cube.externalForce.z = -5
         cube.angularVelocity = .init(1, 2, 0.5)
-        
-        let X = Mesh.makeCube(name: "x", color: .red)
-        X.map(by: Transform.position(-X.findCenterOfMass()))
-        X.map { x in x * 0.5 }
-        X.transform.position.x = 4
-        renderer.registerMesh(X)
-        
-        let Y = Mesh.makeCube(name: "y", color: .green)
-        Y.map(by: Transform.position(-Y.findCenterOfMass()))
-        Y.map { x in x * 0.5 }
-        Y.transform.position.y = 4
-        renderer.registerMesh(Y)
     }
     
     func integrate(dt: Double) {
