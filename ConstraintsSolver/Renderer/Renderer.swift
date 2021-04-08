@@ -15,15 +15,19 @@ class Renderer: NSObject, MTKViewDelegate {
     private let commandQueue: MTLCommandQueue
     private var pipelineState: MTLRenderPipelineState
     private var depthState: MTLDepthStencilState
+    private var hudDepthState: MTLDepthStencilState
     
     let fovY = 1.0472
     let zNear = 0.1
     let zFar = 100.0
+    var width = 1.0
+    var height = 1.0
     var aspectRatio = 1.0
     var camera = Camera()
     
     private var meshBuffers: [(Mesh, MTLBuffer)] = []
     fileprivate let grid: Grid
+    fileprivate let axes: Axes
     
     init(mtkView: MTKView) {
         device = mtkView.device!
@@ -51,10 +55,15 @@ class Renderer: NSObject, MTKViewDelegate {
         let depthStencilDescriptor = MTLDepthStencilDescriptor()
         depthStencilDescriptor.depthCompareFunction = .less
         depthStencilDescriptor.isDepthWriteEnabled = true
-        
         depthState = device.makeDepthStencilState(descriptor: depthStencilDescriptor)!
         
+        let hudDepthStencilDescriptor = MTLDepthStencilDescriptor()
+        depthStencilDescriptor.depthCompareFunction = .always
+        depthStencilDescriptor.isDepthWriteEnabled = false
+        hudDepthState = device.makeDepthStencilState(descriptor: hudDepthStencilDescriptor)!
+        
         grid = Grid(device: device, sections: 25)
+        axes = Axes(device: device)
         
         super.init()
     }
@@ -85,7 +94,6 @@ class Renderer: NSObject, MTKViewDelegate {
         uniforms.projection = projectionMatrix.singlePrecision
         
         encoder.pushDebugGroup("Draw Meshes")
-        
         for (mesh, buffer) in meshBuffers {
             encoder.pushDebugGroup("Draw Mesh '\(mesh.name)'")
             
@@ -100,19 +108,35 @@ class Renderer: NSObject, MTKViewDelegate {
             
             encoder.popDebugGroup()
         }
+        encoder.popDebugGroup()
         
         grid.render(into: encoder, uniforms: &uniforms)
         
+        encoder.pushDebugGroup("Draw HUDs")
+        let viewMatrix = uniforms.view
+        uniforms.model = simd_float4x4(1)
+        uniforms.projection = simd_float4x4(1)
+        uniforms.view = simd_float4x4(1)
+        uniforms.view[0, 0] = 2 * Float(1 / width)
+        uniforms.view[1, 1] = -2 * Float(1 / height)
+        uniforms.view[3, 0] = -1
+        uniforms.view[3, 1] = 1
+        encoder.setCullMode(.none)
+        encoder.setDepthStencilState(hudDepthState)
+        axes.render(into: encoder, uniforms: &uniforms, width: width, height: height, viewMatrix: viewMatrix)
+        
         encoder.popDebugGroup()
+        
         
         encoder.endEncoding()
         
         commandBuffer.present(view.currentDrawable!)
         commandBuffer.commit()
-        commandBuffer.waitUntilCompleted()
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        width = Double(size.width)
+        height = Double(size.height)
         aspectRatio = Double(size.width / size.height)
     }
     
@@ -179,6 +203,89 @@ fileprivate class Grid {
         encoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
         encoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: vertexCount)
         encoder.popDebugGroup()
+    }
+}
+
+fileprivate class Axes {
+    var vertices: [Vertex] = []
+    let buffer: MTLBuffer
+    let size: Double = 120
+    let margin: Double = 10
+    let cicleSubdivisions = 50
+    let axesVertexOffset: Int
+    
+    init(device: MTLDevice) {
+        axesVertexOffset = cicleSubdivisions * 3
+        buffer = device.makeBuffer(length: MemoryLayout<Vertex>.stride * (axesVertexOffset + 6 * 3), options: .cpuCacheModeWriteCombined)!
+        
+        for i in 0 ..< cicleSubdivisions {
+            let t1 = 2 * .pi * Double(i) / Double(cicleSubdivisions)
+            let t2 = 2 * .pi * Double(i + 1) / Double(cicleSubdivisions)
+            
+            push(0, 0, simd_float3(1, 1, 1))
+            push(cos(t1), sin(t1), simd_float3(1, 1, 1))
+            push(cos(t2), sin(t2), simd_float3(1, 1, 1))
+        }
+    }
+    
+    private func push(_ x: Double, _ y: Double, _ color: simd_float3) {
+        vertices.append(Vertex(
+                            position: simd_float3(Float(x), Float(y), 0),
+                            normal: simd_float3(0, 0, -1),
+                            color: color)
+        )
+    }
+    
+    func render(into encoder: MTLRenderCommandEncoder, uniforms: inout Uniforms, width: Double, height: Double, viewMatrix: simd_float4x4) {
+        encoder.pushDebugGroup("Draw Axes")
+        
+        uniforms.model[0, 0] = Float(size / 2)
+        uniforms.model[1, 1] = Float(size / 2)
+        uniforms.model[3, 0] = Float(width - size / 2 - margin)
+        uniforms.model[3, 1] = Float(height - size / 2 - margin)
+        
+        vertices.removeLast(vertices.count - axesVertexOffset)
+        
+        let ex = viewMatrix * simd_float4(1, 0, 0, 0)
+        let ey = viewMatrix * simd_float4(0, 1, 0, 0)
+        let ez = viewMatrix * simd_float4(0, 0, 1, 0)
+        
+        pushQuad(ex, color: simd_float3(1, 0, 0))
+        pushQuad(ey, color: simd_float3(0, 1, 0))
+        pushQuad(ez, color: simd_float3(0, 0, 1))
+        
+        buffer.contents().copyMemory(from: vertices, byteCount: buffer.length)
+        
+        encoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+        encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
+        encoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
+        encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
+        encoder.popDebugGroup()
+    }
+    
+    func pushQuad(_ v: simd_float4, color: simd_float3) {
+        let p = 0.95 * simd_float2(v.x, -v.y)
+        let n = 0.05 * simd_normalize(simd_float2(v.y, v.x))
+        let p1 = n
+        let p2 = -n
+        let p3 = p + n
+        let p4 = p - n
+        
+        let c: simd_float3
+        if v.z > 0 {
+            c = color
+        }
+        else {
+            c = simd_float3(repeating: 0.6)
+        }
+        
+        push(Double(p1.x), Double(p1.y), c)
+        push(Double(p2.x), Double(p2.y), c)
+        push(Double(p4.x), Double(p4.y), c)
+        
+        push(Double(p1.x), Double(p1.y), c)
+        push(Double(p4.x), Double(p4.y), c)
+        push(Double(p3.x), Double(p3.y), c)
     }
 }
 
