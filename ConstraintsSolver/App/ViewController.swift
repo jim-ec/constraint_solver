@@ -6,7 +6,7 @@ class ViewController: NSViewController, FrameDelegate {
     private var mtkView: MTKView!
     private var cubeMesh: Mesh!
     private var triangle: Mesh!
-    private let system = System(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
+    private let solver = Solver(subStepCount: 10, collisionGroup: CollisionGroup(rigidBody: RigidBody(mass: 1, extent: double3(1, 1, 1))))
     private var cube: RigidBody!
     
     override func loadView() {
@@ -24,7 +24,7 @@ class ViewController: NSViewController, FrameDelegate {
         cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         renderer.registerMesh(cubeMesh)
         
-        cube = system.collisionGroup.rigidBody
+        cube = solver.collisionGroup.rigidBody
         cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
         cube.position = double3(0, 0, 4)
         cube.externalForce.z = -5
@@ -44,7 +44,7 @@ class ViewController: NSViewController, FrameDelegate {
     }
     
     func onFrame(dt: Double, t: Double) {
-        system.step(by: dt)
+        solver.step(by: dt)
         cubeMesh.transform.position = cube.position
         cubeMesh.transform.orientation = cube.orientation
     }

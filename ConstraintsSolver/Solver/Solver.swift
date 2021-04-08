@@ -34,7 +34,7 @@ class CollisionGroup {
     }
 }
 
-class System {
+class Solver {
     var subStepCount: Int = 10
     var collisionGroup: CollisionGroup
     
