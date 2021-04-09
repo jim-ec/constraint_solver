@@ -82,7 +82,7 @@ class RigidBody {
     }
     
     func vertices() -> [double3] {
-        let cube: [double3] = [
+        let vertices: [double3] = [
             .init(-1, -1, -1),
             .init(1, -1, -1),
             .init(-1, 1, -1),
@@ -91,9 +91,7 @@ class RigidBody {
             .init(1, -1, 1),
             .init(-1, 1, 1),
             .init(1, 1, 1)
-        ]
-        
-        let verticesRestSpace = cube.map { v in 0.5 * v }
-        return verticesRestSpace.map(toGlobal)
+        ].map { v in 0.5 * v }
+        return vertices.map(toGlobal)
     }
 }
