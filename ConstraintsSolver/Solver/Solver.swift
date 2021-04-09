@@ -59,7 +59,7 @@ class SubStepIntegrator {
         
         for _ in 0..<subStepCount {
             for collider in colliders {
-                collider.rigidBody.integratePosition(by: sdt)
+                collider.rigidBody.integrateAttitude(by: sdt)
                 let constraints = collider.intersectWithGround()
                 solve(for: constraints, dt: sdt)
                 collider.rigidBody.deriveVelocity(for: sdt)

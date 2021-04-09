@@ -10,11 +10,11 @@ import Foundation
 class RigidBody {
     let inverseMass: Double
     let inverseInertia: double3
-    var externalForce: double3
-    var velocity: double3
-    var angularVelocity: double3
-    var transform: Transform
-    var previousTransform: Transform
+    var externalForce: double3 = .zero
+    var velocity: double3 = .zero
+    var angularVelocity: double3 = .zero
+    var transform: Transform = .identity
+    var previousTransform: Transform = .identity
     
     init(mass: Double?) {
         if let mass = mass {
@@ -30,15 +30,9 @@ class RigidBody {
             self.inverseMass = 0
             self.inverseInertia = .zero
         }
-        
-        self.externalForce = .zero
-        self.velocity = .zero
-        self.angularVelocity = .zero
-        self.transform = .identity
-        self.previousTransform = .identity
     }
     
-    func integratePosition(by dt: Double) {
+    func integrateAttitude(by dt: Double) {
         velocity += dt * externalForce * inverseMass
         
         previousTransform = transform
