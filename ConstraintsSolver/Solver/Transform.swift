@@ -103,19 +103,19 @@ struct Transform {
     
     /// The inverse composition of two transforms.
     /// The resultant transform relative to to the second transform desbribes the first transform.
-    static func /(_ a: Transform, _ b: Transform) -> Transform {
-        a * b.inverse()
-    }
+//    static func /(_ a: Transform, _ b: Transform) -> Transform {
+//        a * b.inverse()
+//    }
     
     /// Concatenates two transforms.
-    static func +(_ a: Transform, _ b: Transform) -> Transform {
-        Transform(position: a.position + b.position, orientation: a.orientation * b.orientation)
-    }
+//    static func +(_ a: Transform, _ b: Transform) -> Transform {
+//        Transform(position: a.position + b.position, orientation: a.orientation * b.orientation)
+//    }
     
     /// The difference between two transforms.
-    static func -(_ a: Transform, _ b: Transform) -> Transform {
-        a + b.inverse()
-    }
+//    static func -(_ a: Transform, _ b: Transform) -> Transform {
+//        a + b.inverse()
+//    }
     
     /// Applies this transform to some vector.
     func act(on x: double3) -> double3 {
