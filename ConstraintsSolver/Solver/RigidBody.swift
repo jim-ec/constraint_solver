@@ -80,18 +80,4 @@ class RigidBody {
     func intoPreviousAttidue(_ x: double3) -> double3 {
         previousOrientation.act(toLocal(x)) + previousPosition
     }
-    
-    func vertices() -> [double3] {
-        let vertices: [double3] = [
-            .init(-1, -1, -1),
-            .init(1, -1, -1),
-            .init(-1, 1, -1),
-            .init(1, 1, -1),
-            .init(-1, -1, 1),
-            .init(1, -1, 1),
-            .init(-1, 1, 1),
-            .init(1, 1, 1)
-        ].map { v in 0.5 * v }
-        return vertices.map(toGlobal)
-    }
 }
