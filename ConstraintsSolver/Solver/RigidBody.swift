@@ -39,13 +39,10 @@ class RigidBody {
     }
     
     func integratePosition(by dt: Double) {
-        previousTransform = transform
-        
         velocity += dt * externalForce * inverseMass
-        transform.position += dt * velocity
         
-        transform.orientation += dt * 0.5 * quat(real: .zero, imag: angularVelocity) * transform.orientation
-        transform.orientation = transform.orientation.normalized
+        previousTransform = transform
+        transform = transform.integrate(by: dt, linear: velocity, angular: angularVelocity)
     }
     
     func deriveVelocity(for dt: Double) {

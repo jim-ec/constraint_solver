@@ -138,4 +138,11 @@ struct Transform {
         let deltaOrientation = orientation / previous.orientation / dt
         return Transform(position: deltaPosition, orientation: deltaOrientation)
     }
+    
+    func integrate(by dt: Double, linear: double3, angular: double3) -> Transform {
+        let positionStep = dt * linear
+        let orientationStep = dt * 0.5 * quat(real: .zero, imag: angular) * orientation
+        return Transform(position: position + positionStep,
+                         orientation: (orientation + orientationStep).normalized)
+    }
 }
