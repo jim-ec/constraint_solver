@@ -13,10 +13,8 @@ class RigidBody {
     var externalForce: double3
     var velocity: double3
     var angularVelocity: double3
-    var position: double3
-    var orientation: quat
-    var previousPosition: double3
-    var previousOrientation: quat
+    var transform: Transform
+    var previousTransform: Transform
     
     init(mass: Double?) {
         if let mass = mass {
@@ -36,27 +34,24 @@ class RigidBody {
         self.externalForce = .zero
         self.velocity = .zero
         self.angularVelocity = .zero
-        self.position = .zero
-        self.orientation = .identity
-        self.previousPosition = position
-        self.previousOrientation = orientation
+        self.transform = .identity
+        self.previousTransform = .identity
     }
     
     func integratePosition(by dt: Double) {
-        previousPosition = position
-        previousOrientation = orientation
+        previousTransform = transform
         
         velocity += dt * externalForce * inverseMass
-        position += dt * velocity
+        transform.position += dt * velocity
         
-        orientation += dt * 0.5 * quat(real: .zero, imag: angularVelocity) * orientation
-        orientation = orientation.normalized
+        transform.orientation += dt * 0.5 * quat(real: .zero, imag: angularVelocity) * transform.orientation
+        transform.orientation = transform.orientation.normalized
     }
     
     func deriveVelocity(for dt: Double) {
-        velocity = (position - previousPosition) / dt
+        velocity = (transform.position - previousTransform.position) / dt
         
-        let rotation = orientation * previousOrientation.inverse
+        let rotation = transform.orientation / previousTransform.orientation
         angularVelocity = 2.0 * rotation.imag / dt
         if rotation.real < 0 {
             angularVelocity = -angularVelocity
@@ -66,22 +61,21 @@ class RigidBody {
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and orientation.
     func applyLinearImpulse(_ impulse: double3, at vertex: double3) {
-        position += impulse * inverseMass
+        transform.position += impulse * inverseMass
         
-        let rotation = 0.5 * quat(real: 0, imag: cross(vertex - position, impulse)) * orientation
-        orientation = (orientation + rotation).normalized
+        let rotation = 0.5 * quat(real: 0, imag: cross(vertex - transform.position, impulse)) * transform.orientation
+        transform.orientation = (transform.orientation + rotation).normalized
     }
     
     func toLocal(_ x: double3) -> double3 {
-        orientation.inverse.act(x - position)
+        transform.inverse().act(on: x)
     }
     
     func toGlobal(_ x: double3) -> double3 {
-        orientation.act(x) + position
+        transform.act(on: x)
     }
     
-    /// Computes where the given vertex in the current attitude would be in the previous one.
-    func intoPreviousAttidue(_ x: double3) -> double3 {
-        previousOrientation.act(toLocal(x)) + previousPosition
+    func fromGlobalToPreviousGlobal(_ x: double3) -> double3 {
+        previousTransform.act(on: toLocal(x))
     }
 }

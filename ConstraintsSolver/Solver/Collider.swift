@@ -26,7 +26,7 @@ class Collider {
             let targetPosition = double3(position.x, position.y, 0)
             let difference = targetPosition - position
             
-            let deltaPosition = position - rigidBody.intoPreviousAttidue(position)
+            let deltaPosition = position - rigidBody.fromGlobalToPreviousGlobal(position)
             let deltaTangentialPosition = deltaPosition - project(deltaPosition, difference)
             
             return PositionalConstraint(

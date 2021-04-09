@@ -27,7 +27,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         let direction = normalize(difference)
         
         let angularImpulseDual =
-            (constraint.body.orientation.inverse.act(cross(constraint.positions.0 - constraint.body.position, direction)),
+            (constraint.body.transform.orientation.inverse.act(cross(constraint.positions.0 - constraint.body.transform.position, direction)),
              groundTransformInverse.rotate(cross(constraint.positions.1, direction)))
         
         let generalizedInverseMass =
