@@ -69,17 +69,17 @@ class RigidBody {
         orientation = (orientation + rotation).normalized
     }
     
-    func intoRestAttidue(_ x: double3) -> double3 {
+    func toLocal(_ x: double3) -> double3 {
         orientation.inverse.act(x - position)
     }
     
-    func fromRestAttidue(_ x: double3) -> double3 {
+    func toGlobal(_ x: double3) -> double3 {
         orientation.act(x) + position
     }
     
     /// Computes where the given vertex in the current attitude would be in the previous one.
     func intoPreviousAttidue(_ x: double3) -> double3 {
-        previousOrientation.act(intoRestAttidue(x)) + previousPosition
+        previousOrientation.act(toLocal(x)) + previousPosition
     }
     
     func vertices() -> [double3] {
@@ -95,6 +95,6 @@ class RigidBody {
         ]
         
         let verticesRestSpace = cube.map { v in 0.5 * extent * v }
-        return verticesRestSpace.map(fromRestAttidue)
+        return verticesRestSpace.map(toGlobal)
     }
 }
