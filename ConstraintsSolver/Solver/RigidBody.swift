@@ -46,12 +46,7 @@ class RigidBody {
     }
     
     func deriveVelocity(for dt: Double) {
-        let deltaTransform = transform.derive(by: dt, previousTransform)
-        velocity = deltaTransform.position
-        angularVelocity = 2.0 * deltaTransform.orientation.imag
-        if deltaTransform.orientation.real < 0 {
-            angularVelocity = -angularVelocity
-        }
+        (velocity, angularVelocity) = transform.derive(by: dt, previousTransform)
     }
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.

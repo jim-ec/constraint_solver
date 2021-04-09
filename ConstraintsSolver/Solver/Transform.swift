@@ -133,10 +133,16 @@ struct Transform {
         return Transform(position: inversePosition, orientation: inverseOrientation)
     }
     
-    func derive(by dt: Double, _ previous: Transform) -> Transform {
-        let deltaPosition = (position - previous.position) / dt
+    func derive(by dt: Double, _ previous: Transform) -> (double3, double3) {
+        let linear = (position - previous.position) / dt
+        
         let deltaOrientation = orientation / previous.orientation / dt
-        return Transform(position: deltaPosition, orientation: deltaOrientation)
+        var angular = 2.0 * deltaOrientation.imag
+        if deltaOrientation.real < 0 {
+            angular = -angular
+        }
+        
+        return (linear, angular)
     }
     
     func integrate(by dt: Double, linear: double3, angular: double3) -> Transform {
