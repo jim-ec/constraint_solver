@@ -8,7 +8,6 @@
 import Foundation
 
 class RigidBody {
-    let extent: double3
     let mass: Double
     let inverseMass: Double
     let inertia: double3
@@ -21,10 +20,9 @@ class RigidBody {
     var previousPosition: double3
     var previousOrientation: quat
     
-    init(mass: Double, extent: double3) {
+    init(mass: Double) {
         self.mass = mass
         self.inverseMass = 1 / mass
-        self.extent = extent
         self.velocity = .zero
         self.angularVelocity = .zero
         self.position = .zero
@@ -32,6 +30,7 @@ class RigidBody {
         self.previousPosition = position
         self.previousOrientation = orientation
         self.externalForce = .zero
+        let extent = simd_double3(repeating: 1)
         self.inertia = 1.0 / 12.0 * mass * double3(
             extent.y * extent.y + extent.z * extent.z,
             extent.x * extent.x + extent.z * extent.z,
@@ -94,7 +93,7 @@ class RigidBody {
             .init(1, 1, 1)
         ]
         
-        let verticesRestSpace = cube.map { v in 0.5 * extent * v }
+        let verticesRestSpace = cube.map { v in 0.5 * v }
         return verticesRestSpace.map(toGlobal)
     }
 }

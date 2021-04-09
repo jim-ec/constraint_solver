@@ -17,7 +17,7 @@ class World {
         cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         renderer.registerMesh(cubeMesh)
         
-        cube = RigidBody(mass: 1, extent: double3(1, 1, 1))
+        cube = RigidBody(mass: 1)
         cube.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
         cube.position = double3(0, 0, 4)
         cube.externalForce.z = -9.81
