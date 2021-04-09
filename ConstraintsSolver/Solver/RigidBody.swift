@@ -8,9 +8,7 @@
 import Foundation
 
 class RigidBody {
-    let mass: Double
     let inverseMass: Double
-    let inertia: double3
     let inverseInertia: double3
     var externalForce: double3
     var velocity: double3
@@ -20,29 +18,35 @@ class RigidBody {
     var previousPosition: double3
     var previousOrientation: quat
     
-    init(mass: Double) {
-        self.mass = mass
-        self.inverseMass = 1 / mass
+    init(mass: Double?) {
+        if let mass = mass {
+            self.inverseMass = 1 / mass
+            let extent = simd_double3(repeating: 1)
+            let inertia = 1.0 / 12.0 * mass * double3(
+                extent.y * extent.y + extent.z * extent.z,
+                extent.x * extent.x + extent.z * extent.z,
+                extent.x * extent.x + extent.y * extent.y)
+            self.inverseInertia = 1 / inertia
+        }
+        else {
+            self.inverseMass = 0
+            self.inverseInertia = .zero
+        }
+        
+        self.externalForce = .zero
         self.velocity = .zero
         self.angularVelocity = .zero
         self.position = .zero
         self.orientation = .identity
         self.previousPosition = position
         self.previousOrientation = orientation
-        self.externalForce = .zero
-        let extent = simd_double3(repeating: 1)
-        self.inertia = 1.0 / 12.0 * mass * double3(
-            extent.y * extent.y + extent.z * extent.z,
-            extent.x * extent.x + extent.z * extent.z,
-            extent.x * extent.x + extent.y * extent.y)
-        self.inverseInertia = 1 / inertia
     }
     
     func integratePosition(by dt: Double) {
         previousPosition = position
         previousOrientation = orientation
         
-        velocity += dt * externalForce / mass
+        velocity += dt * externalForce * inverseMass
         position += dt * velocity
         
         orientation += dt * 0.5 * quat(real: .zero, imag: angularVelocity) * orientation

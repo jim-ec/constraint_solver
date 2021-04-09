@@ -20,9 +20,10 @@ class World {
         cube = Collider(rigidBody: RigidBody(mass: 1))
         
         cube.rigidBody.orientation = .init(angle: .pi / 8, axis: .ey + 0.5 * .ex)
-        cube.rigidBody.position = double3(0, 0, 4)
+        cube.rigidBody.position = double3(0, -2, 4)
         cube.rigidBody.externalForce.z = -9.81
         cube.rigidBody.angularVelocity = .init(1, 2, 0.5)
+        cube.rigidBody.velocity.y = 4
     }
     
     func integrate(dt: Double) {
