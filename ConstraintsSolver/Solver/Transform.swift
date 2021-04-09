@@ -132,4 +132,10 @@ struct Transform {
         let inversePosition = -inverseOrientation.act(position)
         return Transform(position: inversePosition, orientation: inverseOrientation)
     }
+    
+    func derive(by dt: Double, _ previous: Transform) -> Transform {
+        let deltaPosition = (position - previous.position) / dt
+        let deltaOrientation = orientation / previous.orientation / dt
+        return Transform(position: deltaPosition, orientation: deltaOrientation)
+    }
 }

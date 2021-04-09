@@ -49,11 +49,10 @@ class RigidBody {
     }
     
     func deriveVelocity(for dt: Double) {
-        velocity = (transform.position - previousTransform.position) / dt
-        
-        let rotation = transform.orientation / previousTransform.orientation
-        angularVelocity = 2.0 * rotation.imag / dt
-        if rotation.real < 0 {
+        let deltaTransform = transform.derive(by: dt, previousTransform)
+        velocity = deltaTransform.position
+        angularVelocity = 2.0 * deltaTransform.orientation.imag
+        if deltaTransform.orientation.real < 0 {
             angularVelocity = -angularVelocity
         }
     }
