@@ -62,7 +62,7 @@ class Renderer: NSObject, MTKViewDelegate {
         depthStencilDescriptor.isDepthWriteEnabled = false
         hudDepthState = device.makeDepthStencilState(descriptor: hudDepthStencilDescriptor)!
         
-        grid = Grid(device: device, sections: 25)
+        grid = Grid(device: device, sections: 30)
         axes = Axes(device: device)
         
         super.init()
@@ -175,20 +175,29 @@ fileprivate class Grid {
     init(device: MTLDevice, sections: Int) {
         var vertices: [Vertex] = []
         
-        let color = simd_float3(repeating: 0.8)
+        let majorColor = simd_float3(repeating: 0.8)
+        let minorColor = simd_float3(repeating: 0.3)
         let normal = simd_float3(0, 0, 1)
+        let extent = Float(sections)
         
-        let fullExtent = 2 * sections + 1
-        for ix in 0..<fullExtent {
-            for iy in 0..<fullExtent {
-                let x = Float(ix - sections) / 2
-                let y = Float(iy - sections) / 2
-                
-                vertices.append(Vertex(position: simd_float3(x, -y, 0), normal: normal, color: color))
-                vertices.append(Vertex(position: simd_float3(x, y, 0), normal: normal, color: color))
-                vertices.append(Vertex(position: simd_float3(x, y, 0), normal: normal, color: color))
-                vertices.append(Vertex(position: simd_float3(-x, y, 0), normal: normal, color: color))
-            }
+        vertices.append(Vertex(position: simd_float3(0, extent, 0), normal: normal, color: majorColor))
+        vertices.append(Vertex(position: simd_float3(0, -extent, 0), normal: normal, color: majorColor))
+        vertices.append(Vertex(position: simd_float3(extent, 0, 0), normal: normal, color: majorColor))
+        vertices.append(Vertex(position: simd_float3(-extent, 0, 0), normal: normal, color: majorColor))
+        
+        for i in 1 ... sections {
+            let t = Float(i)
+            
+            let color = i % 10 == 0 ? majorColor : minorColor
+            
+            vertices.append(Vertex(position: simd_float3(t, extent, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(t, -extent, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(-t, extent, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(-t, -extent, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(extent, t, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(-extent, t, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(extent, -t, 0), normal: normal, color: color))
+            vertices.append(Vertex(position: simd_float3(-extent, -t, 0), normal: normal, color: color))
         }
         
         vertexCount = vertices.count
