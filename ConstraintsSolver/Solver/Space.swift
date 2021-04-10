@@ -9,7 +9,6 @@ import Foundation
 
 
 typealias Rotation = simd_double3
-typealias Translation = simd_double3
 
 
 extension simd_double3 {
@@ -107,13 +106,13 @@ struct Position {
         Position(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
     }
     
-    func integrate(by dt: Double, velocity: Translation) -> Position {
+    func integrate(by dt: Double, velocity: Position) -> Position {
         let delta = dt * velocity
-        return Position(p + delta)
+        return self + delta
     }
     
-    func derive(by dt: Double, _ past: Position) -> Translation {
-        (1 / dt) * (p - past.p)
+    func derive(by dt: Double, _ past: Position) -> Position {
+        (1 / dt) * (self - past)
     }
     
     var normalize: Position {
@@ -239,17 +238,17 @@ struct Space {
         inverse.leave(x)
     }
     
-    func integrate(by dt: Double, linearVelocity: Translation, angularVelocity: Rotation) -> Space {
+    func integrate(by dt: Double, linearVelocity: Position, angularVelocity: Rotation) -> Space {
         Space(position: position.integrate(by: dt, velocity: linearVelocity),
               orientation: orientation.integrate(by: dt, velocity: angularVelocity))
     }
     
-    func derive(for dt: Double, _ past: Space) -> (Translation, Rotation) {
+    func derive(for dt: Double, _ past: Space) -> (Position, Rotation) {
         (position: position.derive(by: dt, past.position),
          orientation: orientation.derive(by: dt, past.orientation))
     }
     
-    mutating func translate(by translation: Translation) {
-        position.p += translation
+    mutating func translate(by translation: Position) {
+        position = position + translation
     }
 }

@@ -10,8 +10,8 @@ import Foundation
 class RigidBody {
     let inverseMass: Double
     let inverseInertia: simd_double3
-    var externalForce: simd_double3 = .zero
-    var velocity: simd_double3 = .zero
+    var externalForce: Position = .null
+    var velocity: Position = .null
     var angularVelocity: simd_double3 = .zero
     var space: Space = .identity
     var pastSpace: Space = .identity
@@ -33,7 +33,7 @@ class RigidBody {
     }
     
     func integrateAttitude(by dt: Double) {
-        velocity += dt * externalForce * inverseMass
+        velocity = velocity + dt * inverseMass * externalForce
         
         pastSpace = space
         space = space.integrate(by: dt, linearVelocity: velocity, angularVelocity: angularVelocity)
@@ -46,7 +46,7 @@ class RigidBody {
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and orientation.
     func applyLinearImpulse(_ impulse: Position, at vertex: Position) {
-        space.translate(by: inverseMass * impulse.p)
+        space.translate(by: inverseMass * impulse)
         
         let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).p) * space.orientation.q
         space.orientation.q = (space.orientation.q + rotation).normalized
