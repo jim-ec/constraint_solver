@@ -9,30 +9,36 @@ import Foundation
 
 struct PositionalConstraint {
     let body: RigidBody
-    let positions: (simd_double3, simd_double3)
+    let positions: (Position, Position)
     let distance: Double
     let compliance: Double
 }
 
 func solve(for constraints: [PositionalConstraint], dt: Double) {
-    var groundPosition = simd_double3.zero
-    var groundOrientation = simd_quatd.identity
+    var groundPosition = Position.null
+    var groundOrientation = Orientation.identity
     let groundInverseMass = 0.0
     let groundInverseInertia = simd_double3.zero
     let groundSpaceInverse = Space.identity
     
     for constraint in constraints {
         let difference = constraint.positions.1 - constraint.positions.0
-        let magnitude = length(difference) - constraint.distance
-        let direction = normalize(difference)
+        let magnitude = difference.length - constraint.distance
+        let direction = difference.normalize
         
-        let angularImpulseDual =
-            (constraint.body.space.orientation.q.inverse.act(cross(constraint.positions.0 - constraint.body.space.position.p, direction)),
-             groundSpaceInverse.orientation.q.act(cross(constraint.positions.1, direction)))
+        let angularImpulseDual: (Position, Position) = (
+            constraint.body.space.orientation.inverse.act(
+                on: (constraint.positions.0 - constraint.body.space.position).cross(direction)
+            ),
+            groundSpaceInverse.orientation.act(
+                on: constraint.positions.1.cross(direction)
+            )
+        )
         
-        let generalizedInverseMass =
-            (constraint.body.inverseMass + dot(angularImpulseDual.0 * constraint.body.inverseInertia, angularImpulseDual.0),
-             groundInverseMass + dot(angularImpulseDual.1 * groundInverseInertia, angularImpulseDual.1))
+        let generalizedInverseMass: (Double, Double) = (
+            constraint.body.inverseMass + (constraint.body.inverseInertia .* angularImpulseDual.0).dot(angularImpulseDual.0),
+            groundInverseMass + (groundInverseInertia .* angularImpulseDual.1).dot(angularImpulseDual.1)
+        )
         
         let timeStepCompliance = constraint.compliance / (dt * dt)
         let lagrangeMultiplier = magnitude / (generalizedInverseMass.0 + generalizedInverseMass.1 + timeStepCompliance)
@@ -40,10 +46,10 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         
         constraint.body.applyLinearImpulse(impulse, at: constraint.positions.0)
         
-        let groundTranslation = impulse * groundInverseMass
-        let groundRotation = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
-        groundPosition += groundTranslation
-        groundOrientation = (groundOrientation + groundRotation).normalized
+        let groundTranslation = groundInverseMass * impulse
+        let groundRotation = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1.p, impulse.p)) * groundOrientation.q
+        groundPosition = groundPosition + groundTranslation
+        groundOrientation = Orientation((groundOrientation.q + groundRotation).normalized)
     }
 }
 

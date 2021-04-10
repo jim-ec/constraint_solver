@@ -35,6 +35,9 @@ extension simd_double3 {
 }
 
 
+infix operator .* : MultiplicationPrecedence
+
+
 /// A location in 3-D Euclidean space.
 struct Position {
     var p: simd_double3 // TODO: Make fileprivate
@@ -60,7 +63,7 @@ struct Position {
         self.init(target - base)
     }
     
-    /* fileprivate */ init(_ values: simd_double3) { // TODO: Make fileprivate
+    fileprivate init(_ values: simd_double3) {
         self.p = values
     }
     
@@ -99,6 +102,11 @@ struct Position {
         Position(scalar / lhs.x, scalar / lhs.y, scalar / lhs.z)
     }
     
+    /// A component-wise multiplication.
+    static func .*(_ lhs: simd_double3, _ rhs: Position) -> Position {
+        Position(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
+    }
+    
     func integrate(by dt: Double, velocity: Translation) -> Position {
         let delta = dt * velocity
         return Position(p + delta)
@@ -131,6 +139,10 @@ struct Position {
     func angle(to rhs: Position) -> Double {
         return cos(dot(rhs) / (length * rhs.length))
     }
+    
+    func project(onto rhs: Position) -> Position {
+        Position(simd_project(p, rhs.p))
+    }
 }
 
 
@@ -151,7 +163,7 @@ struct Orientation {
         q = simd_quatd(angle: angle, axis: axis.p)
     }
     
-    /* fileprivate */ init(_ values: simd_quatd) { // TODO: Make fileprivate
+    init(_ values: simd_quatd) {
         self.q = values
     }
     

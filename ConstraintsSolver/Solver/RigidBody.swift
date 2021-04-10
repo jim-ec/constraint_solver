@@ -45,24 +45,24 @@ class RigidBody {
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and orientation.
-    func applyLinearImpulse(_ impulse: simd_double3, at vertex: simd_double3) {
-        space.translate(by: inverseMass * impulse)
+    func applyLinearImpulse(_ impulse: Position, at vertex: Position) {
+        space.translate(by: inverseMass * impulse.p)
         
-        let rotation = 0.5 * simd_quatd(real: 0, imag: cross(vertex - space.position.p, impulse)) * space.orientation.q
+        let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).p) * space.orientation.q
         space.orientation.q = (space.orientation.q + rotation).normalized
     }
     
-    func toLocal(_ x: simd_double3) -> simd_double3 {
-        space.enter(Position(x)).p
+    func toLocal(_ x: Position) -> Position {
+        space.enter(x)
     }
     
-    func toGlobal(_ x: simd_double3) -> simd_double3 {
-        space.leave(Position(x)).p
+    func toGlobal(_ x: Position) -> Position {
+        space.leave(x)
     }
     
     /// Computes the position of the given global space vertex in the past configuration.
-    func delta(_ x: simd_double3) -> simd_double3 {
-        let global = space.enter(Position(x))
-        return pastSpace.leave(global).p
+    func delta(_ x: Position) -> Position {
+        let global = space.enter(x)
+        return pastSpace.leave(global)
     }
 }
