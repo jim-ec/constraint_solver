@@ -9,13 +9,13 @@ import Foundation
 
 struct PositionalConstraint {
     let body: RigidBody
-    let positions: (Position, Position)
+    let positions: (Point, Point)
     let distance: Double
     let compliance: Double
 }
 
 func solve(for constraints: [PositionalConstraint], dt: Double) {
-    var groundPosition = Position.null
+    var groundPosition = Point.null
     var groundOrientation = Orientation.identity
     let groundInverseMass = 0.0
     let groundInverseInertia = simd_double3.zero
@@ -26,7 +26,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         let magnitude = difference.length - constraint.distance
         let direction = difference.normalize
         
-        let angularImpulseDual: (Position, Position) = (
+        let angularImpulseDual: (Point, Point) = (
             constraint.body.space.orientation.inverse.act(
                 on: (constraint.positions.0 - constraint.body.space.position).cross(direction)
             ),

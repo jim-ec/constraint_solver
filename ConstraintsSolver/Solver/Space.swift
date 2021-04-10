@@ -14,14 +14,14 @@ typealias Rotation = simd_double3
 infix operator .* : MultiplicationPrecedence
 
 
-/// A location in 3-D Euclidean space.
-struct Position {
+/// A point in 3-D Euclidean space.
+struct Point {
     var p: simd_double3 // TODO: Make fileprivate
     
-    static let null = Position(0, 0, 0)
-    static let ex = Position(1, 0, 0)
-    static let ey = Position(0, 1, 0)
-    static let ez = Position(0, 0, 1)
+    static let null = Point(0, 0, 0)
+    static let ex = Point(1, 0, 0)
+    static let ey = Point(0, 1, 0)
+    static let ez = Point(0, 0, 1)
     
     init(_ scalar: Double) {
         p = simd_double3(repeating: scalar)
@@ -31,11 +31,11 @@ struct Position {
         p = simd_double3(x, y, z)
     }
     
-    init(_ copy: Position) {
+    init(_ copy: Point) {
         p = copy.p
     }
     
-    init(from base: Position, to target: Position) {
+    init(from base: Point, to target: Point) {
         self.init(target - base)
     }
     
@@ -58,66 +58,66 @@ struct Position {
         get { p.z }
     }
     
-    static func +(rhs: Position, lhs: Position) -> Position {
-        Position(rhs.x + lhs.x, rhs.y + lhs.y, rhs.z + lhs.z)
+    static func +(rhs: Point, lhs: Point) -> Point {
+        Point(rhs.x + lhs.x, rhs.y + lhs.y, rhs.z + lhs.z)
     }
     
-    static func -(rhs: Position, lhs: Position) -> Position {
-        Position(rhs.x - lhs.x, rhs.y - lhs.y, rhs.z - lhs.z)
+    static func -(rhs: Point, lhs: Point) -> Point {
+        Point(rhs.x - lhs.x, rhs.y - lhs.y, rhs.z - lhs.z)
     }
     
-    static prefix func -(lhs: Position) -> Position {
-        Position(-lhs.p.x, -lhs.p.y, -lhs.p.z)
+    static prefix func -(lhs: Point) -> Point {
+        Point(-lhs.p.x, -lhs.p.y, -lhs.p.z)
     }
     
-    static func *(scalar: Double, lhs: Position) -> Position {
-        Position(scalar * lhs.x, scalar * lhs.y, scalar * lhs.z)
+    static func *(scalar: Double, lhs: Point) -> Point {
+        Point(scalar * lhs.x, scalar * lhs.y, scalar * lhs.z)
     }
     
-    static func -(scalar: Double, lhs: Position) -> Position {
-        Position(scalar / lhs.x, scalar / lhs.y, scalar / lhs.z)
+    static func -(scalar: Double, lhs: Point) -> Point {
+        Point(scalar / lhs.x, scalar / lhs.y, scalar / lhs.z)
     }
     
     /// A component-wise multiplication.
-    static func .*(_ lhs: simd_double3, _ rhs: Position) -> Position {
-        Position(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
+    static func .*(_ lhs: simd_double3, _ rhs: Point) -> Point {
+        Point(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
     }
     
-    func integrate(by dt: Double, velocity: Position) -> Position {
+    func integrate(by dt: Double, velocity: Point) -> Point {
         let delta = dt * velocity
         return self + delta
     }
     
-    func derive(by dt: Double, _ past: Position) -> Position {
+    func derive(by dt: Double, _ past: Point) -> Point {
         (1 / dt) * (self - past)
     }
     
-    var normalize: Position {
-        Position(simd_normalize(p))
+    var normalize: Point {
+        Point(simd_normalize(p))
     }
     
     var length: Double {
         simd_length(p)
     }
     
-    func distance(to rhs: Position) -> Double {
+    func distance(to rhs: Point) -> Double {
         simd_distance(p, rhs.p)
     }
     
-    func dot(_ rhs: Position) -> Double {
+    func dot(_ rhs: Point) -> Double {
         simd_dot(p, rhs.p)
     }
     
-    func cross(_ rhs: Position) -> Position {
-        Position(simd_cross(p, rhs.p))
+    func cross(_ rhs: Point) -> Point {
+        Point(simd_cross(p, rhs.p))
     }
     
-    func angle(to rhs: Position) -> Double {
+    func angle(to rhs: Point) -> Double {
         return cos(dot(rhs) / (length * rhs.length))
     }
     
-    func project(onto rhs: Position) -> Position {
-        Position(simd_project(p, rhs.p))
+    func project(onto rhs: Point) -> Point {
+        Point(simd_project(p, rhs.p))
     }
 }
 
@@ -135,7 +135,7 @@ struct Orientation {
     
     static let identity = Orientation(simd_quatd.identity)
     
-    init(by angle: Double, around axis: Position) {
+    init(by angle: Double, around axis: Point) {
         q = simd_quatd(angle: angle, axis: axis.p)
     }
     
@@ -151,8 +151,8 @@ struct Orientation {
         Orientation(q.inverse)
     }
     
-    func act(on position: Position) -> Position {
-        Position(q.act(position.p))
+    func act(on position: Point) -> Point {
+        Point(q.act(position.p))
     }
     
     func integrate(by dt: Double, velocity: Rotation) -> Orientation {
@@ -172,12 +172,12 @@ struct Orientation {
 
 
 struct Space {
-    var position: Position
+    var position: Point
     var orientation: Orientation
     
     static let identity = Space(position: .null, orientation: .identity)
     
-    init(position: Position = .null, orientation: Orientation = .identity) {
+    init(position: Point = .null, orientation: Orientation = .identity) {
         self.position = position
         self.orientation = orientation
     }
@@ -207,25 +207,25 @@ struct Space {
                      orientation: inverseOrientation)
     }
     
-    func leave(_ x: Position) -> Position {
+    func leave(_ x: Point) -> Point {
         orientation.act(on: x) + position
     }
     
-    func enter(_ x: Position) -> Position {
+    func enter(_ x: Point) -> Point {
         inverse.leave(x)
     }
     
-    func integrate(by dt: Double, linearVelocity: Position, angularVelocity: Rotation) -> Space {
+    func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Rotation) -> Space {
         Space(position: position.integrate(by: dt, velocity: linearVelocity),
               orientation: orientation.integrate(by: dt, velocity: angularVelocity))
     }
     
-    func derive(for dt: Double, _ past: Space) -> (Position, Rotation) {
+    func derive(for dt: Double, _ past: Space) -> (Point, Rotation) {
         (position: position.derive(by: dt, past.position),
          orientation: orientation.derive(by: dt, past.orientation))
     }
     
-    mutating func translate(by translation: Position) {
+    mutating func translate(by translation: Point) {
         position = position + translation
     }
 }

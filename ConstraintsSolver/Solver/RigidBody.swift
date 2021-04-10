@@ -10,8 +10,8 @@ import Foundation
 class RigidBody {
     let inverseMass: Double
     let inverseInertia: simd_double3
-    var externalForce: Position = .null
-    var velocity: Position = .null
+    var externalForce: Point = .null
+    var velocity: Point = .null
     var angularVelocity: simd_double3 = .zero
     var space: Space = .identity
     var pastSpace: Space = .identity
@@ -45,23 +45,23 @@ class RigidBody {
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and orientation.
-    func applyLinearImpulse(_ impulse: Position, at vertex: Position) {
+    func applyLinearImpulse(_ impulse: Point, at vertex: Point) {
         space.translate(by: inverseMass * impulse)
         
         let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).p) * space.orientation.q
         space.orientation.q = (space.orientation.q + rotation).normalized
     }
     
-    func toLocal(_ x: Position) -> Position {
+    func toLocal(_ x: Point) -> Point {
         space.enter(x)
     }
     
-    func toGlobal(_ x: Position) -> Position {
+    func toGlobal(_ x: Point) -> Point {
         space.leave(x)
     }
     
     /// Computes the position of the given global space vertex in the past configuration.
-    func delta(_ x: Position) -> Position {
+    func delta(_ x: Point) -> Point {
         let global = space.enter(x)
         return pastSpace.leave(global)
     }

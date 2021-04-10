@@ -1,5 +1,5 @@
 class Collider {
-    let vertices: [Position]
+    let vertices: [Point]
     var rigidBody: RigidBody
     
     init(rigidBody: RigidBody) {
@@ -16,14 +16,14 @@ class Collider {
         ].map { v in 0.5 * v }
     }
     
-    var globalVertices: [Position] {
+    var globalVertices: [Point] {
         vertices.map(rigidBody.toGlobal)
     }
     
     func intersectWithGround() -> [PositionalConstraint] {
         let penetratingVertices = globalVertices.filter { vertex in vertex.z < 0 }
         return penetratingVertices.map { position in
-            let targetPosition = Position(position.x, position.y, 0)
+            let targetPosition = Point(position.x, position.y, 0)
             let difference = targetPosition - position
             
             let deltaPosition = position - rigidBody.delta(position)
