@@ -16,7 +16,7 @@ infix operator .* : MultiplicationPrecedence
 
 /// A point in 3-D Euclidean space.
 struct Point {
-    var p: simd_double3 // TODO: Make fileprivate
+    var coordinates: simd_double3 // TODO: Make fileprivate
     
     static let null = Point(0, 0, 0)
     static let ex = Point(1, 0, 0)
@@ -24,15 +24,15 @@ struct Point {
     static let ez = Point(0, 0, 1)
     
     init(_ scalar: Double) {
-        p = simd_double3(repeating: scalar)
+        coordinates = simd_double3(repeating: scalar)
     }
     
     init(_ x: Double, _ y: Double, _ z: Double) {
-        p = simd_double3(x, y, z)
+        coordinates = simd_double3(x, y, z)
     }
     
     init(_ copy: Point) {
-        p = copy.p
+        coordinates = copy.coordinates
     }
     
     init(from base: Point, to target: Point) {
@@ -40,22 +40,22 @@ struct Point {
     }
     
     fileprivate init(_ values: simd_double3) {
-        self.p = values
+        self.coordinates = values
     }
     
     var x: Double {
-        set { p.x = newValue }
-        get { p.x }
+        set { coordinates.x = newValue }
+        get { coordinates.x }
     }
     
     var y: Double {
-        set { p.y = newValue }
-        get { p.y }
+        set { coordinates.y = newValue }
+        get { coordinates.y }
     }
     
     var z: Double {
-        set { p.z = newValue }
-        get { p.z }
+        set { coordinates.z = newValue }
+        get { coordinates.z }
     }
     
     static func +(rhs: Point, lhs: Point) -> Point {
@@ -67,7 +67,7 @@ struct Point {
     }
     
     static prefix func -(lhs: Point) -> Point {
-        Point(-lhs.p.x, -lhs.p.y, -lhs.p.z)
+        Point(-lhs.coordinates.x, -lhs.coordinates.y, -lhs.coordinates.z)
     }
     
     static func *(scalar: Double, lhs: Point) -> Point {
@@ -93,23 +93,23 @@ struct Point {
     }
     
     var normalize: Point {
-        Point(simd_normalize(p))
+        Point(simd_normalize(coordinates))
     }
     
     var length: Double {
-        simd_length(p)
+        simd_length(coordinates)
     }
     
     func distance(to rhs: Point) -> Double {
-        simd_distance(p, rhs.p)
+        simd_distance(coordinates, rhs.coordinates)
     }
     
     func dot(_ rhs: Point) -> Double {
-        simd_dot(p, rhs.p)
+        simd_dot(coordinates, rhs.coordinates)
     }
     
     func cross(_ rhs: Point) -> Point {
-        Point(simd_cross(p, rhs.p))
+        Point(simd_cross(coordinates, rhs.coordinates))
     }
     
     func angle(to rhs: Point) -> Double {
@@ -117,7 +117,7 @@ struct Point {
     }
     
     func project(onto rhs: Point) -> Point {
-        Point(simd_project(p, rhs.p))
+        Point(simd_project(coordinates, rhs.coordinates))
     }
 }
 
@@ -131,37 +131,37 @@ extension simd_quatd {
 
 // A functor, able to rotate positions.
 struct Orientation {
-    var q: simd_quatd // TODO: Make fileprivate
+    var coordinates: simd_quatd // TODO: Make fileprivate
     
     static let identity = Orientation(simd_quatd.identity)
     
     init(by angle: Double, around axis: Point) {
-        q = simd_quatd(angle: angle, axis: axis.p)
+        coordinates = simd_quatd(angle: angle, axis: axis.coordinates)
     }
     
     init(_ values: simd_quatd) {
-        self.q = values
+        self.coordinates = values
     }
     
     static func *(lhs: Orientation, rhs: Orientation) -> Orientation {
-        Orientation(lhs.q * rhs.q)
+        Orientation(lhs.coordinates * rhs.coordinates)
     }
     
     var inverse: Orientation {
-        Orientation(q.inverse)
+        Orientation(coordinates.inverse)
     }
     
     func act(on position: Point) -> Point {
-        Point(q.act(position.p))
+        Point(coordinates.act(position.coordinates))
     }
     
     func integrate(by dt: Double, velocity: Rotation) -> Orientation {
-        let delta = dt * 0.5 * simd_quatd(real: .zero, imag: velocity) * q
-        return Orientation((q + delta).normalized)
+        let delta = dt * 0.5 * simd_quatd(real: .zero, imag: velocity) * coordinates
+        return Orientation((coordinates + delta).normalized)
     }
     
     func derive(by dt: Double, _ past: Orientation) -> Rotation {
-        let deltaOrientation = q / past.q / dt
+        let deltaOrientation = coordinates / past.coordinates / dt
         var velocity = 2.0 * deltaOrientation.imag
         if deltaOrientation.real < 0 {
             velocity = -velocity
@@ -184,10 +184,10 @@ struct Space {
     
     var matrix: simd_float4x4 {
         let upperLeft = simd_float3x3(simd_quatf(
-            ix: Float(orientation.q.imag.x),
-            iy: Float(orientation.q.imag.y),
-            iz: Float(orientation.q.imag.z),
-            r: Float(orientation.q.real)
+            ix: Float(orientation.coordinates.imag.x),
+            iy: Float(orientation.coordinates.imag.y),
+            iz: Float(orientation.coordinates.imag.z),
+            r: Float(orientation.coordinates.real)
         ))
         let translation = simd_float3(
             Float(position.x),

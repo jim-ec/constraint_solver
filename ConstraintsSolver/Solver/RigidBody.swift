@@ -48,8 +48,8 @@ class RigidBody {
     func applyLinearImpulse(_ impulse: Point, at vertex: Point) {
         space.translate(by: inverseMass * impulse)
         
-        let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).p) * space.orientation.q
-        space.orientation.q = (space.orientation.q + rotation).normalized
+        let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).coordinates) * space.orientation.coordinates
+        space.orientation.coordinates = (space.orientation.coordinates + rotation).normalized
     }
     
     func toLocal(_ x: Point) -> Point {
