@@ -32,8 +32,8 @@ struct Point {
         self = target - base
     }
     
-    fileprivate init(_ values: simd_double3) {
-        self.coordinates = values
+    fileprivate init(coordinates: simd_double3) {
+        self.coordinates = coordinates
     }
     
     var x: Double {
@@ -86,7 +86,7 @@ struct Point {
     }
     
     var normalize: Point {
-        Point(simd_normalize(coordinates))
+        Point(coordinates: simd_normalize(coordinates))
     }
     
     var length: Double {
@@ -102,7 +102,7 @@ struct Point {
     }
     
     func cross(_ rhs: Point) -> Point {
-        Point(simd_cross(coordinates, rhs.coordinates))
+        Point(coordinates: simd_cross(coordinates, rhs.coordinates))
     }
     
     func angle(to rhs: Point) -> Double {
@@ -110,6 +110,6 @@ struct Point {
     }
     
     func project(onto rhs: Point) -> Point {
-        Point(simd_project(coordinates, rhs.coordinates))
+        Point(coordinates: simd_project(coordinates, rhs.coordinates))
     }
 }

@@ -49,7 +49,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         let groundTranslation = groundInverseMass * impulse
         let groundRotation = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1.coordinates, impulse.coordinates)) * groundOrientation.coordinates
         groundPosition = groundPosition + groundTranslation
-        groundOrientation = Orientation((groundOrientation.coordinates + groundRotation).normalized)
+        groundOrientation.coordinates = (groundOrientation.coordinates + groundRotation).normalized
     }
 }
 
