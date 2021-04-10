@@ -41,9 +41,7 @@ class ViewController: NSViewController, FrameDelegate {
             let sensitivity = 0.001 * renderer.camera.radius
             let dx = sensitivity * Double(-event.scrollingDeltaX)
             let dy = sensitivity * Double(event.scrollingDeltaY)
-            renderer.camera.position +=
-                dx * renderer.camera.right +
-                dy * double3(renderer.camera.forward.x, renderer.camera.forward.y, 0).normalize
+            renderer.camera.slide(righwards: dx, forwards: dy)
         }
     }
 
