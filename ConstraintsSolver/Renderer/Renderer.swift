@@ -113,6 +113,7 @@ class Renderer: NSObject, MTKViewDelegate {
         grid.render(into: encoder, uniforms: &uniforms)
         
         encoder.pushDebugGroup("Draw HUDs")
+        
         let viewMatrix = uniforms.view
         uniforms.model = simd_float4x4(1)
         uniforms.projection = simd_float4x4(1)
@@ -220,21 +221,21 @@ fileprivate class Axes {
     let buffer: MTLBuffer
     let size: Double = 120
     let margin: Double = 10
-    let cicleColor = simd_float3(repeating: 0.2)
-    let cicleSubdivisions = 50
+    let circleColor = simd_float3(repeating: 0.2)
+    let circleSubdivisions = 50
     let axesVertexOffset: Int
     
     init(device: MTLDevice) {
-        axesVertexOffset = cicleSubdivisions * 3
+        axesVertexOffset = circleSubdivisions * 3
         buffer = device.makeBuffer(length: MemoryLayout<Vertex>.stride * (axesVertexOffset + 6 * 3), options: .cpuCacheModeWriteCombined)!
         
-        for i in 0 ..< cicleSubdivisions {
-            let t1 = 2 * .pi * Double(i) / Double(cicleSubdivisions)
-            let t2 = 2 * .pi * Double(i + 1) / Double(cicleSubdivisions)
+        for i in 0 ..< circleSubdivisions {
+            let t1 = 2 * .pi * Double(i) / Double(circleSubdivisions)
+            let t2 = 2 * .pi * Double(i + 1) / Double(circleSubdivisions)
             
-            push(0, 0, cicleColor)
-            push(cos(t1), sin(t1), cicleColor)
-            push(cos(t2), sin(t2), cicleColor)
+            push(0, 0, circleColor)
+            push(cos(t1), sin(t1), circleColor)
+            push(cos(t2), sin(t2), circleColor)
         }
     }
     
