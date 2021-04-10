@@ -17,12 +17,12 @@ class Renderer: NSObject, MTKViewDelegate {
     private var depthState: MTLDepthStencilState
     private var hudDepthState: MTLDepthStencilState
     
-    let fovY = 1.0472
-    let zNear = 0.1
-    let zFar = 100.0
-    var width = 1.0
-    var height = 1.0
-    var aspectRatio = 1.0
+    let fovY: Float = 1.0472
+    let zNear: Float = 0.1
+    let zFar: Float = 100.0
+    var width: Float = 1.0
+    var height: Float = 1.0
+    var aspectRatio: Float = 1.0
     var camera = Camera()
     
     private var meshBuffers: [(Mesh, MTLBuffer)] = []
@@ -91,7 +91,7 @@ class Renderer: NSObject, MTKViewDelegate {
         
         var uniforms = Uniforms()
         uniforms.view = camera.viewMatrix.singlePrecision
-        uniforms.projection = projectionMatrix.singlePrecision
+        uniforms.projection = projectionMatrix
         
         encoder.pushDebugGroup("Draw Meshes")
         for (mesh, buffer) in meshBuffers {
@@ -136,15 +136,15 @@ class Renderer: NSObject, MTKViewDelegate {
     }
     
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-        width = Double(size.width)
-        height = Double(size.height)
-        aspectRatio = Double(size.width / size.height)
+        width = Float(size.width)
+        height = Float(size.height)
+        aspectRatio = Float(size.width / size.height)
     }
     
-    private var projectionMatrix: simd_double4x4 {
+    private var projectionMatrix: simd_float4x4 {
         let tanHalfFovy = tan(0.5 * fovY)
 
-        var perspectiveMatrix = simd_double4x4(1)
+        var perspectiveMatrix = simd_float4x4(1)
         perspectiveMatrix[0][0] = 1 / (aspectRatio * tanHalfFovy)
         perspectiveMatrix[1][1] = 1 / (tanHalfFovy)
         perspectiveMatrix[2][2] = zFar / (zNear - zFar)
@@ -219,8 +219,8 @@ fileprivate class Grid {
 fileprivate class Axes {
     var vertices: [Vertex] = []
     let buffer: MTLBuffer
-    let size: Double = 120
-    let margin: Double = 10
+    let size: Float = 120
+    let margin: Float = 10
     let circleColor = simd_float3(repeating: 0.2)
     let circleSubdivisions = 50
     let axesVertexOffset: Int
@@ -230,8 +230,8 @@ fileprivate class Axes {
         buffer = device.makeBuffer(length: MemoryLayout<Vertex>.stride * (axesVertexOffset + 6 * 3), options: .cpuCacheModeWriteCombined)!
         
         for i in 0 ..< circleSubdivisions {
-            let t1 = 2 * .pi * Double(i) / Double(circleSubdivisions)
-            let t2 = 2 * .pi * Double(i + 1) / Double(circleSubdivisions)
+            let t1 = 2 * .pi * Float(i) / Float(circleSubdivisions)
+            let t2 = 2 * .pi * Float(i + 1) / Float(circleSubdivisions)
             
             push(0, 0, circleColor)
             push(cos(t1), sin(t1), circleColor)
@@ -239,21 +239,21 @@ fileprivate class Axes {
         }
     }
     
-    private func push(_ x: Double, _ y: Double, _ color: simd_float3) {
+    private func push(_ x: Float, _ y: Float, _ color: simd_float3) {
         vertices.append(Vertex(
-                            position: simd_float3(Float(x), Float(y), 0),
+                            position: simd_float3(x, y, 0),
                             normal: simd_float3(0, 0, -1),
                             color: color)
         )
     }
     
-    func render(into encoder: MTLRenderCommandEncoder, uniforms: inout Uniforms, width: Double, height: Double, viewMatrix: simd_float4x4) {
+    func render(into encoder: MTLRenderCommandEncoder, uniforms: inout Uniforms, width: Float, height: Float, viewMatrix: simd_float4x4) {
         encoder.pushDebugGroup("Draw Axes")
         
-        uniforms.model[0, 0] = Float(size / 2)
-        uniforms.model[1, 1] = Float(size / 2)
-        uniforms.model[3, 0] = Float(width - size / 2 - margin)
-        uniforms.model[3, 1] = Float(height - size / 2 - margin)
+        uniforms.model[0, 0] = size / 2
+        uniforms.model[1, 1] = size / 2
+        uniforms.model[3, 0] = width - size / 2 - margin
+        uniforms.model[3, 1] = height - size / 2 - margin
         
         // Overwrite axes vertices from last frame.
         vertices.removeLast(vertices.count - axesVertexOffset)
@@ -284,13 +284,13 @@ fileprivate class Axes {
             // Axes which point away from the camera are grayed out.
             let c = axis.z > 0 ? color : simd_float3(repeating: 0.6)
             
-            push(Double(p1.x), Double(p1.y), c)
-            push(Double(p2.x), Double(p2.y), c)
-            push(Double(p4.x), Double(p4.y), c)
+            push(p1.x, p1.y, c)
+            push(p2.x, p2.y, c)
+            push(p4.x, p4.y, c)
             
-            push(Double(p1.x), Double(p1.y), c)
-            push(Double(p4.x), Double(p4.y), c)
-            push(Double(p3.x), Double(p3.y), c)
+            push(p1.x, p1.y, c)
+            push(p4.x, p4.y, c)
+            push(p3.x, p3.y, c)
         }
         
         buffer.contents().copyMemory(from: vertices, byteCount: buffer.length)
