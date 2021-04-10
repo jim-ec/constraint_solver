@@ -85,13 +85,6 @@ struct Transform {
         Transform(position: .zero, orientation: quat(angle: angle, axis: axis))
     }
     
-    /// Positions the viewer along the negative y-axis, offsets from that axis are given in angle quantities.
-    static func look(azimuth: Double, elevation: Double, radius: Double) -> Transform {
-        .rotation(by: azimuth, around: .ez) *
-            .rotation(by: elevation, around: .ex) *
-            .position(double3(0, radius, 0))
-    }
-    
     /// Composition of two transforms.
     /// The resultant transform describes the first transform as happening within the second transform.
     /// The second transform therefore acts as a parent transform.
@@ -100,22 +93,6 @@ struct Transform {
         let position = b.orientation.act(a.position) + b.position
         return Transform(position: position, orientation: orientation)
     }
-    
-    /// The inverse composition of two transforms.
-    /// The resultant transform relative to to the second transform desbribes the first transform.
-//    static func /(_ a: Transform, _ b: Transform) -> Transform {
-//        a * b.inverse()
-//    }
-    
-    /// Concatenates two transforms.
-//    static func +(_ a: Transform, _ b: Transform) -> Transform {
-//        Transform(position: a.position + b.position, orientation: a.orientation * b.orientation)
-//    }
-    
-    /// The difference between two transforms.
-//    static func -(_ a: Transform, _ b: Transform) -> Transform {
-//        a + b.inverse()
-//    }
     
     /// Applies this transform to some vector.
     func act(on x: double3) -> double3 {
@@ -129,8 +106,15 @@ struct Transform {
     
     func inverse() -> Transform {
         let inverseOrientation = orientation.inverse
-        let inversePosition = -inverseOrientation.act(position)
+        let inversePosition = inverseOrientation.act(-position)
         return Transform(position: inversePosition, orientation: inverseOrientation)
+    }
+    
+    func integrate(by dt: Double, linear: double3, angular: double3) -> Transform {
+        let positionStep = dt * linear
+        let orientationStep = dt * 0.5 * quat(real: .zero, imag: angular) * orientation
+        return Transform(position: position + positionStep,
+                         orientation: (orientation + orientationStep).normalized)
     }
     
     func derive(by dt: Double, _ previous: Transform) -> (double3, double3) {
@@ -143,12 +127,5 @@ struct Transform {
         }
         
         return (linear, angular)
-    }
-    
-    func integrate(by dt: Double, linear: double3, angular: double3) -> Transform {
-        let positionStep = dt * linear
-        let orientationStep = dt * 0.5 * quat(real: .zero, imag: angular) * orientation
-        return Transform(position: position + positionStep,
-                         orientation: (orientation + orientationStep).normalized)
     }
 }
