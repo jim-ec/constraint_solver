@@ -13,8 +13,8 @@ class RigidBody {
     var externalForce: double3 = .zero
     var velocity: double3 = .zero
     var angularVelocity: double3 = .zero
-    var transform: Transform = .identity
-    var pastTransform: Transform = .identity
+    var space: Space = .identity
+    var pastSpace: Space = .identity
     
     init(mass: Double?) {
         if let mass = mass {
@@ -35,32 +35,33 @@ class RigidBody {
     func integrateAttitude(by dt: Double) {
         velocity += dt * externalForce * inverseMass
         
-        pastTransform = transform
-        transform = transform.integrate(by: dt, linear: velocity, angular: angularVelocity)
+        pastSpace = space
+        space = space.integrate(by: dt, linearVelocity: velocity, angularVelocity: angularVelocity)
     }
     
     func deriveVelocity(for dt: Double) {
-        (velocity, angularVelocity) = transform.derive(by: dt, pastTransform)
+        (velocity, angularVelocity) = space.derive(for: dt, pastSpace)
     }
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and orientation.
     func applyLinearImpulse(_ impulse: double3, at vertex: double3) {
-        transform.position += impulse * inverseMass
+        space.translate(by: inverseMass * impulse)
         
-        let rotation = 0.5 * quat(real: 0, imag: cross(vertex - transform.position, impulse)) * transform.orientation
-        transform.orientation = (transform.orientation + rotation).normalized
+        let rotation = 0.5 * quat(real: 0, imag: cross(vertex - space.position.p, impulse)) * space.orientation.q
+        space.orientation.q = (space.orientation.q + rotation).normalized
     }
     
     func toLocal(_ x: double3) -> double3 {
-        transform.inverse().act(on: x)
+        space.enter(Position(x)).p
     }
     
     func toGlobal(_ x: double3) -> double3 {
-        transform.act(on: x)
+        space.leave(Position(x)).p
     }
     
     func fromGlobalToPreviousGlobal(_ x: double3) -> double3 {
-        pastTransform.act(on: toLocal(x))
+        let global = space.enter(Position(x))
+        return pastSpace.leave(global).p
     }
 }

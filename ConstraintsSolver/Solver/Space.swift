@@ -14,7 +14,7 @@ typealias Translation = simd_double3
 
 /// A location in 3-D Euclidean space.
 struct Position {
-    fileprivate var p: simd_double3
+    var p: simd_double3 // TODO: Make fileprivate
     
     static let null = Position(0, 0, 0)
     static let ex = Position(1, 0, 0)
@@ -37,7 +37,7 @@ struct Position {
         self.init(target - base)
     }
     
-    fileprivate init(_ values: simd_double3) {
+    /* fileprivate */ init(_ values: simd_double3) { // TODO: Make fileprivate
         self.p = values
     }
     
@@ -113,7 +113,7 @@ struct Position {
 
 // A functor, able to rotate positions.
 struct Orientation {
-    var q: simd_quatd
+    var q: simd_quatd // TODO: Make fileprivate
     
     static let identity = Orientation(simd_quatd.identity)
     
@@ -121,7 +121,7 @@ struct Orientation {
         q = simd_quatd(angle: angle, axis: axis.p)
     }
     
-    fileprivate init(_ values: simd_quatd) {
+    /* fileprivate */ init(_ values: simd_quatd) { // TODO: Make fileprivate
         self.q = values
     }
     
@@ -205,5 +205,9 @@ struct Space {
     func derive(for dt: Double, _ past: Space) -> (Translation, Rotation) {
         (position: position.derive(by: dt, past.position),
          orientation: orientation.derive(by: dt, past.orientation))
+    }
+    
+    mutating func translate(by translation: Translation) {
+        position.p += translation
     }
 }
