@@ -31,13 +31,23 @@ struct Transform {
     var position: double3
     var orientation: quat
     
-    var matrix: simd_double4x4 {
-        let upperLeft = simd_double3x3(orientation)
-        return simd_double4x4(
-            simd_double4(upperLeft[0], 0),
-            simd_double4(upperLeft[1], 0),
-            simd_double4(upperLeft[2], 0),
-            simd_double4(position, 1))
+    var matrix: simd_float4x4 {
+        let upperLeft = simd_float3x3(simd_quatf(
+            ix: Float(orientation.imag.x),
+            iy: Float(orientation.imag.y),
+            iz: Float(orientation.imag.z),
+            r: Float(orientation.real)
+        ))
+        let translation = simd_float3(
+            Float(position.x),
+            Float(position.y),
+            Float(position.z)
+        )
+        return simd_float4x4(
+            simd_float4(upperLeft[0], 0),
+            simd_float4(upperLeft[1], 0),
+            simd_float4(upperLeft[2], 0),
+            simd_float4(translation, 1))
     }
     
     static let identity = Transform(position: .zero, orientation: .identity)
