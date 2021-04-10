@@ -47,12 +47,8 @@ struct Space {
                      orientation: inverseOrientation)
     }
     
-    func leave(_ x: Point) -> Point {
+    func act(_ x: Point) -> Point {
         orientation.act(on: x) + position
-    }
-    
-    func enter(_ x: Point) -> Point {
-        inverse.leave(x)
     }
     
     func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Rotation) -> Space {

@@ -52,13 +52,9 @@ class RigidBody {
         space.orientation.coordinates = (space.orientation.coordinates + rotation).normalized
     }
     
-    func toGlobal(_ x: Point) -> Point {
-        space.leave(x)
-    }
-    
     /// Computes the position of the given global space vertex in the past configuration.
     func delta(_ x: Point) -> Point {
-        let global = space.enter(x)
-        return pastSpace.leave(global)
+        let local = space.inverse.act(x)
+        return pastSpace.act(local)
     }
 }

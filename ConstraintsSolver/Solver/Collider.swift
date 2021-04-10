@@ -17,7 +17,7 @@ class Collider {
     }
     
     var globalVertices: [Point] {
-        vertices.map(rigidBody.toGlobal)
+        vertices.map(rigidBody.space.act)
     }
     
     func intersectWithGround() -> [PositionalConstraint] {
