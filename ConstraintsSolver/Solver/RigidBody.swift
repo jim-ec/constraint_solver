@@ -14,7 +14,7 @@ class RigidBody {
     var velocity: double3 = .zero
     var angularVelocity: double3 = .zero
     var transform: Transform = .identity
-    var previousTransform: Transform = .identity
+    var pastTransform: Transform = .identity
     
     init(mass: Double?) {
         if let mass = mass {
@@ -35,12 +35,12 @@ class RigidBody {
     func integrateAttitude(by dt: Double) {
         velocity += dt * externalForce * inverseMass
         
-        previousTransform = transform
+        pastTransform = transform
         transform = transform.integrate(by: dt, linear: velocity, angular: angularVelocity)
     }
     
     func deriveVelocity(for dt: Double) {
-        (velocity, angularVelocity) = transform.derive(by: dt, previousTransform)
+        (velocity, angularVelocity) = transform.derive(by: dt, pastTransform)
     }
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
@@ -61,6 +61,6 @@ class RigidBody {
     }
     
     func fromGlobalToPreviousGlobal(_ x: double3) -> double3 {
-        previousTransform.act(on: toLocal(x))
+        pastTransform.act(on: toLocal(x))
     }
 }
