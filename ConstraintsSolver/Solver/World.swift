@@ -28,6 +28,6 @@ class World {
     
     func integrate(dt: Double) {
         integrator.integrate([cube], by: dt)
-        cubeMesh.transform = cube.rigidBody.transform
+        cubeMesh.transform = cube.rigidBody.transform.matrix.singlePrecision
     }
 }

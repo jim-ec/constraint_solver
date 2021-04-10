@@ -97,7 +97,7 @@ class Renderer: NSObject, MTKViewDelegate {
         for (mesh, buffer) in meshBuffers {
             encoder.pushDebugGroup("Draw Mesh '\(mesh.name)'")
             
-            uniforms.model = mesh.transform.matrix.singlePrecision
+            uniforms.model = mesh.transform
             
             encoder.setVertexBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))
             encoder.setFragmentBytes(&uniforms, length: MemoryLayout<Uniforms>.size, index: Int(BufferIndexUniforms))

@@ -3,7 +3,7 @@ import Foundation
 class Mesh {
     let name: String
     var vertices: [Vertex] = []
-    var transform = Transform.identity
+    var transform = simd_float4x4(1)
     
     init(name: String) {
         self.name = name
