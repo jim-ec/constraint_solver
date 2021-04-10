@@ -52,10 +52,6 @@ class RigidBody {
         space.orientation.coordinates = (space.orientation.coordinates + rotation).normalized
     }
     
-    func toLocal(_ x: Point) -> Point {
-        space.enter(x)
-    }
-    
     func toGlobal(_ x: Point) -> Point {
         space.leave(x)
     }
