@@ -9,17 +9,17 @@ import Foundation
 
 struct PositionalConstraint {
     let body: RigidBody
-    let positions: (double3, double3)
+    let positions: (simd_double3, simd_double3)
     let distance: Double
     let compliance: Double
 }
 
 func solve(for constraints: [PositionalConstraint], dt: Double) {
-    var groundPosition = double3.zero
-    var groundOrientation = quat.identity
+    var groundPosition = simd_double3.zero
+    var groundOrientation = simd_quatd.identity
     let groundInverseMass = 0.0
-    let groundInverseInertia = double3.zero
-    let groundTransformInverse = Transform.identity
+    let groundInverseInertia = simd_double3.zero
+    let groundSpaceInverse = Space.identity
     
     for constraint in constraints {
         let difference = constraint.positions.1 - constraint.positions.0
@@ -28,7 +28,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         
         let angularImpulseDual =
             (constraint.body.space.orientation.q.inverse.act(cross(constraint.positions.0 - constraint.body.space.position.p, direction)),
-             groundTransformInverse.rotate(cross(constraint.positions.1, direction)))
+             groundSpaceInverse.orientation.q.act(cross(constraint.positions.1, direction)))
         
         let generalizedInverseMass =
             (constraint.body.inverseMass + dot(angularImpulseDual.0 * constraint.body.inverseInertia, angularImpulseDual.0),
@@ -41,7 +41,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         constraint.body.applyLinearImpulse(impulse, at: constraint.positions.0)
         
         let groundTranslation = impulse * groundInverseMass
-        let groundRotation = 0.5 * quat(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
+        let groundRotation = 0.5 * simd_quatd(real: 0, imag: cross(constraint.positions.1, impulse)) * groundOrientation
         groundPosition += groundTranslation
         groundOrientation = (groundOrientation + groundRotation).normalized
     }

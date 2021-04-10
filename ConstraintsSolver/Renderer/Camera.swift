@@ -9,23 +9,23 @@ import Foundation
 
 
 public struct Camera {
-    var position: double3
+    var position: simd_double3
     var radius: Double
-    var right: double3
-    var forward: double3
+    var right: simd_double3
+    var forward: simd_double3
     
     init() {
-        position = double3(0, -1, 0)
+        position = simd_double3(0, -1, 0)
         radius = 1
-        right = double3(1, 0, 0)
-        forward = double3(0, 0, 0)
+        right = simd_double3(1, 0, 0)
+        forward = simd_double3(0, 0, 0)
     }
     
-    var up: double3 {
+    var up: simd_double3 {
         forward.cross(-right).normalize
     }
     
-    var focus: double3 {
+    var focus: simd_double3 {
         position + radius * forward
     }
     
@@ -52,7 +52,7 @@ public struct Camera {
         return inverse
     }
     
-    mutating func look(at focus: double3, from position: double3, up: double3)
+    mutating func look(at focus: simd_double3, from position: simd_double3, up: simd_double3)
     {
         #if DEBUG
         if (focus - position).dot(up) == 1 {
@@ -108,12 +108,12 @@ public struct Camera {
     {
         position +=
             righwards * right +
-            forwards * double3(forward.x, forward.y, 0).normalize
+            forwards * simd_double3(forward.x, forward.y, 0).normalize
     }
     
 }
 
-fileprivate extension double3 {
+fileprivate extension simd_double3 {
     func rotate(by angle: Double, around axis: Self) -> Self {
         let c = cos(angle)
         let s = sin(angle)

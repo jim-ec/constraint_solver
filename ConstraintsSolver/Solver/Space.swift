@@ -12,6 +12,29 @@ typealias Rotation = simd_double3
 typealias Translation = simd_double3
 
 
+extension simd_double3 {
+    static var ex: simd_double3 {
+        simd_double3(1, 0, 0)
+    }
+    
+    static var ey: simd_double3 {
+        simd_double3(0, 1, 0)
+    }
+    
+    static var ez: simd_double3 {
+        simd_double3(0, 0, 1)
+    }
+    
+    var string: String {
+        "(\(x), \(y), \(z))"
+    }
+    
+    var singlePrecision: simd_float3 {
+        simd_float3(Float(x), Float(y), Float(z))
+    }
+}
+
+
 /// A location in 3-D Euclidean space.
 struct Position {
     var p: simd_double3 // TODO: Make fileprivate
@@ -111,6 +134,13 @@ struct Position {
 }
 
 
+extension simd_quatd {
+    static var identity: Self {
+        Self(ix: 0, iy: 0, iz: 0, r: 1)
+    }
+}
+
+
 // A functor, able to rotate positions.
 struct Orientation {
     var q: simd_quatd // TODO: Make fileprivate
@@ -138,7 +168,7 @@ struct Orientation {
     }
     
     func integrate(by dt: Double, velocity: Rotation) -> Orientation {
-        let delta = dt * 0.5 * quat(real: .zero, imag: velocity) * q
+        let delta = dt * 0.5 * simd_quatd(real: .zero, imag: velocity) * q
         return Orientation((q + delta).normalized)
     }
     

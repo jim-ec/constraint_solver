@@ -15,23 +15,23 @@ struct MinkowskiDifference {
     }
     
     /// Returns the point within the Minkowski difference which is furthest away from the origin in the given direction.
-    subscript (in direction: double3) -> double3 {
+    subscript (in direction: simd_double3) -> simd_double3 {
         convexVolumes.0.furthestPoint(in: direction) - convexVolumes.1.furthestPoint(in: -direction)
     }
 }
 
 protocol ConvexVolume {
-    func furthestPoint(in direction: double3) -> double3
+    func furthestPoint(in direction: simd_double3) -> simd_double3
 }
 
 /// 0-, 1-, or 2-simplices which arise during the iterations of the GJK algorithm.
 fileprivate enum IntermediateSimplex {
-    case point(double3)
-    case line(double3, double3)
-    case triangle(double3, double3, double3)
+    case point(simd_double3)
+    case line(simd_double3, simd_double3)
+    case triangle(simd_double3, simd_double3, simd_double3)
 }
 
-typealias Tetrahedron = (double3, double3, double3, double3)
+typealias Tetrahedron = (simd_double3, simd_double3, simd_double3, simd_double3)
 
 /// The simplex after an iteration is either still an intermediate one, or the final tetrahedron which contains the origin.
 fileprivate enum NextSimplex {
@@ -42,7 +42,7 @@ fileprivate enum NextSimplex {
 func gjk(a: ConvexVolume, b: ConvexVolume) -> Bool {
     let support = MinkowskiDifference(a, b)
     
-    let initialPoint = support[in: double3.random(in: 0...1)]
+    let initialPoint = support[in: simd_double3.random(in: 0...1)]
     var simplex = IntermediateSimplex.point(initialPoint)
     var searchDirection = -initialPoint
     
@@ -63,7 +63,7 @@ func gjk(a: ConvexVolume, b: ConvexVolume) -> Bool {
     }
 }
 
-fileprivate func nextSimplex(simplex: IntermediateSimplex, point a: double3, direction: inout double3) -> NextSimplex {
+fileprivate func nextSimplex(simplex: IntermediateSimplex, point a: simd_double3, direction: inout simd_double3) -> NextSimplex {
     switch simplex {
     case let .point(b):
         return .intermediate(processLine(a, b, direction: &direction))
@@ -79,21 +79,21 @@ fileprivate func nextSimplex(simplex: IntermediateSimplex, point a: double3, dir
     }
 }
 
-extension double3 {
-    func cross(_ x: double3) -> double3 {
+extension simd_double3 {
+    func cross(_ x: simd_double3) -> simd_double3 {
         simd.cross(self, x)
     }
     
-    func dot(_ x: double3) -> Double {
+    func dot(_ x: simd_double3) -> Double {
         simd.dot(self, x)
     }
 }
 
-fileprivate func sameDirection(_ a: double3, _ b: double3) -> Bool {
+fileprivate func sameDirection(_ a: simd_double3, _ b: simd_double3) -> Bool {
     dot(a, b) > 0
 }
 
-fileprivate func processLine(_ a: double3, _ b: double3, direction: inout double3) -> IntermediateSimplex {
+fileprivate func processLine(_ a: simd_double3, _ b: simd_double3, direction: inout simd_double3) -> IntermediateSimplex {
     let ao = -a
     let ab = b - a
     if sameDirection(cross(a, b), ao) {
@@ -106,7 +106,7 @@ fileprivate func processLine(_ a: double3, _ b: double3, direction: inout double
     }
 }
 
-fileprivate func processTriangle(_ a: double3, _ b: double3, _ c: double3, direction: inout double3) -> IntermediateSimplex {
+fileprivate func processTriangle(_ a: simd_double3, _ b: simd_double3, _ c: simd_double3, direction: inout simd_double3) -> IntermediateSimplex {
     let ao = -a
     let ab = b - a
     let ac = c - a
@@ -136,7 +136,7 @@ fileprivate func processTriangle(_ a: double3, _ b: double3, _ c: double3, direc
     }
 }
 
-fileprivate func processTetrahedron(_ a: double3, _ b: double3, _ c: double3, _ d: double3, direction: inout double3) -> IntermediateSimplex? {
+fileprivate func processTetrahedron(_ a: simd_double3, _ b: simd_double3, _ c: simd_double3, _ d: simd_double3, direction: inout simd_double3) -> IntermediateSimplex? {
     let ab = b - a
     let ac = c - a
     let ad = d - a

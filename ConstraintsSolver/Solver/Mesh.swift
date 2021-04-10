@@ -13,20 +13,13 @@ class Mesh {
         MeshBuilder(mesh: self)
     }
     
-    func findCenterOfMass() -> double3 {
-        var centerOfMass = double3()
+    func findCenterOfMass() -> simd_double3 {
+        var centerOfMass = simd_double3()
         for vertex in vertices {
-            centerOfMass += double3(vertex.position)
+            centerOfMass += simd_double3(vertex.position)
         }
         centerOfMass /= Double(vertices.count)
         return centerOfMass
-    }
-    
-    /// Applies the given transform to all position vectors of this mesh.
-    func map(by transform: Transform) {
-        map { x in
-            simd_float3(transform.act(on: double3(x)))
-        }
     }
     
     /// Maps all position vectors of this mesh according to mapping function.

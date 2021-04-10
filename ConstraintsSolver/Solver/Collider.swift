@@ -1,5 +1,5 @@
 class Collider {
-    let vertices: [double3]
+    let vertices: [simd_double3]
     var rigidBody: RigidBody
     
     init(rigidBody: RigidBody) {
@@ -16,17 +16,17 @@ class Collider {
         ].map { v in 0.5 * v }
     }
     
-    var globalVertices: [double3] {
+    var globalVertices: [simd_double3] {
         vertices.map(rigidBody.toGlobal)
     }
     
     func intersectWithGround() -> [PositionalConstraint] {
         let penetratingVertices = globalVertices.filter { vertex in vertex.z < 0 }
         return penetratingVertices.map { position in
-            let targetPosition = double3(position.x, position.y, 0)
+            let targetPosition = simd_double3(position.x, position.y, 0)
             let difference = targetPosition - position
             
-            let deltaPosition = position - rigidBody.fromGlobalToPreviousGlobal(position)
+            let deltaPosition = position - rigidBody.delta(position)
             let deltaTangentialPosition = deltaPosition - project(deltaPosition, difference)
             
             return PositionalConstraint(
