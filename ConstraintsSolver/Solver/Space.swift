@@ -11,29 +11,6 @@ import Foundation
 typealias Rotation = simd_double3
 
 
-extension simd_double3 {
-    static var ex: simd_double3 {
-        simd_double3(1, 0, 0)
-    }
-    
-    static var ey: simd_double3 {
-        simd_double3(0, 1, 0)
-    }
-    
-    static var ez: simd_double3 {
-        simd_double3(0, 0, 1)
-    }
-    
-    var string: String {
-        "(\(x), \(y), \(z))"
-    }
-    
-    var singlePrecision: simd_float3 {
-        simd_float3(Float(x), Float(y), Float(z))
-    }
-}
-
-
 infix operator .* : MultiplicationPrecedence
 
 

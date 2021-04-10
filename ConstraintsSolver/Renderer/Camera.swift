@@ -113,7 +113,29 @@ public struct Camera {
     
 }
 
+extension simd_double3 {
+    static var ex: simd_double3 {
+        simd_double3(1, 0, 0)
+    }
+    
+    static var ey: simd_double3 {
+        simd_double3(0, 1, 0)
+    }
+    
+    static var ez: simd_double3 {
+        simd_double3(0, 0, 1)
+    }
+}
+
 fileprivate extension simd_double3 {
+    var normalize: Self {
+        simd_normalize(self)
+    }
+    
+    func distance(to rhs: Self) -> Double {
+        simd_distance(self, rhs)
+    }
+    
     func rotate(by angle: Double, around axis: Self) -> Self {
         let c = cos(angle)
         let s = sin(angle)
@@ -137,11 +159,7 @@ fileprivate extension simd_double3 {
         return Self(rotated.x, rotated.y, rotated.z)
     }
     
-    var normalize: Self {
-        simd_normalize(self)
-    }
-    
-    func distance(to rhs: Self) -> Double {
-        simd_distance(self, rhs)
+    var singlePrecision: simd_float3 {
+        simd_float3(Float(x), Float(y), Float(z))
     }
 }
