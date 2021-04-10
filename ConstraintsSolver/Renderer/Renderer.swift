@@ -90,7 +90,7 @@ class Renderer: NSObject, MTKViewDelegate {
         encoder.setDepthStencilState(depthState)
         
         var uniforms = Uniforms()
-        uniforms.view = camera.viewMatrix.singlePrecision
+        uniforms.view = camera.viewMatrix
         uniforms.projection = projectionMatrix
         
         encoder.pushDebugGroup("Draw Meshes")
@@ -300,16 +300,5 @@ fileprivate class Axes {
         encoder.setVertexBuffer(buffer, offset: 0, index: Int(BufferIndexVertices))
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: vertices.count)
         encoder.popDebugGroup()
-    }
-}
-
-extension simd_double4x4 {
-    var singlePrecision: simd_float4x4 {
-        simd_float4x4(columns: (
-            simd_float4(Float(self[0, 0]), Float(self[0, 1]), Float(self[0, 2]), Float(self[0, 3])),
-            simd_float4(Float(self[1, 0]), Float(self[1, 1]), Float(self[1, 2]), Float(self[1, 3])),
-            simd_float4(Float(self[2, 0]), Float(self[2, 1]), Float(self[2, 2]), Float(self[2, 3])),
-            simd_float4(Float(self[3, 0]), Float(self[3, 1]), Float(self[3, 2]), Float(self[3, 3]))
-        ))
     }
 }

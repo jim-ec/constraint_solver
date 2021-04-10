@@ -19,6 +19,10 @@ extension double3 {
     var string: String {
         "(\(x), \(y), \(z))"
     }
+    
+    var singlePrecision: simd_float3 {
+        simd_float3(Float(x), Float(y), Float(z))
+    }
 }
 
 extension quat {

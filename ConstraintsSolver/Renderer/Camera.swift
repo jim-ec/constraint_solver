@@ -29,19 +29,19 @@ public struct Camera {
         position + radius * forward
     }
     
-    var viewMatrix: simd_double4x4 {
-        let matrix = simd_double4x4(columns: (
-            simd_double4(right, 0),
-            simd_double4(up, 0),
-            simd_double4(-forward, 0),
-            simd_double4(position, 1)
+    var viewMatrix: simd_float4x4 {
+        let matrix = simd_float4x4(columns: (
+            simd_float4(right.singlePrecision, 0),
+            simd_float4(up.singlePrecision, 0),
+            simd_float4(-forward.singlePrecision, 0),
+            simd_float4(position.singlePrecision, 1)
         ))
         
-        let inverse = simd_double4x4(columns: (
-            simd_double4(matrix[0].x, matrix[1].x, matrix[2].x, 0),
-            simd_double4(matrix[0].y, matrix[1].y, matrix[2].y, 0),
-            simd_double4(matrix[0].z, matrix[1].z, matrix[2].z, 0),
-            simd_double4(
+        let inverse = simd_float4x4(columns: (
+            simd_float4(matrix[0].x, matrix[1].x, matrix[2].x, 0),
+            simd_float4(matrix[0].y, matrix[1].y, matrix[2].y, 0),
+            simd_float4(matrix[0].z, matrix[1].z, matrix[2].z, 0),
+            simd_float4(
                 -dot(matrix[0], matrix[3]),
                 -dot(matrix[1], matrix[3]),
                 -dot(matrix[2], matrix[3]),
