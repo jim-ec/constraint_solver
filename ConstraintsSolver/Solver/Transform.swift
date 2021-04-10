@@ -1,6 +1,6 @@
 import Foundation
 
-typealias double3 = simd_double3
+typealias double3 = simd_double3 // TODO: Make file private in camera class
 typealias quat = simd_quatd
 
 extension double3 {
