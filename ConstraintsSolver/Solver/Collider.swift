@@ -17,10 +17,10 @@ struct BoxCollider {
             .init(1, -1, 1),
             .init(-1, 1, 1),
             .init(1, 1, 1)
-        ].map { v in 0.5 * v }
+        ].map { 0.5 * $0 }
     }
     
-    func intersectWithGround(attachedTo rigid: Rigid, with plane: Plane, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
+    func intersect(attachedTo rigid: Rigid, with plane: Plane, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
         var constraints: [PositionalConstraint] = []
         
         for position in points.map(rigid.frame.act) {
