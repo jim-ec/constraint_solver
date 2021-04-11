@@ -20,8 +20,9 @@ struct BoxCollider {
         ].map { 0.5 * $0 }
     }
     
-    func intersect(attachedTo rigid: Rigid, with plane: Plane, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
+    func intersect(attachedTo rigid: Rigid, with p: Plane, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
         var constraints: [PositionalConstraint] = []
+        let plane = otherRigid.frame.act(p)
         
         for position in points.map(rigid.frame.act) {
             if position.reject(from: plane).dot(plane.normal) >= 0 {

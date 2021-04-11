@@ -122,3 +122,9 @@ struct Point {
         project(onto: plane).to(self)
     }
 }
+
+extension Point: CustomDebugStringConvertible {
+    var debugDescription: String {
+        "(\(x), \(y), \(y))"
+    }
+}

@@ -43,6 +43,13 @@ struct Frame {
         quaternion.act(on: x) + position
     }
     
+    func act(_ plane: Plane) -> Plane {
+        let support = (plane.support + position).project(onto: plane.normal)
+        let offset = support.dot(plane.normal) > 0 ? support.length : -support.length
+        let normal = quaternion.act(on: plane.normal)
+        return Plane(direction: normal, offset: offset)
+    }
+    
     func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Point) -> Frame {
         Frame(position: position.integrate(by: dt, velocity: linearVelocity),
               quaternion: quaternion.integrate(by: dt, velocity: angularVelocity))

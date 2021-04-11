@@ -15,7 +15,7 @@ class World {
     
     init(renderer: Renderer) {
         cubeMesh = Mesh.makeCube(name: "Cube", color: .white)
-        cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
+        cubeMesh.map { $0 - simd_float3(0.5, 0.5, 0.5) }
         renderer.registerMesh(cubeMesh)
         
         cube = Rigid(collider: .box(BoxCollider()), mass: 1)
