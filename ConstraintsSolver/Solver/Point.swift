@@ -110,11 +110,15 @@ struct Point {
         return cos(dot(rhs) / (length * rhs.length))
     }
     
-    func project(onto rhs: Point) -> Point {
-        Point(coordinates: simd_project(coordinates, rhs.coordinates))
+    func project(onto point: Point) -> Point {
+        Point(coordinates: simd_project(coordinates, point.coordinates))
     }
     
-    func planeProjection(normal n: Point, distance d: Double = 0) -> Point {
-        n.cross(cross(n)) + d * n
+    func project(onto plane: Plane) -> Point {
+        plane.normal.cross(cross(plane.normal)) + plane.offset * plane.normal
+    }
+    
+    func reject(from plane: Plane) -> Point {
+        project(onto: plane).to(self)
     }
 }

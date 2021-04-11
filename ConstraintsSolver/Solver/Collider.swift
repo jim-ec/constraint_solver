@@ -5,8 +5,7 @@ enum Collider {
 }
 
 struct PlaneCollider {
-    let normal: Point
-    let offset: Double
+    let plane: Plane
 }
 
 struct BoxCollider {
@@ -26,10 +25,12 @@ struct BoxCollider {
     }
     
     func intersectWithGround(attachedTo rigid: Rigid) -> [PositionalConstraint] {
-        points.map { p in rigid.frame.act(p) }
-            .filter { position in position.z < 0 }
+        let plane = Plane(normal: .ez, offset: 0)
+        
+        return points.map { p in rigid.frame.act(p) }
+            .filter { position in position.reject(from: plane).dot(plane.normal) < 0 }
             .map { position in
-                let targetPosition = position.planeProjection(normal: .ez)
+                let targetPosition = position.project(onto: plane)
                 
                 let deltaPosition = rigid.delta(global: position)
                 let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
