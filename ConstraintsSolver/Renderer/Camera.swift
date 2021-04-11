@@ -9,32 +9,32 @@ import Foundation
 
 
 public struct Camera {
-    var position: simd_double3
+    var position: Point
     var radius: Double
-    var right: simd_double3
-    var forward: simd_double3
+    var right: Point
+    var forward: Point
     
     init() {
-        position = simd_double3(0, -1, 0)
+        position = Point(0, -1, 0)
         radius = 1
-        right = simd_double3(1, 0, 0)
-        forward = simd_double3(0, 0, 0)
+        right = Point(1, 0, 0)
+        forward = Point(0, 0, 0)
     }
     
-    var up: simd_double3 {
+    var up: Point {
         forward.cross(-right).normalize
     }
     
-    var focus: simd_double3 {
+    var focus: Point {
         position + radius * forward
     }
     
     var viewMatrix: simd_float4x4 {
         let matrix = simd_float4x4(columns: (
-            simd_float4(right.singlePrecision, 0),
-            simd_float4(up.singlePrecision, 0),
-            simd_float4(-forward.singlePrecision, 0),
-            simd_float4(position.singlePrecision, 1)
+            simd_float4(Float(right.x), Float(right.y), Float(right.z), 0),
+            simd_float4(Float(up.x), Float(up.y), Float(up.z), 0),
+            simd_float4(Float(-forward.x), Float(-forward.y), Float(-forward.z), 0),
+            simd_float4(Float(position.x), Float(position.y), Float(position.z), 1)
         ))
         
         let inverse = simd_float4x4(columns: (
@@ -52,7 +52,7 @@ public struct Camera {
         return inverse
     }
     
-    mutating func look(at focus: simd_double3, from position: simd_double3, up: simd_double3)
+    mutating func look(at focus: Point, from position: Point, up: Point)
     {
         #if DEBUG
         if (focus - position).dot(up) == 1 {
@@ -106,60 +106,9 @@ public struct Camera {
     /// Slides the camera position in the X-Y plane.
     mutating func slide(righwards: Double, forwards: Double)
     {
-        position +=
+        position = position +
             righwards * right +
-            forwards * simd_double3(forward.x, forward.y, 0).normalize
+            forwards * Point(forward.x, forward.y, 0).normalize
     }
     
-}
-
-extension simd_double3 {
-    static var ex: simd_double3 {
-        simd_double3(1, 0, 0)
-    }
-    
-    static var ey: simd_double3 {
-        simd_double3(0, 1, 0)
-    }
-    
-    static var ez: simd_double3 {
-        simd_double3(0, 0, 1)
-    }
-}
-
-fileprivate extension simd_double3 {
-    var normalize: Self {
-        simd_normalize(self)
-    }
-    
-    func distance(to rhs: Self) -> Double {
-        simd_distance(self, rhs)
-    }
-    
-    func rotate(by angle: Double, around axis: Self) -> Self {
-        let c = cos(angle)
-        let s = sin(angle)
-        
-        let temp = (1 - c) * axis
-        
-        var rotationMatrix = simd_double4x4(diagonal: .init(repeating: 1))
-        rotationMatrix[0][0] = c + temp.x * axis.x
-        rotationMatrix[0][1] = temp.x * axis.y + s * axis.z
-        rotationMatrix[0][2] = temp.x * axis.z - s * axis.y
-
-        rotationMatrix[1][0] = temp.y * axis.x - s * axis.z
-        rotationMatrix[1][1] = c + temp.y * axis.y
-        rotationMatrix[1][2] = temp.y * axis.z + s * axis.x
-
-        rotationMatrix[2][0] = temp.z * axis.x + s * axis.y
-        rotationMatrix[2][1] = temp.z * axis.y - s * axis.x
-        rotationMatrix[2][2] = c + temp.z * axis.z
-        
-        let rotated = rotationMatrix * simd_double4(self, 1)
-        return Self(rotated.x, rotated.y, rotated.z)
-    }
-    
-    var singlePrecision: simd_float3 {
-        simd_float3(Float(x), Float(y), Float(z))
-    }
 }
