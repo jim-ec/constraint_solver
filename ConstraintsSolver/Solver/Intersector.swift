@@ -6,3 +6,41 @@
 //
 
 import Foundation
+
+
+struct MinkowskiDifference {
+    var points: [Point]
+    var center: Point
+    
+    init?(a: [Point], b: [Point]) {
+        center = .null
+        points = []
+        for va in a {
+            for vb in b {
+                let difference = va - vb
+                points.append(difference)
+                center = center + difference
+            }
+        }
+        center = (1 / Double(points.count)) * center
+        
+        let posX = points.contains { $0.x > 0 }
+        let negX = points.contains { $0.x < 0 }
+        let posY = points.contains { $0.y > 0 }
+        let negY = points.contains { $0.y < 0 }
+        let posZ = points.contains { $0.z > 0 }
+        let negZ = points.contains { $0.z < 0 }
+        let includesOrigin = posX && negX && posY && negY && posZ && negZ
+        
+        if !includesOrigin {
+            return nil
+        }
+    }
+    
+    var minimum: Point {
+        points.min { (a, b) -> Bool in
+            a.length < b.length
+        }!
+    }
+}
+
