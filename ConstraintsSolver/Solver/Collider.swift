@@ -25,22 +25,27 @@ struct BoxCollider {
     }
     
     func intersectWithGround(attachedTo rigid: Rigid) -> [PositionalConstraint] {
-        let plane = Plane(normal: .ez, offset: 0)
+        let plane = Plane(direction: .ez, offset: 0)
+        var constraints: [PositionalConstraint] = []
         
-        return points.map { p in rigid.frame.act(p) }
-            .filter { position in position.reject(from: plane).dot(plane.normal) < 0 }
-            .map { position in
-                let targetPosition = position.project(onto: plane)
-                
-                let deltaPosition = rigid.delta(global: position)
-                let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
-                
-                return PositionalConstraint(
-                    rigid: rigid,
-                    positions: (position, targetPosition - deltaTangentialPosition),
-                    distance: 0,
-                    compliance: 0.0000001
-                )
+        for position in points.map(rigid.frame.act) {
+            if position.reject(from: plane).dot(plane.normal) >= 0 {
+                continue
             }
+            
+            let targetPosition = position.project(onto: plane)
+            
+            let deltaPosition = rigid.delta(global: position)
+            let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
+            
+            constraints.append(PositionalConstraint(
+                rigid: rigid,
+                positions: (position, targetPosition - deltaTangentialPosition),
+                distance: 0,
+                compliance: 0.0000001
+            ))
+        }
+        
+        return constraints
     }
 }

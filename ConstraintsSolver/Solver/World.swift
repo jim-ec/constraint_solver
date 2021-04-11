@@ -25,7 +25,7 @@ class World {
         cube.angularVelocity = .init(1, 2, 0.5)
         cube.velocity.y = 4
         
-        ground = Rigid(collider: .plane(PlaneCollider(plane: Plane(normal: .ez, offset: 0))), mass: nil)
+        ground = Rigid(collider: .plane(PlaneCollider(plane: Plane(direction: .ez, offset: 0))), mass: nil)
     }
     
     func integrate(dt: Double) {
