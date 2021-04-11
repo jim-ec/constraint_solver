@@ -1,11 +1,7 @@
 
 enum Collider {
-    case plane(PlaneCollider)
+    case plane(Plane)
     case box(BoxCollider)
-}
-
-struct PlaneCollider {
-    let plane: Plane
 }
 
 struct BoxCollider {
@@ -24,8 +20,7 @@ struct BoxCollider {
         ].map { v in 0.5 * v }
     }
     
-    func intersectWithGround(attachedTo rigid: Rigid) -> [PositionalConstraint] {
-        let plane = Plane(direction: .ez, offset: 0)
+    func intersectWithGround(attachedTo rigid: Rigid, with plane: Plane, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
         var constraints: [PositionalConstraint] = []
         
         for position in points.map(rigid.frame.act) {
