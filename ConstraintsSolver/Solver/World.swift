@@ -19,8 +19,8 @@ class World {
         
         cube = Collider(rigidBody: RigidBody(mass: 1))
         
-        cube.rigidBody.space.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
-        cube.rigidBody.space.position = Point(0, -2, 4)
+        cube.rigidBody.frame.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
+        cube.rigidBody.frame.position = Point(0, -2, 4)
         cube.rigidBody.externalForce.z = -9.81
         cube.rigidBody.angularVelocity = .init(1, 2, 0.5)
         cube.rigidBody.velocity.y = 4
@@ -28,6 +28,6 @@ class World {
     
     func integrate(dt: Double) {
         integrator.integrate([cube], by: dt)
-        cubeMesh.transform = cube.rigidBody.space.matrix
+        cubeMesh.transform = cube.rigidBody.frame.matrix
     }
 }

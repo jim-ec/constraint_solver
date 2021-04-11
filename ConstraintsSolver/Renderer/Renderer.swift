@@ -258,7 +258,7 @@ fileprivate class Axes {
         // Overwrite axes vertices from last frame.
         vertices.removeLast(vertices.count - axesVertexOffset)
         
-        // Get axes in the current view space.
+        // Get axes in the current view frame.
         let ex = viewMatrix * simd_float4(1, 0, 0, 0)
         let ey = viewMatrix * simd_float4(0, 1, 0, 0)
         let ez = viewMatrix * simd_float4(0, 0, 1, 0)

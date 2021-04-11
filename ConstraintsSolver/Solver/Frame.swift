@@ -11,11 +11,11 @@ import Foundation
 typealias Rotation = simd_double3
 
 
-struct Space {
+struct Frame {
     var position: Point
     var quaternion: Quaternion
     
-    static let identity = Space(position: .null, quaternion: .identity)
+    static let identity = Frame(position: .null, quaternion: .identity)
     
     init(position: Point = .null, quaternion: Quaternion = .identity) {
         self.position = position
@@ -36,9 +36,9 @@ struct Space {
             simd_float4(translation, 1))
     }
     
-    var inverse: Space {
+    var inverse: Frame {
         let inverseOrientation = quaternion.inverse
-        return Space(position: inverseOrientation.act(on: -position),
+        return Frame(position: inverseOrientation.act(on: -position),
                      quaternion: inverseOrientation)
     }
     
@@ -46,12 +46,12 @@ struct Space {
         quaternion.act(on: x) + position
     }
     
-    func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Rotation) -> Space {
-        Space(position: position.integrate(by: dt, velocity: linearVelocity),
+    func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Rotation) -> Frame {
+        Frame(position: position.integrate(by: dt, velocity: linearVelocity),
               quaternion: quaternion.integrate(by: dt, velocity: angularVelocity))
     }
     
-    func derive(for dt: Double, _ past: Space) -> (Point, Rotation) {
+    func derive(for dt: Double, _ past: Frame) -> (Point, Rotation) {
         (position: position.derive(by: dt, past.position),
          quaternion: quaternion.derive(by: dt, past.quaternion))
     }

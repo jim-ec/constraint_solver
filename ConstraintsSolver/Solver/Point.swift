@@ -11,7 +11,7 @@ import Foundation
 infix operator .*: MultiplicationPrecedence
 
 
-/// A point in 3-D Euclidean space.
+/// A point in 3-D Euclidean frame.
 struct Point {
     private var coordinates: simd_double3
     

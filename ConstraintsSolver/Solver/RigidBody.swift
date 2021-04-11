@@ -13,8 +13,8 @@ class RigidBody {
     var externalForce: Point = .null
     var velocity: Point = .null
     var angularVelocity: simd_double3 = .zero
-    var space: Space = .identity
-    var pastSpace: Space = .identity
+    var frame: Frame = .identity
+    var pastFrame: Frame = .identity
     
     init(mass: Double?) {
         if let mass = mass {
@@ -34,28 +34,27 @@ class RigidBody {
     
     func integrateAttitude(by dt: Double) {
         velocity = velocity + dt * inverseMass * externalForce
-        
-        pastSpace = space
-        space = space.integrate(by: dt, linearVelocity: velocity, angularVelocity: angularVelocity)
+        pastFrame = frame
+        frame = frame.integrate(by: dt, linearVelocity: velocity, angularVelocity: angularVelocity)
     }
     
     func deriveVelocity(for dt: Double) {
-        (velocity, angularVelocity) = space.derive(for: dt, pastSpace)
+        (velocity, angularVelocity) = frame.derive(for: dt, pastFrame)
     }
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and quaternion.
     func applyLinearImpulse(_ impulse: Point, at vertex: Point) {
-        space.translate(by: inverseMass * impulse)
+        frame.translate(by: inverseMass * impulse)
         
-        let rotation = 0.5 * Quaternion(bivector: (vertex - space.position).cross(impulse)) * space.quaternion
-        space.quaternion = space.quaternion ^+ rotation
+        let rotation = 0.5 * Quaternion(bivector: (vertex - frame.position).cross(impulse)) * frame.quaternion
+        frame.quaternion = frame.quaternion ^+ rotation
     }
     
     /// Computes the position difference of a local point from the past frame to the current frame.
     func delta(_ local: Point) -> Point {
-        let pastGlobal = pastSpace.act(local)
-        let currentGlobal = space.act(local)
+        let pastGlobal = pastFrame.act(local)
+        let currentGlobal = frame.act(local)
         return pastGlobal.to(currentGlobal)
     }
 }

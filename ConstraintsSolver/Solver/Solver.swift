@@ -19,7 +19,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
     var groundOrientation = Quaternion.identity
     let groundInverseMass = 0.0
     let groundInverseInertia = simd_double3.zero
-    let groundSpaceInverse = Space.identity
+    let groundSpaceInverse = Frame.identity
     
     for constraint in constraints {
         let difference = constraint.positions.1 - constraint.positions.0
@@ -27,8 +27,8 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         let direction = difference.normalize
         
         let angularImpulseDual: (Point, Point) = (
-            constraint.body.space.quaternion.inverse.act(
-                on: (constraint.positions.0 - constraint.body.space.position).cross(direction)
+            constraint.body.frame.quaternion.inverse.act(
+                on: (constraint.positions.0 - constraint.body.frame.position).cross(direction)
             ),
             groundSpaceInverse.quaternion.act(
                 on: constraint.positions.1.cross(direction)
