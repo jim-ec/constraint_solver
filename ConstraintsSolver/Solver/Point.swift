@@ -13,7 +13,7 @@ infix operator .*: MultiplicationPrecedence
 
 /// A point in 3-D Euclidean space.
 struct Point {
-    var coordinates: simd_double3 // TODO: Make fileprivate
+    private var coordinates: simd_double3
     
     static let null = Point(0, 0, 0)
     static let ex = Point(1, 0, 0)

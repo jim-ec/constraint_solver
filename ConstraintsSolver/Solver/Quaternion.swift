@@ -11,7 +11,6 @@ import Foundation
 infix operator ^+: AdditionPrecedence
 
 
-// A functor, able to rotate positions.
 struct Quaternion {
     private var coordinates: simd_quatd
     
@@ -19,7 +18,7 @@ struct Quaternion {
     
     /// Axis-angle constructor.
     init(by angle: Double, around axis: Point) {
-        coordinates = simd_quatd(angle: angle, axis: axis.coordinates)
+        coordinates = simd_quatd(angle: angle, axis: simd_double3(axis.x, axis.y, axis.z))
     }
     
     /// Constructs a pure imaginary quaternion.
@@ -57,8 +56,8 @@ struct Quaternion {
         Quaternion(coordinates: coordinates.conjugate)
     }
     
-    func act(on position: Point) -> Point {
-        let rotated = coordinates.act(position.coordinates)
+    func act(on v: Point) -> Point {
+        let rotated = coordinates.act(simd_double3(v.x, v.y, v.z))
         return Point(rotated.x, rotated.y, rotated.z)
     }
     
