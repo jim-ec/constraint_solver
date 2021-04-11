@@ -21,19 +21,20 @@ class Collider {
     }
     
     func intersectWithGround() -> [PositionalConstraint] {
-        let penetratingVertices = vertices.filter { vertex in vertex.1.z < 0 }
-        return penetratingVertices.map { local, position in
-            let targetPosition = Point(position.x, position.y, 0)
-            
-            let deltaPosition = rigidBody.delta(local)
-            let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
-            
-            return PositionalConstraint(
-                body: rigidBody,
-                positions: (position, targetPosition - deltaTangentialPosition),
-                distance: 0,
-                compliance: 0.0000001
-            )
-        }
+        vertices
+            .filter { _, position in position.z < 0 }
+            .map { local, position in
+                let targetPosition = position.planeProjection(normal: .ez)
+                
+                let deltaPosition = rigidBody.delta(local)
+                let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
+                
+                return PositionalConstraint(
+                    body: rigidBody,
+                    positions: (position, targetPosition - deltaTangentialPosition),
+                    distance: 0,
+                    compliance: 0.0000001
+                )
+            }
     }
 }

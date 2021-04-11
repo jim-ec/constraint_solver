@@ -113,4 +113,8 @@ struct Point {
     func project(onto rhs: Point) -> Point {
         Point(coordinates: simd_project(coordinates, rhs.coordinates))
     }
+    
+    func planeProjection(normal n: Point, distance d: Double = 0) -> Point {
+        n.cross(cross(n)) + d * n
+    }
 }
