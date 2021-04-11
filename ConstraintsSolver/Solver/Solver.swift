@@ -60,15 +60,15 @@ class SubStepIntegrator {
         self.subStepCount = subStepCount
     }
     
-    func integrate(_ colliders: [Collider], by dt: Double) {
+    func integrate(_ rigids: [RigidBody], by dt: Double) {
         let sdt = dt / Double(subStepCount)
         
         for _ in 0..<subStepCount {
-            for collider in colliders {
-                collider.rigidBody.integrateAttitude(by: sdt)
-                let constraints = collider.intersectWithGround()
+            for rigid in rigids {
+                rigid.integrateAttitude(by: sdt)
+                let constraints = rigid.collider.intersectWithGround(attachedTo: rigid)
                 solve(for: constraints, dt: sdt)
-                collider.rigidBody.deriveVelocity(for: sdt)
+                rigid.deriveVelocity(for: sdt)
             }
         }
     }

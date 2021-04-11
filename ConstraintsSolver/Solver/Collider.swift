@@ -1,9 +1,7 @@
 class Collider {
     let points: [Point]
-    var rigidBody: RigidBody
     
-    init(rigidBody: RigidBody) {
-        self.rigidBody = rigidBody
+    init() {
         points = [
             .init(-1, -1, -1),
             .init(1, -1, -1),
@@ -16,21 +14,17 @@ class Collider {
         ].map { v in 0.5 * v }
     }
     
-    var vertices: [(Point, Point)] {
-        points.map { p in (p, rigidBody.frame.act(p)) }
-    }
-    
-    func intersectWithGround() -> [PositionalConstraint] {
-        vertices
+    func intersectWithGround(attachedTo rigid: RigidBody) -> [PositionalConstraint] {
+        points.map { p in (p, rigid.frame.act(p)) }
             .filter { _, position in position.z < 0 }
             .map { local, position in
                 let targetPosition = position.planeProjection(normal: .ez)
                 
-                let deltaPosition = rigidBody.delta(local)
+                let deltaPosition = rigid.delta(local)
                 let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
                 
                 return PositionalConstraint(
-                    body: rigidBody,
+                    body: rigid,
                     positions: (position, targetPosition - deltaTangentialPosition),
                     distance: 0,
                     compliance: 0.0000001

@@ -8,6 +8,7 @@
 import Foundation
 
 class RigidBody {
+    let collider: Collider
     let inverseMass: Double
     let inverseInertia: simd_double3
     var externalForce: Point = .null
@@ -16,7 +17,7 @@ class RigidBody {
     var frame: Frame = .identity
     var pastFrame: Frame = .identity
     
-    init(mass: Double?) {
+    init(collider: Collider, mass: Double?) {
         if let mass = mass {
             self.inverseMass = 1 / mass
             let extent = simd_double3(repeating: 1)
@@ -30,6 +31,7 @@ class RigidBody {
             self.inverseMass = 0
             self.inverseInertia = .zero
         }
+        self.collider = collider
     }
     
     func integrateAttitude(by dt: Double) {
