@@ -53,10 +53,10 @@ class Rigid {
         frame.quaternion = frame.quaternion ^+ rotation
     }
     
-    /// Computes the position difference of a local point from the past frame to the current frame.
-    func delta(_ local: Point) -> Point {
+    /// Computes the position difference of a global point in the current frame from the same point in the past frame.
+    func delta(global: Point) -> Point {
+        let local = frame.inverse.act(global)
         let pastGlobal = pastFrame.act(local)
-        let currentGlobal = frame.act(local)
-        return pastGlobal.to(currentGlobal)
+        return pastGlobal.to(global)
     }
 }
