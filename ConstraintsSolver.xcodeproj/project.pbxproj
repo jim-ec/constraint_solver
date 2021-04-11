@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		380AD7572623642200E0FCAB /* Integrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380AD7562623642200E0FCAB /* Integrator.swift */; };
 		3822DA7926208459002A12D7 /* Collider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3822DA7826208459002A12D7 /* Collider.swift */; };
 		38804F31261F842600DFCEEC /* World.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38804F30261F842600DFCEEC /* World.swift */; };
 		38806253261F4EAE0074887A /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38806252261F4EAE0074887A /* Camera.swift */; };
@@ -28,6 +29,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		380AD7562623642200E0FCAB /* Integrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Integrator.swift; sourceTree = "<group>"; };
 		3822DA7826208459002A12D7 /* Collider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collider.swift; sourceTree = "<group>"; };
 		38804F30261F842600DFCEEC /* World.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = World.swift; sourceTree = "<group>"; };
 		38806252261F4EAE0074887A /* Camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera.swift; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 				AA68B489255ED3AB0034421F /* Rigid.swift */,
 				3822DA7826208459002A12D7 /* Collider.swift */,
 				AA68B485255ECFBA0034421F /* Solver.swift */,
+				380AD7562623642200E0FCAB /* Integrator.swift */,
 				AABD38262549E22000F3AA37 /* Intersector.swift */,
 				AA05792E25605CF4001FA8BE /* EPA.swift */,
 				38D5DBF22621A48D00E0C632 /* Frame.swift */,
@@ -198,6 +201,7 @@
 			files = (
 				38D5DBFB2621EC0200E0C632 /* Point.swift in Sources */,
 				AA68B486255ECFBA0034421F /* Solver.swift in Sources */,
+				380AD7572623642200E0FCAB /* Integrator.swift in Sources */,
 				AADF6E232530B55600681C64 /* Shaders.metal in Sources */,
 				AA35E4862534C0DF00A6761C /* Mesh.swift in Sources */,
 				AA68B48A255ED3AB0034421F /* Rigid.swift in Sources */,
