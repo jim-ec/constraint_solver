@@ -23,12 +23,7 @@ struct Space {
     }
     
     var matrix: simd_float4x4 {
-        let upperLeft = simd_float3x3(simd_quatf(
-            ix: Float(quaternion.coordinates.imag.x),
-            iy: Float(quaternion.coordinates.imag.y),
-            iz: Float(quaternion.coordinates.imag.z),
-            r: Float(quaternion.coordinates.real)
-        ))
+        let upperLeft = quaternion.matrix
         let translation = simd_float3(
             Float(position.x),
             Float(position.y),

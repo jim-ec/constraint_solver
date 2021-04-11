@@ -8,7 +8,7 @@
 import Foundation
 
 
-infix operator .* : MultiplicationPrecedence
+infix operator .*: MultiplicationPrecedence
 
 
 /// A point in 3-D Euclidean space.
@@ -28,7 +28,7 @@ struct Point {
         coordinates = simd_double3(x, y, z)
     }
     
-    fileprivate init(coordinates: simd_double3) {
+    private init(coordinates: simd_double3) {
         self.coordinates = coordinates
     }
     

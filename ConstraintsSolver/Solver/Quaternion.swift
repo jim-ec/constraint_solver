@@ -8,22 +8,49 @@
 import Foundation
 
 
+infix operator ^+: AdditionPrecedence
+
+
 // A functor, able to rotate positions.
 struct Quaternion {
-    var coordinates: simd_quatd // TODO: Make fileprivate
+    private var coordinates: simd_quatd
     
     static let identity = Quaternion(coordinates: simd_quatd(ix: 0, iy: 0, iz: 0, r: 1))
     
+    /// Axis-angle constructor.
     init(by angle: Double, around axis: Point) {
         coordinates = simd_quatd(angle: angle, axis: axis.coordinates)
     }
     
-    fileprivate init(coordinates: simd_quatd) {
+    /// Constructs a pure imaginary quaternion.
+    init(bivector: Point) {
+        coordinates = simd_quatd(ix: bivector.x, iy: bivector.y, iz: bivector.z, r: 0)
+    }
+    
+    private init(coordinates: simd_quatd) {
         self.coordinates = coordinates
+    }
+    
+    var matrix: simd_float3x3 {
+        simd_float3x3(simd_quatf(
+            ix: Float(coordinates.imag.x),
+            iy: Float(coordinates.imag.y),
+            iz: Float(coordinates.imag.z),
+            r: Float(coordinates.real)
+        ))
     }
     
     static func *(lhs: Quaternion, rhs: Quaternion) -> Quaternion {
         Quaternion(coordinates: lhs.coordinates * rhs.coordinates)
+    }
+    
+    static func *(scalar: Double, rhs: Quaternion) -> Quaternion {
+        Quaternion(coordinates: scalar * rhs.coordinates)
+    }
+    
+    /// Adds two quaternions, then normalizes the result so that it is still a unit quaternion.
+    static func ^+(lhs: Quaternion, rhs: Quaternion) -> Quaternion {
+        Quaternion(coordinates: (lhs.coordinates + rhs.coordinates).normalized)
     }
     
     var inverse: Quaternion {

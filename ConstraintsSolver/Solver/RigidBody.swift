@@ -48,8 +48,8 @@ class RigidBody {
     func applyLinearImpulse(_ impulse: Point, at vertex: Point) {
         space.translate(by: inverseMass * impulse)
         
-        let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).coordinates) * space.quaternion.coordinates
-        space.quaternion.coordinates = (space.quaternion.coordinates + rotation).normalized
+        let rotation = 0.5 * Quaternion(bivector: (vertex - space.position).cross(impulse)) * space.quaternion
+        space.quaternion = space.quaternion ^+ rotation
     }
     
     /// Computes the position difference of a local point from the past frame to the current frame.
