@@ -52,10 +52,10 @@ class RigidBody {
         space.orientation.coordinates = (space.orientation.coordinates + rotation).normalized
     }
     
-    /// Computes the difference of a global point now and in the past configuration.
-    func delta(toCurrentGlobal x: Point) -> Point {
-        let local = space.inverse.act(x)
+    /// Computes the position difference of a local point from the past frame to the current frame.
+    func delta(_ local: Point) -> Point {
         let pastGlobal = pastSpace.act(local)
-        return x - pastGlobal
+        let currentGlobal = space.act(local)
+        return pastGlobal.to(currentGlobal)
     }
 }

@@ -28,10 +28,6 @@ struct Point {
         coordinates = simd_double3(x, y, z)
     }
     
-    init(from base: Point, to target: Point) {
-        self = target - base
-    }
-    
     fileprivate init(coordinates: simd_double3) {
         self.coordinates = coordinates
     }
@@ -74,6 +70,11 @@ struct Point {
     /// A component-wise multiplication.
     static func .*(_ lhs: simd_double3, _ rhs: Point) -> Point {
         Point(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
+    }
+    
+    /// Constructs a vector pointing from `self` to `target`.
+    func to(_ target: Point) -> Point {
+        target - self
     }
     
     func integrate(by dt: Double, velocity: Point) -> Point {

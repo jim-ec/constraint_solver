@@ -1,10 +1,10 @@
 class Collider {
-    let vertices: [Point]
+    let points: [Point]
     var rigidBody: RigidBody
     
     init(rigidBody: RigidBody) {
         self.rigidBody = rigidBody
-        vertices = [
+        points = [
             .init(-1, -1, -1),
             .init(1, -1, -1),
             .init(-1, 1, -1),
@@ -16,18 +16,17 @@ class Collider {
         ].map { v in 0.5 * v }
     }
     
-    var globalVertices: [Point] {
-        vertices.map(rigidBody.space.act)
+    var vertices: [(Point, Point)] {
+        points.map { p in (p, rigidBody.space.act(p)) }
     }
     
     func intersectWithGround() -> [PositionalConstraint] {
-        let penetratingVertices = globalVertices.filter { vertex in vertex.z < 0 }
-        return penetratingVertices.map { position in
+        let penetratingVertices = vertices.filter { vertex in vertex.1.z < 0 }
+        return penetratingVertices.map { local, position in
             let targetPosition = Point(position.x, position.y, 0)
-            let difference = targetPosition - position
             
-            let deltaPosition = rigidBody.delta(toCurrentGlobal: position)
-            let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: difference)
+            let deltaPosition = rigidBody.delta(local)
+            let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
             
             return PositionalConstraint(
                 body: rigidBody,
