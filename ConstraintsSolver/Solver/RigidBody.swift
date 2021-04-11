@@ -44,12 +44,12 @@ class RigidBody {
     }
     
     /// Applies a linear impulse in a given direction and magnitude at a given location.
-    /// Results in changes in both position and orientation.
+    /// Results in changes in both position and quaternion.
     func applyLinearImpulse(_ impulse: Point, at vertex: Point) {
         space.translate(by: inverseMass * impulse)
         
-        let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).coordinates) * space.orientation.coordinates
-        space.orientation.coordinates = (space.orientation.coordinates + rotation).normalized
+        let rotation = 0.5 * simd_quatd(real: 0, imag: (vertex - space.position).cross(impulse).coordinates) * space.quaternion.coordinates
+        space.quaternion.coordinates = (space.quaternion.coordinates + rotation).normalized
     }
     
     /// Computes the position difference of a local point from the past frame to the current frame.

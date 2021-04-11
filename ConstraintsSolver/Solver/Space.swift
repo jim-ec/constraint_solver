@@ -13,21 +13,21 @@ typealias Rotation = simd_double3
 
 struct Space {
     var position: Point
-    var orientation: Orientation
+    var quaternion: Quaternion
     
-    static let identity = Space(position: .null, orientation: .identity)
+    static let identity = Space(position: .null, quaternion: .identity)
     
-    init(position: Point = .null, orientation: Orientation = .identity) {
+    init(position: Point = .null, quaternion: Quaternion = .identity) {
         self.position = position
-        self.orientation = orientation
+        self.quaternion = quaternion
     }
     
     var matrix: simd_float4x4 {
         let upperLeft = simd_float3x3(simd_quatf(
-            ix: Float(orientation.coordinates.imag.x),
-            iy: Float(orientation.coordinates.imag.y),
-            iz: Float(orientation.coordinates.imag.z),
-            r: Float(orientation.coordinates.real)
+            ix: Float(quaternion.coordinates.imag.x),
+            iy: Float(quaternion.coordinates.imag.y),
+            iz: Float(quaternion.coordinates.imag.z),
+            r: Float(quaternion.coordinates.real)
         ))
         let translation = simd_float3(
             Float(position.x),
@@ -42,23 +42,23 @@ struct Space {
     }
     
     var inverse: Space {
-        let inverseOrientation = orientation.inverse
+        let inverseOrientation = quaternion.inverse
         return Space(position: inverseOrientation.act(on: -position),
-                     orientation: inverseOrientation)
+                     quaternion: inverseOrientation)
     }
     
     func act(_ x: Point) -> Point {
-        orientation.act(on: x) + position
+        quaternion.act(on: x) + position
     }
     
     func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Rotation) -> Space {
         Space(position: position.integrate(by: dt, velocity: linearVelocity),
-              orientation: orientation.integrate(by: dt, velocity: angularVelocity))
+              quaternion: quaternion.integrate(by: dt, velocity: angularVelocity))
     }
     
     func derive(for dt: Double, _ past: Space) -> (Point, Rotation) {
         (position: position.derive(by: dt, past.position),
-         orientation: orientation.derive(by: dt, past.orientation))
+         quaternion: quaternion.derive(by: dt, past.quaternion))
     }
     
     mutating func translate(by translation: Point) {
