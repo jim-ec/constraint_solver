@@ -10,14 +10,14 @@ import Foundation
 class World {
     private let integrator = SubStepIntegrator(subStepCount: 10)
     private let cubeMesh: Mesh
-    private let cube: RigidBody
+    private let cube: Rigid
     
     init(renderer: Renderer) {
         cubeMesh = Mesh.makeCube(name: "Cube", color: .white)
         cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         renderer.registerMesh(cubeMesh)
         
-        cube = RigidBody(collider: .box(BoxCollider()), mass: 1)
+        cube = Rigid(collider: .box(BoxCollider()), mass: 1)
         cube.frame.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
         cube.frame.position = Point(0, -2, 4)
         cube.externalForce.z = -9.81

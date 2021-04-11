@@ -17,7 +17,7 @@
 		AA35E4862534C0DF00A6761C /* Mesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA35E4852534C0DF00A6761C /* Mesh.swift */; };
 		AA35E4892534C0E900A6761C /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA35E4882534C0E900A6761C /* Color.swift */; };
 		AA68B486255ECFBA0034421F /* Solver.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA68B485255ECFBA0034421F /* Solver.swift */; };
-		AA68B48A255ED3AB0034421F /* RigidBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA68B489255ED3AB0034421F /* RigidBody.swift */; };
+		AA68B48A255ED3AB0034421F /* Rigid.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA68B489255ED3AB0034421F /* Rigid.swift */; };
 		AABD38272549E22000F3AA37 /* Intersector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABD38262549E22000F3AA37 /* Intersector.swift */; };
 		AADF6E1D2530B55600681C64 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADF6E1C2530B55600681C64 /* AppDelegate.swift */; };
 		AADF6E1F2530B55600681C64 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADF6E1E2530B55600681C64 /* ViewController.swift */; };
@@ -37,7 +37,7 @@
 		AA35E4852534C0DF00A6761C /* Mesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Mesh.swift; sourceTree = "<group>"; };
 		AA35E4882534C0E900A6761C /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		AA68B485255ECFBA0034421F /* Solver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Solver.swift; sourceTree = "<group>"; };
-		AA68B489255ED3AB0034421F /* RigidBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidBody.swift; sourceTree = "<group>"; };
+		AA68B489255ED3AB0034421F /* Rigid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rigid.swift; sourceTree = "<group>"; };
 		AABD38262549E22000F3AA37 /* Intersector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intersector.swift; sourceTree = "<group>"; };
 		AADF6E192530B55600681C64 /* ConstraintsSolver.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ConstraintsSolver.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AADF6E1C2530B55600681C64 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -87,7 +87,7 @@
 			children = (
 				38804F30261F842600DFCEEC /* World.swift */,
 				AA35E4852534C0DF00A6761C /* Mesh.swift */,
-				AA68B489255ED3AB0034421F /* RigidBody.swift */,
+				AA68B489255ED3AB0034421F /* Rigid.swift */,
 				3822DA7826208459002A12D7 /* Collider.swift */,
 				AA68B485255ECFBA0034421F /* Solver.swift */,
 				AABD38262549E22000F3AA37 /* Intersector.swift */,
@@ -197,7 +197,7 @@
 				AA68B486255ECFBA0034421F /* Solver.swift in Sources */,
 				AADF6E232530B55600681C64 /* Shaders.metal in Sources */,
 				AA35E4862534C0DF00A6761C /* Mesh.swift in Sources */,
-				AA68B48A255ED3AB0034421F /* RigidBody.swift in Sources */,
+				AA68B48A255ED3AB0034421F /* Rigid.swift in Sources */,
 				AA35E4892534C0E900A6761C /* Color.swift in Sources */,
 				AADF6E3E2530BCBE00681C64 /* main.swift in Sources */,
 				AADF6E1F2530B55600681C64 /* ViewController.swift in Sources */,

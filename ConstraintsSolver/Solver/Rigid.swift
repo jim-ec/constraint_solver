@@ -1,5 +1,5 @@
 //
-//  RigidBody.swift
+//  Rigid.swift
 //  ConstraintsSolver
 //
 //  Created by Jim Eckerlein on 13.11.20.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-class RigidBody {
+class Rigid {
     let collider: Collider
     let inverseMass: Double
     let inverseInertia: simd_double3
