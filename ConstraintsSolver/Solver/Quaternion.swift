@@ -11,6 +11,7 @@ import Foundation
 infix operator ^+: AdditionPrecedence
 
 
+/// A unit quaternion.
 struct Quaternion {
     private var coordinates: simd_quatd
     
@@ -30,12 +31,20 @@ struct Quaternion {
         self.coordinates = coordinates
     }
     
+    var scalar: Double {
+        coordinates.real
+    }
+    
+    var bivector: Point {
+        Point(coordinates.imag.x, coordinates.imag.y, coordinates.imag.z)
+    }
+    
     var matrix: simd_float3x3 {
         simd_float3x3(simd_quatf(
-            ix: Float(coordinates.imag.x),
-            iy: Float(coordinates.imag.y),
-            iz: Float(coordinates.imag.z),
-            r: Float(coordinates.real)
+            ix: Float(bivector.x),
+            iy: Float(bivector.y),
+            iz: Float(bivector.z),
+            r: Float(scalar)
         ))
     }
     
@@ -61,15 +70,15 @@ struct Quaternion {
         return Point(rotated.x, rotated.y, rotated.z)
     }
     
-    func integrate(by dt: Double, velocity: Rotation) -> Quaternion {
-        let delta = dt * 0.5 * simd_quatd(real: .zero, imag: velocity) * coordinates
-        return Quaternion(coordinates: (coordinates + delta).normalized)
+    func integrate(by dt: Double, velocity: Point) -> Quaternion {
+        let delta = dt * 0.5 * Quaternion(bivector: velocity) * self
+        return self ^+ delta
     }
     
-    func derive(by dt: Double, _ past: Quaternion) -> Rotation {
-        let deltaOrientation = coordinates / past.coordinates / dt
-        var velocity = 2.0 * deltaOrientation.imag
-        if deltaOrientation.real < 0 {
+    func derive(by dt: Double, _ past: Quaternion) -> Point {
+        let delta = (1 / dt) * self * past.inverse
+        var velocity = 2.0 * delta.bivector
+        if delta.scalar < 0 {
             velocity = -velocity
         }
         return velocity

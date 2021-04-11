@@ -8,9 +8,6 @@
 import Foundation
 
 
-typealias Rotation = simd_double3
-
-
 struct Frame {
     var position: Point
     var quaternion: Quaternion
@@ -46,12 +43,12 @@ struct Frame {
         quaternion.act(on: x) + position
     }
     
-    func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Rotation) -> Frame {
+    func integrate(by dt: Double, linearVelocity: Point, angularVelocity: Point) -> Frame {
         Frame(position: position.integrate(by: dt, velocity: linearVelocity),
               quaternion: quaternion.integrate(by: dt, velocity: angularVelocity))
     }
     
-    func derive(for dt: Double, _ past: Frame) -> (Point, Rotation) {
+    func derive(for dt: Double, _ past: Frame) -> (Point, Point) {
         (position: position.derive(by: dt, past.position),
          quaternion: quaternion.derive(by: dt, past.quaternion))
     }

@@ -12,7 +12,7 @@ class RigidBody {
     let inverseInertia: simd_double3
     var externalForce: Point = .null
     var velocity: Point = .null
-    var angularVelocity: simd_double3 = .zero
+    var angularVelocity: Point = .null
     var frame: Frame = .identity
     var pastFrame: Frame = .identity
     
