@@ -17,7 +17,7 @@ class World {
         cubeMesh.map { x in x - simd_float3(0.5, 0.5, 0.5) }
         renderer.registerMesh(cubeMesh)
         
-        cube = RigidBody(collider: Collider(), mass: 1)
+        cube = RigidBody(collider: .box(BoxCollider()), mass: 1)
         cube.frame.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
         cube.frame.position = Point(0, -2, 4)
         cube.externalForce.z = -9.81

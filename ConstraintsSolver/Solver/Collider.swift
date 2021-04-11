@@ -1,4 +1,15 @@
-class Collider {
+
+enum Collider {
+    case plane(PlaneCollider)
+    case box(BoxCollider)
+}
+
+struct PlaneCollider {
+    let normal: Point
+    let offset: Double
+}
+
+struct BoxCollider {
     let points: [Point]
     
     init() {
