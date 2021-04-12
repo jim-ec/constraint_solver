@@ -8,7 +8,7 @@
 import Foundation
 
 class World {
-    private let integrator = SubStepIntegrator(subStepCount: 10)
+    private let integrator = SubStepIntegrator(subStepCount: 50)
     private let cubeMesh: Mesh
     private let cube: Rigid
     private let ground: Rigid
@@ -22,7 +22,7 @@ class World {
         cube.frame.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
         cube.frame.position = Point(0, -2, 4)
         cube.externalForce.z = -9.81
-        cube.angularVelocity = Point(1, 2, 1)
+        cube.angularVelocity = Point(1, 2, 0.1)
         cube.velocity.y = 4
         
         ground = Rigid(collider: .plane(Plane(direction: .ez, offset: 0)), mass: nil)

@@ -15,7 +15,7 @@ class ViewController: NSViewController, FrameDelegate {
         mtkView.delegate = renderer
         
         renderer.frameDelegate = self
-        renderer.camera.look(at: .null, from: Point(6, 6, 6), up: .ez)
+        renderer.camera.look(at: .null, from: Point(5, 6, 4), up: .ez)
         
         world = World(renderer: renderer)
     }
