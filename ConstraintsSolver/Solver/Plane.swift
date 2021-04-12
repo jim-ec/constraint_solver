@@ -15,8 +15,17 @@ struct Plane {
         offset * normal
     }
     
+    var flip: Plane {
+        Plane(normal: -normal, offset: -offset)
+    }
+    
     init(direction: Point, offset: Double) {
         normal = direction.normalize
+        self.offset = offset
+    }
+    
+    init(normal: Point, offset: Double) {
+        self.normal = normal
         self.offset = offset
     }
     
