@@ -10,7 +10,7 @@ import Foundation
 class Rigid {
     let collider: Collider
     let inverseMass: Double
-    let inverseInertia: simd_double3
+    let inverseInertia: Point
     var externalForce: Point = .null
     var velocity: Point = .null
     var angularVelocity: Point = .null
@@ -20,16 +20,16 @@ class Rigid {
     init(collider: Collider, mass: Double?) {
         if let mass = mass {
             self.inverseMass = 1 / mass
-            let extent = simd_double3(repeating: 1)
-            let inertia = 1.0 / 12.0 * mass * simd_double3(
+            let extent = Point(1)
+            let inertia = 1 / 12 * mass * Point(
                 extent.y * extent.y + extent.z * extent.z,
                 extent.x * extent.x + extent.z * extent.z,
                 extent.x * extent.x + extent.y * extent.y)
-            self.inverseInertia = 1 / inertia
+            self.inverseInertia = Point(1 / inertia.x, 1 / inertia.y, 1 / inertia.z)
         }
         else {
             self.inverseMass = 0
-            self.inverseInertia = .zero
+            self.inverseInertia = .null
         }
         self.collider = collider
     }

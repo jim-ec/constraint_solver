@@ -40,6 +40,7 @@ struct BoxCollider {
             
             constraints.append(PositionalConstraint(
                 rigid: rigid,
+                other: otherRigid,
                 positions: (position, targetPosition - deltaTangentialPosition),
                 distance: 0,
                 compliance: 0.0000001
@@ -51,14 +52,14 @@ struct BoxCollider {
     
 //    func intersect(attachedTo rigid: Rigid, with b: BoxCollider, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
 //        var constraints: [PositionalConstraint] = []
-//        
+//
 //        if let m = MinkowskiDifference(a: apply(frame: rigid.frame), b: b.apply(frame: otherRigid.frame)) {
 //            // Collision detected
 //            let correction = m.minimum
-//            
+//
 //            // TODO: Generate constraint
 //        }
-//        
+//
 //        return constraints
 //    }
 }

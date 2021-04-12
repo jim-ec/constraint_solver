@@ -9,18 +9,13 @@ import Foundation
 
 struct PositionalConstraint {
     let rigid: Rigid
+    let other: Rigid
     let positions: (Point, Point)
     let distance: Double
     let compliance: Double
 }
 
 func solve(for constraints: [PositionalConstraint], dt: Double) {
-    var groundPosition = Point.null
-    var groundOrientation = Quaternion.identity
-    let groundInverseMass = 0.0
-    let groundInverseInertia = simd_double3.zero
-    let groundSpaceInverse = Frame.identity
-    
     for constraint in constraints {
         let difference = constraint.positions.1 - constraint.positions.0
         let magnitude = difference.length - constraint.distance
@@ -30,14 +25,14 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
             constraint.rigid.frame.quaternion.inverse.act(
                 on: (constraint.positions.0 - constraint.rigid.frame.position).cross(direction)
             ),
-            groundSpaceInverse.quaternion.act(
+            constraint.other.frame.quaternion.act(
                 on: constraint.positions.1.cross(direction)
             )
         )
         
         let generalizedInverseMass: (Double, Double) = (
             constraint.rigid.inverseMass + (constraint.rigid.inverseInertia .* angularImpulseDual.0).dot(angularImpulseDual.0),
-            groundInverseMass + (groundInverseInertia .* angularImpulseDual.1).dot(angularImpulseDual.1)
+            constraint.other.inverseMass + (constraint.other.inverseInertia .* angularImpulseDual.1).dot(angularImpulseDual.1)
         )
         
         let timeStepCompliance = constraint.compliance / (dt * dt)
@@ -45,10 +40,6 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         let impulse = lagrangeMultiplier * direction
         
         constraint.rigid.applyLinearImpulse(impulse, at: constraint.positions.0)
-        
-        let groundTranslation = groundInverseMass * impulse
-        let groundRotation = 0.5 * Quaternion(bivector: constraint.positions.1.cross(impulse)) * groundOrientation
-        groundPosition = groundPosition + groundTranslation
-        groundOrientation = groundOrientation ^+ groundRotation
+        constraint.other.applyLinearImpulse(impulse, at: constraint.positions.1)
     }
 }

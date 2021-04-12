@@ -68,7 +68,7 @@ struct Point {
     }
     
     /// A component-wise multiplication.
-    static func .*(_ lhs: simd_double3, _ rhs: Point) -> Point {
+    static func .*(_ lhs: Point, _ rhs: Point) -> Point {
         Point(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
     }
     
