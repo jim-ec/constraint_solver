@@ -19,4 +19,15 @@ struct Plane {
         normal = direction.normalize
         self.offset = offset
     }
+    
+    init(_ triangle: (Point, Point, Point)) {
+        normal = triangle.0.to(triangle.1).cross(triangle.0.to(triangle.2)).normalize
+        let support = triangle.0.project(onto: normal)
+        if support.dot(normal) > 0 {
+            offset = support.length
+        }
+        else {
+            offset = -support.length
+        }
+    }
 }
