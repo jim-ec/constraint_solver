@@ -21,9 +21,9 @@ class World {
         cube = Rigid(collider: .box(BoxCollider()), mass: 1)
         cube.frame.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
         cube.frame.position = Point(0, -2, 4)
-        cube.externalForce.z = -9.81
+        cube.externalForce = -9.81 * .ez
         cube.angularVelocity = Point(1, 2, 0.1)
-        cube.velocity.y = 4
+        cube.velocity = 4 * .ey
         
         ground = Rigid(collider: .plane(Plane(direction: .ez, offset: 0)), mass: nil)
     }

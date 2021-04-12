@@ -33,18 +33,15 @@ struct Point {
     }
     
     var x: Double {
-        set { coordinates.x = newValue }
-        get { coordinates.x }
+        coordinates.x
     }
     
     var y: Double {
-        set { coordinates.y = newValue }
-        get { coordinates.y }
+        coordinates.y
     }
     
     var z: Double {
-        set { coordinates.z = newValue }
-        get { coordinates.z }
+        coordinates.z
     }
     
     static func +(rhs: Point, lhs: Point) -> Point {
