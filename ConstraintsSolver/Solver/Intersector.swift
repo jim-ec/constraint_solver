@@ -46,5 +46,45 @@ struct MinkowskiDifference {
             a.length < b.length
         }!
     }
+    
+    func planeInDirection(of direction: Point) -> Plane {
+        var sorted = points
+        sorted.sort { (a, b) -> Bool in
+            a.dot(direction) < b.dot(direction)
+        }
+        let plane = Plane((sorted[0], sorted[1], sorted[2]))
+        
+        // Ensure that plane normal points in the same direction as the given one.
+        if plane.normal.dot(direction) > 0 {
+            return plane
+        }
+        else {
+            return plane.flip
+        }
+    }
 }
 
+
+//fileprivate typealias Tri = (Point, Point, Point)
+//
+//
+//fileprivate func convexHull(points: [Point]) -> [Tri] {
+//    let tris: [Tri] = []
+//
+//    // Initial step, find extreme points.
+//    let initial: Tri = (
+//        points.max { a, b in a.x > b.x }!,
+//        points.max { a, b in a.y > b.y }!,
+//        points.max { a, b in a.z > b.z }!
+//    )
+//
+//    func findMaximalRejection(plane: Plane) -> Point {
+//        points.max { a, b in
+//            a.reject(from: plane).length > b.reject(from: plane).length
+//        }!
+//    }
+//
+//    findMaximalRejection(plane: Plane(initial))
+//
+//    return tris
+//}
