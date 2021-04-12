@@ -24,8 +24,8 @@ struct BoxCollider {
         points.map { frame.act($0) }
     }
     
-    func intersect(attachedTo rigid: Rigid, with p: Plane, attachedTo other: Rigid) -> [PositionalConstraint] {
-        var constraints: [PositionalConstraint] = []
+    func intersect(attachedTo rigid: Rigid, with p: Plane, attachedTo other: Rigid) -> [Constraint] {
+        var constraints: [Constraint] = []
         let plane = other.frame.act(p)
         
         for position in points.map(rigid.frame.act) {
@@ -50,8 +50,8 @@ struct BoxCollider {
         return constraints
     }
     
-//    func intersect(attachedTo rigid: Rigid, with b: BoxCollider, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
-//        var constraints: [PositionalConstraint] = []
+//    func intersect(attachedTo rigid: Rigid, with b: BoxCollider, attachedTo otherRigid: Rigid) -> [Constraint] {
+//        var constraints: [Constraint] = []
 //
 //        if let m = MinkowskiDifference(a: apply(frame: rigid.frame), b: b.apply(frame: otherRigid.frame)) {
 //            // Collision detected

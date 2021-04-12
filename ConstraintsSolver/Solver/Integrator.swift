@@ -21,7 +21,7 @@ class SubStepIntegrator {
             for rigid in rigids {
                 rigid.integrateAttitude(by: subdt)
                 
-                var constraints: [PositionalConstraint] = []
+                var constraints: [Constraint] = []
                 for other in rigids {
                     if rigid === other {
                         continue
@@ -29,13 +29,16 @@ class SubStepIntegrator {
                     constraints += generateConstraints(for: rigid, and: other)
                 }
                 
-                solve(for: constraints, dt: subdt)
+                for constraint in constraints {
+                    constraint.solve(dt: subdt)
+                }
+                
                 rigid.deriveVelocity(for: subdt)
             }
         }
     }
     
-    func intersect(for rigid: Rigid, and other: Rigid) -> [PositionalConstraint]? {
+    func intersect(for rigid: Rigid, and other: Rigid) -> [Constraint]? {
         switch rigid.collider {
         case let .box(box):
             switch other.collider {
@@ -49,7 +52,7 @@ class SubStepIntegrator {
         }
     }
     
-    func generateConstraints(for rigid: Rigid, and other: Rigid) -> [PositionalConstraint] {
+    func generateConstraints(for rigid: Rigid, and other: Rigid) -> [Constraint] {
         if let constraints = intersect(for: rigid, and: other) {
             return constraints
         }
