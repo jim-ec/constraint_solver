@@ -41,6 +41,6 @@ struct PositionalConstraint: Constraint {
         let impulse = lagrangeMultiplier * direction
         
         rigids.0.applyLinearImpulse(impulse, at: positions.0)
-        rigids.1.applyLinearImpulse(impulse, at: positions.1)
+        rigids.1.applyLinearImpulse(-impulse, at: positions.1)
     }
 }
