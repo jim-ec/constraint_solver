@@ -50,23 +50,28 @@ struct BoxCollider {
         return constraints
     }
     
-//    func intersect(attachedTo rigid: Rigid, with b: BoxCollider, attachedTo other: Rigid) -> [Constraint] {
-//        var constraints: [Constraint] = []
-//
-//        if let m = MinkowskiDifference(a: apply(frame: rigid.frame), b: b.apply(frame: other.frame)) {
-//            // Collision detected
-//            let correction = m.minimum
-//
-////            let constraint = PositionalConstraint(
-////                rigids: (rigid, other),
-////                positions: (Point, Point),
-////                distance: ,
-////                compliance: 0.0000001
-////            )
-//
-//            // TODO: Generate constraint
-//        }
-//
-//        return constraints
-//    }
+    func intersect(attachedTo rigid: Rigid, with b: BoxCollider, attachedTo other: Rigid) -> [Constraint] {
+        var constraints: [Constraint] = []
+        
+        let d = intersectBoxBox(box: b.apply(frame: other.frame).map { rigid.frame.inverse.act($0) })
+            .map { a, b in (rigid.frame.act(a), rigid.frame.act(b)) }
+        
+        let g = intersectBoxBox(box: apply(frame: rigid.frame).map { other.frame.inverse.act($0) })
+            .map { a, b in (other.frame.act(a), other.frame.act(b)) }
+        
+        if !d.isEmpty {
+            other.frame.position = other.frame.position + (d[0].0.to(d[0].1))
+            return []
+        }
+        
+        for (a, b) in d + g {
+            constraints.append(PositionalConstraint(
+                                rigids: (rigid, other),
+                                positions: (a, b),
+                                distance: 0,
+                                compliance: 0))
+        }
+        
+        return constraints
+    }
 }

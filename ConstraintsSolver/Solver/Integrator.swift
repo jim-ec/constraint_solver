@@ -43,8 +43,8 @@ class SubStepIntegrator {
             switch other.collider {
             case let .plane(plane):
                 return box.intersect(attachedTo: rigid, with: plane, attachedTo: other)
-            case .box(_):
-                return nil
+            case let .box(box):
+                return box.intersect(attachedTo: rigid, with: box, attachedTo: other)
             }
         case .plane(_):
             return nil
