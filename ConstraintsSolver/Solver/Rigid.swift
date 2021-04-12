@@ -49,7 +49,7 @@ class Rigid {
     func applyLinearImpulse(_ impulse: Point, at vertex: Point) {
         frame.translate(by: inverseMass * impulse)
         
-        let rotation = 0.5 * Quaternion(bivector: (vertex - frame.position).cross(impulse)) * frame.quaternion
+        let rotation = 0.5 * Quaternion(bivector: inverseInertia .* (vertex - frame.position).cross(impulse)) * frame.quaternion
         frame.quaternion = frame.quaternion ^+ rotation
     }
     
