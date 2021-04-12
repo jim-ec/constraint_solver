@@ -24,6 +24,10 @@ struct MinkowskiDifference {
         }
         center = (1 / Double(points.count)) * center
         
+        if points.count > 4 {
+            return nil
+        }
+        
         let posX = points.contains { $0.x > 0 }
         let negX = points.contains { $0.x < 0 }
         let posY = points.contains { $0.y > 0 }
