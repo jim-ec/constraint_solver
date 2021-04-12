@@ -22,7 +22,7 @@ class World {
         cube.frame.quaternion = Quaternion(by: .pi / 8, around: .ey + 0.5 * .ex)
         cube.frame.position = Point(0, -2, 4)
         cube.externalForce.z = -9.81
-        cube.angularVelocity = .init(1, 2, 0.5)
+        cube.angularVelocity = Point(1, 2, 1)
         cube.velocity.y = 4
         
         ground = Rigid(collider: .plane(Plane(direction: .ez, offset: 0)), mass: nil)

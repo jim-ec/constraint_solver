@@ -24,9 +24,9 @@ struct BoxCollider {
         points.map { frame.act($0) }
     }
     
-    func intersect(attachedTo rigid: Rigid, with p: Plane, attachedTo otherRigid: Rigid) -> [PositionalConstraint] {
+    func intersect(attachedTo rigid: Rigid, with p: Plane, attachedTo other: Rigid) -> [PositionalConstraint] {
         var constraints: [PositionalConstraint] = []
-        let plane = otherRigid.frame.act(p)
+        let plane = other.frame.act(p)
         
         for position in points.map(rigid.frame.act) {
             if position.reject(from: plane).dot(plane.normal) >= 0 {
@@ -34,14 +34,14 @@ struct BoxCollider {
             }
             
             let targetPosition = position.project(onto: plane)
+            let correction = position.to(targetPosition)
             
             let deltaPosition = rigid.delta(global: position)
-            let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: position.to(targetPosition))
+            let deltaTangentialPosition = deltaPosition - deltaPosition.project(onto: correction)
             
             constraints.append(PositionalConstraint(
-                rigid: rigid,
-                other: otherRigid,
-                positions: (position, targetPosition - deltaTangentialPosition),
+                rigids: (rigid, other),
+                positions: (position, targetPosition - 1 * deltaTangentialPosition),
                 distance: 0,
                 compliance: 0.0000001
             ))

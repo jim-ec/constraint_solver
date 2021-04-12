@@ -8,8 +8,7 @@
 import Foundation
 
 struct PositionalConstraint {
-    let rigid: Rigid
-    let other: Rigid
+    let rigids: (Rigid, Rigid)
     let positions: (Point, Point)
     let distance: Double
     let compliance: Double
@@ -22,24 +21,24 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
         let direction = difference.normalize
         
         let angularImpulseDual: (Point, Point) = (
-            constraint.rigid.frame.quaternion.inverse.act(
-                on: (constraint.positions.0 - constraint.rigid.frame.position).cross(direction)
+            constraint.rigids.0.frame.quaternion.inverse.act(
+                on: (constraint.positions.0 - constraint.rigids.0.frame.position).cross(direction)
             ),
-            constraint.other.frame.quaternion.act(
+            constraint.rigids.1.frame.quaternion.act(
                 on: constraint.positions.1.cross(direction)
             )
         )
         
         let generalizedInverseMass: (Double, Double) = (
-            constraint.rigid.inverseMass + (constraint.rigid.inverseInertia .* angularImpulseDual.0).dot(angularImpulseDual.0),
-            constraint.other.inverseMass + (constraint.other.inverseInertia .* angularImpulseDual.1).dot(angularImpulseDual.1)
+            constraint.rigids.0.inverseMass + (constraint.rigids.0.inverseInertia .* angularImpulseDual.0).dot(angularImpulseDual.0),
+            constraint.rigids.1.inverseMass + (constraint.rigids.1.inverseInertia .* angularImpulseDual.1).dot(angularImpulseDual.1)
         )
         
         let timeStepCompliance = constraint.compliance / (dt * dt)
         let lagrangeMultiplier = magnitude / (generalizedInverseMass.0 + generalizedInverseMass.1 + timeStepCompliance)
         let impulse = lagrangeMultiplier * direction
         
-        constraint.rigid.applyLinearImpulse(impulse, at: constraint.positions.0)
-        constraint.other.applyLinearImpulse(impulse, at: constraint.positions.1)
+        constraint.rigids.0.applyLinearImpulse(impulse, at: constraint.positions.0)
+        constraint.rigids.1.applyLinearImpulse(impulse, at: constraint.positions.1)
     }
 }
