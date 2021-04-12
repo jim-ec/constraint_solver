@@ -141,6 +141,10 @@ struct Point {
         let rotated = rotationMatrix * simd_double4(coordinates, 1)
         return Point(rotated.x, rotated.y, rotated.z)
     }
+    
+    var str: String {
+        String(format: "(%.3f, %.3f, %.3f)", x, y, z)
+    }
 }
 
 extension Point: CustomDebugStringConvertible {
