@@ -18,14 +18,13 @@ class SubStepIntegrator {
         let subdt = dt / Double(subStepCount)
         
         for _ in 0 ..< subStepCount {
-            for rigid in rigids {
+            for i in rigids.indices {
+                let rigid = rigids[i]
                 rigid.integrateAttitude(by: subdt)
                 
                 var constraints: [Constraint] = []
-                for other in rigids {
-                    if rigid === other {
-                        continue
-                    }
+                for j in i + 1 ..< rigids.count {
+                    let other = rigids[j]
                     constraints += generateConstraints(for: rigid, and: other)
                 }
                 
