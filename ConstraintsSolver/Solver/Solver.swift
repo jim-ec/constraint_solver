@@ -25,7 +25,7 @@ func solve(for constraints: [PositionalConstraint], dt: Double) {
                 on: (constraint.positions.0 - constraint.rigids.0.frame.position).cross(direction)
             ),
             constraint.rigids.1.frame.quaternion.act(
-                on: constraint.positions.1.cross(direction)
+                on: (constraint.positions.1 - constraint.rigids.1.frame.position).cross(direction)
             )
         )
         
