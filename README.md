@@ -11,5 +11,5 @@ References:
 
 ---
 
-![Screen Recording](figures/ScreenRecording_2021-03-25_at_20.09.43_@720.mov)
+![Screen Recording](figures/ScreenRecording_2021-04-15_at_13.17.02_@720)
 
