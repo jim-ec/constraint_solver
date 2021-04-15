@@ -11,4 +11,4 @@ References:
 
 ---
 
-![Screen Recording](figures/ScreenRecording_2021-04-15_at_13.17.02_@720.mp4)
+![Screen Recording](figures/ScreenRecording-2021-04-15.gif)
