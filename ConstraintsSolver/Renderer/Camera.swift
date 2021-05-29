@@ -31,10 +31,10 @@ public struct Camera {
     
     var viewMatrix: simd_float4x4 {
         let matrix = simd_float4x4(columns: (
-            simd_float4(Float(right.x), Float(right.y), Float(right.z), 0),
-            simd_float4(Float(up.x), Float(up.y), Float(up.z), 0),
-            simd_float4(Float(-forward.x), Float(-forward.y), Float(-forward.z), 0),
-            simd_float4(Float(position.x), Float(position.y), Float(position.z), 1)
+            simd_float4(Float(right.ex), Float(right.ey), Float(right.ez), 0),
+            simd_float4(Float(up.ex), Float(up.ey), Float(up.ez), 0),
+            simd_float4(Float(-forward.ex), Float(-forward.ey), Float(-forward.ez), 0),
+            simd_float4(Float(position.ex), Float(position.ey), Float(position.ez), 1)
         ))
         
         let inverse = simd_float4x4(columns: (
@@ -108,7 +108,7 @@ public struct Camera {
     {
         position = position +
             righwards * right +
-            forwards * Point(forward.x, forward.y, 0).normalize
+            forwards * Point(forward.ex, forward.ey, 0).normalize
     }
     
 }

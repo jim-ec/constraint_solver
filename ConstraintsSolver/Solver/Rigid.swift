@@ -22,10 +22,10 @@ class Rigid {
             self.inverseMass = 1 / mass
             let extent = Point(1)
             let inertia = 1 / 12 * mass * Point(
-                extent.y * extent.y + extent.z * extent.z,
-                extent.x * extent.x + extent.z * extent.z,
-                extent.x * extent.x + extent.y * extent.y)
-            self.inverseInertia = Point(1 / inertia.x, 1 / inertia.y, 1 / inertia.z)
+                extent.ey * extent.ey + extent.ez * extent.ez,
+                extent.ex * extent.ex + extent.ez * extent.ez,
+                extent.ex * extent.ex + extent.ey * extent.ey)
+            self.inverseInertia = Point(1 / inertia.ex, 1 / inertia.ey, 1 / inertia.ez)
         }
         else {
             self.inverseMass = 0

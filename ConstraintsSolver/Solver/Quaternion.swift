@@ -19,12 +19,12 @@ struct Quaternion {
     
     /// Axis-angle constructor.
     init(by angle: Double, around axis: Point) {
-        coordinates = simd_quatd(angle: angle, axis: simd_double3(axis.x, axis.y, axis.z))
+        coordinates = simd_quatd(angle: angle, axis: simd_double3(axis.ex, axis.ey, axis.ez))
     }
     
     /// Constructs a pure imaginary quaternion.
     init(bivector: Point) {
-        coordinates = simd_quatd(ix: bivector.x, iy: bivector.y, iz: bivector.z, r: 0)
+        coordinates = simd_quatd(ix: bivector.ex, iy: bivector.ey, iz: bivector.ez, r: 0)
     }
     
     private init(coordinates: simd_quatd) {
@@ -41,9 +41,9 @@ struct Quaternion {
     
     var matrix: simd_float3x3 {
         simd_float3x3(simd_quatf(
-            ix: Float(bivector.x),
-            iy: Float(bivector.y),
-            iz: Float(bivector.z),
+            ix: Float(bivector.ex),
+            iy: Float(bivector.ey),
+            iz: Float(bivector.ez),
             r: Float(scalar)
         ))
     }
@@ -66,7 +66,7 @@ struct Quaternion {
     }
     
     func act(on v: Point) -> Point {
-        let rotated = coordinates.act(simd_double3(v.x, v.y, v.z))
+        let rotated = coordinates.act(simd_double3(v.ex, v.ey, v.ez))
         return Point(rotated.x, rotated.y, rotated.z)
     }
     

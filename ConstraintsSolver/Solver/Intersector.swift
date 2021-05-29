@@ -46,23 +46,23 @@ func intersectBoxBox(box: [Point]) -> [(Point, Point)] {
 //    }
     
     for p in box {
-        if abs(p.x) >= 0.5 || abs(p.y) >= 0.5 || abs(p.z) >= 0.5 {
+        if abs(p.ex) >= 0.5 || abs(p.ey) >= 0.5 || abs(p.ez) >= 0.5 {
             continue
         }
 
         // p is inside the box
-        let a = Point(abs(p.x), abs(p.y), abs(p.z))
+        let a = Point(abs(p.ex), abs(p.ey), abs(p.ez))
         let correction: Point
 
         // search for smallest vector correcting the penetrating vertex
-        if a.x > a.y && a.x > a.z {
-            correction = Point(p.x > 0 ? 0.5 : -0.5, p.y, p.z)
+        if a.ex > a.ey && a.ex > a.ez {
+            correction = Point(p.ex > 0 ? 0.5 : -0.5, p.ey, p.ez)
         }
-        else if a.y > a.x && a.y > a.z {
-            correction = Point(p.x, p.y > 0 ? 0.5 : -0.5, p.z)
+        else if a.ey > a.ex && a.ey > a.ez {
+            correction = Point(p.ex, p.ey > 0 ? 0.5 : -0.5, p.ez)
         }
-        else if a.z > a.y && a.z > a.x {
-            correction = Point(p.x, p.y, p.z > 0 ? 0.5 : -0.5)
+        else if a.ez > a.ey && a.ez > a.ex {
+            correction = Point(p.ex, p.ey, p.ez > 0 ? 0.5 : -0.5)
         }
         else {
             correction = .null

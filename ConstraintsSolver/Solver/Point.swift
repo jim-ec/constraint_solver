@@ -11,9 +11,18 @@ import Foundation
 infix operator .*: MultiplicationPrecedence
 
 
+extension Double {
+    var sq: Double {
+        self * self
+    }
+}
+
+
 /// A point in 3-D Euclidean frame.
 struct Point {
-    private var coordinates: simd_double3
+    var ex: Double
+    var ey: Double
+    var ez: Double
     
     static let null = Point(0, 0, 0)
     static let ex = Point(1, 0, 0)
@@ -21,52 +30,40 @@ struct Point {
     static let ez = Point(0, 0, 1)
     
     init(_ scalar: Double) {
-        coordinates = simd_double3(repeating: scalar)
+        ex = scalar
+        ey = scalar
+        ez = scalar
     }
     
-    init(_ x: Double, _ y: Double, _ z: Double) {
-        coordinates = simd_double3(x, y, z)
-    }
-    
-    private init(coordinates: simd_double3) {
-        self.coordinates = coordinates
-    }
-    
-    var x: Double {
-        coordinates.x
-    }
-    
-    var y: Double {
-        coordinates.y
-    }
-    
-    var z: Double {
-        coordinates.z
+    init(_ ex: Double, _ ey: Double, _ ez: Double) {
+        self.ex = ex
+        self.ey = ey
+        self.ez = ez
     }
     
     static func +(rhs: Point, lhs: Point) -> Point {
-        Point(rhs.x + lhs.x, rhs.y + lhs.y, rhs.z + lhs.z)
+        Point(rhs.ex + lhs.ex, rhs.ey + lhs.ey, rhs.ez + lhs.ez)
     }
     
     static func -(rhs: Point, lhs: Point) -> Point {
-        Point(rhs.x - lhs.x, rhs.y - lhs.y, rhs.z - lhs.z)
+        Point(rhs.ex - lhs.ex, rhs.ey - lhs.ey, rhs.ez - lhs.ez)
     }
     
     static prefix func -(lhs: Point) -> Point {
-        Point(-lhs.coordinates.x, -lhs.coordinates.y, -lhs.coordinates.z)
+        Point(-lhs.ex, -lhs.ey, -lhs.ez)
     }
     
     static func *(scalar: Double, lhs: Point) -> Point {
-        Point(scalar * lhs.x, scalar * lhs.y, scalar * lhs.z)
+        Point(scalar * lhs.ex, scalar * lhs.ey, scalar * lhs.ez)
     }
     
     static func -(scalar: Double, lhs: Point) -> Point {
-        Point(scalar / lhs.x, scalar / lhs.y, scalar / lhs.z)
+        Point(scalar / lhs.ex, scalar / lhs.ey, scalar / lhs.ez)
     }
     
     /// A component-wise multiplication.
     static func .*(_ lhs: Point, _ rhs: Point) -> Point {
-        Point(lhs.x * rhs.x, lhs.y * rhs.y, lhs.z * rhs.z)
+        Point(lhs.ex * rhs.ex, lhs.ey * rhs.ey, lhs.ez * rhs.ez)
     }
     
     /// Constructs a vector pointing from `self` to `target`.
@@ -84,23 +81,27 @@ struct Point {
     }
     
     var normalize: Point {
-        Point(coordinates: simd_normalize(coordinates))
+        (1 / length) * self
     }
     
     var length: Double {
-        simd_length(coordinates)
+        (ex.sq + ey.sq + ez.sq).squareRoot()
     }
     
     func distance(to rhs: Point) -> Double {
-        simd_distance(coordinates, rhs.coordinates)
+        (rhs - self).length
     }
     
     func dot(_ rhs: Point) -> Double {
-        simd_dot(coordinates, rhs.coordinates)
+        ex * rhs.ex + ey * rhs.ey + ez * rhs.ez
     }
     
     func cross(_ rhs: Point) -> Point {
-        Point(coordinates: simd_cross(coordinates, rhs.coordinates))
+        Point(
+            ey * rhs.ez - ez * rhs.ey,
+            ez * rhs.ex - ex * rhs.ez,
+            ex * rhs.ey - ey * rhs.ex
+        )
     }
     
     func angle(to rhs: Point) -> Double {
@@ -108,7 +109,7 @@ struct Point {
     }
     
     func project(onto point: Point) -> Point {
-        Point(coordinates: simd_project(coordinates, point.coordinates))
+        self.dot(point) / point.dot(point) * point
     }
     
     func project(onto plane: Plane) -> Point {
@@ -126,29 +127,29 @@ struct Point {
         let temp = (1 - c) * axis
         
         var rotationMatrix = simd_double4x4(diagonal: .init(repeating: 1))
-        rotationMatrix[0][0] = c + temp.x * axis.x
-        rotationMatrix[0][1] = temp.x * axis.y + s * axis.z
-        rotationMatrix[0][2] = temp.x * axis.z - s * axis.y
+        rotationMatrix[0][0] = c + temp.ex * axis.ex
+        rotationMatrix[0][1] = temp.ex * axis.ey + s * axis.ez
+        rotationMatrix[0][2] = temp.ex * axis.ez - s * axis.ey
 
-        rotationMatrix[1][0] = temp.y * axis.x - s * axis.z
-        rotationMatrix[1][1] = c + temp.y * axis.y
-        rotationMatrix[1][2] = temp.y * axis.z + s * axis.x
+        rotationMatrix[1][0] = temp.ey * axis.ex - s * axis.ez
+        rotationMatrix[1][1] = c + temp.ey * axis.ey
+        rotationMatrix[1][2] = temp.ey * axis.ez + s * axis.ex
 
-        rotationMatrix[2][0] = temp.z * axis.x + s * axis.y
-        rotationMatrix[2][1] = temp.z * axis.y - s * axis.x
-        rotationMatrix[2][2] = c + temp.z * axis.z
+        rotationMatrix[2][0] = temp.ez * axis.ex + s * axis.ey
+        rotationMatrix[2][1] = temp.ez * axis.ey - s * axis.ex
+        rotationMatrix[2][2] = c + temp.ez * axis.ez
         
-        let rotated = rotationMatrix * simd_double4(coordinates, 1)
+        let rotated = rotationMatrix * simd_double4(ex, ey, ez, 1)
         return Point(rotated.x, rotated.y, rotated.z)
     }
     
     var str: String {
-        String(format: "(%.3f, %.3f, %.3f)", x, y, z)
+        String(format: "(%.3f, %.3f, %.3f)", ex, ey, ez)
     }
 }
 
 extension Point: CustomDebugStringConvertible {
     var debugDescription: String {
-        "(\(x), \(y), \(y))"
+        "(\(ex), \(ey), \(ey))"
     }
 }

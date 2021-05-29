@@ -22,9 +22,9 @@ struct Frame {
     var matrix: simd_float4x4 {
         let upperLeft = quaternion.matrix
         let translation = simd_float3(
-            Float(position.x),
-            Float(position.y),
-            Float(position.z)
+            Float(position.ex),
+            Float(position.ey),
+            Float(position.ez)
         )
         return simd_float4x4(
             simd_float4(upperLeft[0], 0),
