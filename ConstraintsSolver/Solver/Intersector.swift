@@ -9,24 +9,32 @@ import Foundation
 
 
 extension Array where Element == Point {
-    var center: Point? {
-        if isEmpty {
-            return nil
-        }
-        else {
-            return (1 / Double(count)) * dropFirst().reduce(first!) { $0 + $1 }
-        }
+    var center: Point {
+        return (1 / Double(count)) * dropFirst().reduce(first!) { $0 + $1 }
     }
 }
 
 
 func intersectBoxBox(box: [Point]) -> [(Point, Point)] {
-    if box.center!.length > sqrt(2) {
-        return []
-    }
+//    if box.center!.length > sqrt(2) {
+//        return []
+//    }
     
     var constraints: [(Point, Point)] = []
 
+    let distance = box.center.length
+    let correction = 2 - distance
+    
+    if correction < 0 {
+        return []
+    }
+    else {
+        let direction = box.center.normalize
+        let a = 1 * direction
+        let b = box.center - 1 * direction
+        return [(b, a)]
+    }
+    
     // p is inside the box
 //    let a = Point(abs(c.x), abs(c.y), abs(c.z))
 //    let direction: Point
@@ -72,8 +80,8 @@ func intersectBoxBox(box: [Point]) -> [(Point, Point)] {
 
 //        let constraint = PositionalConstraint(
 //            rigids: rigids,
-//            positions: (p, p + correction),
-//            distance: 0,
+//            contacts: (p, p + correction),
+//            targetDistance: 0,
 //            compliance: 0)
 //        constraints.append(constraint)
     }
