@@ -41,9 +41,8 @@ struct BoxCollider {
             
             constraints.append(PositionalConstraint(
                 rigids: (rigid, other),
-                positions: (position, targetPosition - 1 * deltaTangentialPosition),
-                distance: 0,
-                compliance: 0.0000001
+                contacts: (position, targetPosition - 1 * deltaTangentialPosition),
+                distance: 0
             ))
         }
         
@@ -67,9 +66,8 @@ struct BoxCollider {
         for (a, b) in d + g {
             constraints.append(PositionalConstraint(
                                 rigids: (rigid, other),
-                                positions: (a, b),
-                                distance: 0,
-                                compliance: 0))
+                                contacts: (a, b),
+                                distance: 0))
         }
         
         return constraints

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class SubStepIntegrator {
+class Solver {
     let subStepCount: Int
     
     init(subStepCount: Int) {
@@ -16,6 +16,7 @@ class SubStepIntegrator {
     
     func integrate(_ rigids: [Rigid], by dt: Double) {
         let subdt = dt / Double(subStepCount)
+        let compliance = timeScaledCompliance(1e-6, dt: subdt)
         
         for _ in 0 ..< subStepCount {
             for i in rigids.indices {
@@ -29,7 +30,7 @@ class SubStepIntegrator {
                 }
                 
                 for constraint in constraints {
-                    constraint.solve(dt: subdt)
+                    constraint.solve(compliance: compliance)
                 }
                 
                 rigid.deriveVelocity(for: subdt)

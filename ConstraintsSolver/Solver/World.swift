@@ -8,7 +8,7 @@
 import Foundation
 
 class World {
-    private let integrator = SubStepIntegrator(subStepCount: 50)
+    private let integrator = Solver(subStepCount: 50)
     private let cubeMesh1: Mesh
 //    private let cubeMesh2: Mesh
     private let cube1: Rigid
