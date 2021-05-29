@@ -16,7 +16,7 @@ class Solver {
     
     func integrate(_ rigids: [Rigid], by dt: Double) {
         let subdt = dt / Double(subStepCount)
-        let compliance = timeScaledCompliance(1e-6, dt: subdt)
+        let compliance = 1e-6 / subdt.sq
         
         for _ in 0 ..< subStepCount {
             for i in rigids.indices {
@@ -30,7 +30,9 @@ class Solver {
                 }
                 
                 for constraint in constraints {
-                    constraint.solve(compliance: compliance)
+                    let difference = constraint.measure - constraint.targetMeasure
+                    let lagrangeFactor = difference / (constraint.inverseResistance + compliance)
+                    constraint.act(factor: lagrangeFactor)
                 }
                 
                 rigid.deriveVelocity(for: subdt)
