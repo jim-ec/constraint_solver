@@ -26,7 +26,7 @@ struct PositionalConstraint: Constraint {
     }
 
     var direction: Point {
-        contacts.0.to(contacts.1).normalize
+        difference.normalize
     }
     
     var measure: Double {
