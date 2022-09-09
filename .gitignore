@@ -1,4 +1,13 @@
+/target
+
 .DS_Store
-xcuserdata
-build
-build-*
+.desktop.ini
+
+.vscode
+
+
+# Added by cargo
+#
+# already existing elements were commented out
+
+#/target
