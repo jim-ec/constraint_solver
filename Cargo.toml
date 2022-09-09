@@ -4,3 +4,20 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+geometric_algebra = { git = "https://github.com/jim-Eckerlein/geometric_algebra" }
+itertools = "0.10.3"
+wgpu = "0.13"
+env_logger = "0.9"
+log = "0.4"
+async-std = { version = "1.12", features = ["attributes"] }
+bytemuck = { version = "1.10.0", features = ["derive"] }
+cgmath = "0.18"
+lerp = { version = "0.4.0", features = ["derive"] }
+rand = "0.8.5"
+noise = "0.7.0"
+common_macros = "0.1.1"
+palette = "0.6.1"
+# stavec = "0.1.2"
+stavec = { git = "https://github.com/Jim-Eckerlein/stavec", branch = "develop" }
+winit = { git = "https://github.com/rust-windowing/winit" }
+derive_setters = "0.1.5"
