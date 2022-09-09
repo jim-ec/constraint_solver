@@ -5,7 +5,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::{game, renderer};
+use crate::{renderer, world};
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
@@ -20,7 +20,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut renderer = renderer::Renderer::new(&window).await?;
 
-    let mut game = game::Game::new(&renderer);
+    let mut world = world::World::new(&renderer);
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::NewEvents(winit::event::StartCause::Init) => {
@@ -28,7 +28,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Event::WindowEvent { event, .. } => {
-            if !game.input(&event) {
+            if !world.input(&event) {
                 match event {
                     WindowEvent::CloseRequested
                     | WindowEvent::KeyboardInput {
@@ -75,12 +75,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             let delta_time = time.duration_since(last_render_time);
             last_render_time = time;
 
-            game.integrate(
+            world.integrate(
                 time.duration_since(time_start).as_secs_f64(),
                 delta_time.as_secs_f64(),
             );
 
-            match renderer.render(&game.camera, &game.entity()) {
+            match renderer.render(&world.camera, &world.entity()) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => renderer.resize(renderer.size),
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

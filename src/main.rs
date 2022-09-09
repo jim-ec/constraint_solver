@@ -4,7 +4,7 @@
 mod app;
 mod camera;
 mod entity;
-mod game;
+mod world;
 mod mesh;
 mod numeric;
 mod renderer;

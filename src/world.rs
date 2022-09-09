@@ -9,21 +9,21 @@ use crate::{
     mesh, renderer, spatial,
 };
 
-pub struct Game {
+pub struct World {
     pub camera: camera::Camera,
     grid: entity::Entity,
     entities: Vec<entity::Entity>,
 }
 
-impl Game {
-    pub fn new(renderer: &renderer::Renderer) -> Game {
+impl World {
+    pub fn new(renderer: &renderer::Renderer) -> World {
         let axes = entity::Entity::new()
             .meshes(vec![Rc::new(mesh::Mesh::new_axes(renderer))])
             .spatial(spatial::Spatial::translation(0.0, 0.0, 0.1));
 
         let _library = mesh::debug::Library::new(renderer);
 
-        Game {
+        World {
             entities: vec![axes],
             camera: camera::Camera::initial(),
             grid: entity::Entity::new()
