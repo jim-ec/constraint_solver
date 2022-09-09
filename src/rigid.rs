@@ -2,6 +2,7 @@ use cgmath::{ElementWise, InnerSpace, Quaternion, Vector3, Zero};
 
 use crate::frame::Frame;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Rigid {
     pub inverse_mass: f32,
     pub inverse_inertia: Vector3<f32>,
