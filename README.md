@@ -1,6 +1,8 @@
-# Constraints Solver
+# Constraint Solver
 
-Sandbox for implementing position based dynamics for rigid bodies (later maybe also soft bodies) based on various papers.
+Hobby project which aims to implementing position based dynamics for rigid bodies based on various papers.
+
+Currently being rewritten in Rust on the separate branch `rust`, which will be merged into `main` when feature parity is reached.
 
 [Publications of M. Müller](https://matthias-research.github.io/pages/publications/publications.html) — [Metal Documentation](https://developer.apple.com/documentation/metal) — [MetalKit Documentation](https://developer.apple.com/documentation/metalkit)
 
