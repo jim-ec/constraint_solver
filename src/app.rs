@@ -13,7 +13,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut last_render_time = Instant::now();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
-        .with_title("WebGPU Tutorial")
+        .with_title("Constraint Solver")
         .with_visible(false)
         .build(&event_loop)
         .unwrap();
