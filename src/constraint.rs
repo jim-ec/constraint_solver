@@ -11,9 +11,9 @@ pub trait Constraint {
 
 #[derive(Debug)]
 pub struct PositionalConstraint<'a> {
-    rigids: (&'a mut Rigid, &'a mut Rigid),
-    contacts: (Vector3<f32>, Vector3<f32>),
-    distance: f32,
+    pub rigids: (&'a mut Rigid, &'a mut Rigid),
+    pub contacts: (Vector3<f32>, Vector3<f32>),
+    pub distance: f32,
 }
 
 impl<'a> PositionalConstraint<'a> {
