@@ -11,6 +11,8 @@ mod renderer;
 mod shapes;
 mod spatial;
 mod simplex;
+mod rigid;
+mod frame;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
