@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use cgmath::{ElementWise, InnerSpace, Vector3};
 
 use crate::rigid::Rigid;
@@ -11,12 +13,12 @@ pub trait Constraint {
 
 #[derive(Debug)]
 pub struct PositionalConstraint<'a> {
-    pub rigids: (&'a mut Rigid, &'a mut Rigid),
+    pub rigid: &'a RefCell<Rigid>,
     pub contacts: (Vector3<f32>, Vector3<f32>),
     pub distance: f32,
 }
 
-impl<'a> PositionalConstraint<'a> {
+impl PositionalConstraint<'_> {
     fn difference(&self) -> Vector3<f32> {
         self.contacts.1 - self.contacts.0
     }
@@ -26,7 +28,7 @@ impl<'a> PositionalConstraint<'a> {
     }
 }
 
-impl<'a> Constraint for PositionalConstraint<'a> {
+impl Constraint for PositionalConstraint<'_> {
     fn measure(&self) -> f32 {
         self.difference().magnitude()
     }
@@ -36,32 +38,19 @@ impl<'a> Constraint for PositionalConstraint<'a> {
     }
 
     fn inverse_resistance(&self) -> f32 {
-        let angular_impulse_dual = (
-            self.rigids.0.frame.quaternion.conjugate()
-                * (self.contacts.0 - self.rigids.0.frame.position).cross(self.direction()),
-            self.rigids.1.frame.quaternion
-                * (self.contacts.1 - self.rigids.1.frame.position).cross(self.direction()),
-        );
+        let rigid = self.rigid.borrow();
 
-        self.rigids.0.inverse_mass
-            + self.rigids.1.inverse_mass
-            + (self
-                .rigids
-                .0
-                .inverse_inertia
-                .mul_element_wise(angular_impulse_dual.0))
-            .dot(angular_impulse_dual.0)
-            + (self
-                .rigids
-                .1
-                .inverse_inertia
-                .mul_element_wise(angular_impulse_dual.1))
-            .dot(angular_impulse_dual.1)
+        let angular_impulse_dual = rigid.frame.quaternion.conjugate()
+            * (self.contacts.0 - rigid.frame.position).cross(self.direction());
+
+        rigid.inverse_mass
+            + (rigid.inverse_inertia.mul_element_wise(angular_impulse_dual))
+                .dot(angular_impulse_dual)
     }
 
     fn act(&mut self, factor: f32) {
         let impulse = factor * self.direction();
-        self.rigids.0.apply_impulse(impulse, self.contacts.0);
-        self.rigids.1.apply_impulse(-impulse, self.contacts.1);
+        let mut rigid = self.rigid.borrow_mut();
+        rigid.apply_impulse(impulse, self.contacts.0);
     }
 }
