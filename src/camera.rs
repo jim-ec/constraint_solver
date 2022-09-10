@@ -23,7 +23,7 @@ impl Camera {
         Self {
             orbit: -1.0,
             tilt: TAU / 8.0,
-            distance: 4.0,
+            distance: 8.0,
             fovy: 60.0,
         }
     }
