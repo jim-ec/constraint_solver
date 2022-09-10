@@ -27,12 +27,11 @@ impl Constraint<'_> {
     pub fn inverse_resistance(&self) -> f32 {
         let rigid = self.rigid.borrow();
 
-        let angular_impulse_dual = rigid.frame.quaternion.conjugate()
+        let angular_impulse = rigid.frame.quaternion.conjugate()
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
         rigid.inverse_mass
-            + (rigid.inverse_inertia.mul_element_wise(angular_impulse_dual))
-                .dot(angular_impulse_dual)
+            + (rigid.inverse_inertia.mul_element_wise(angular_impulse)).dot(angular_impulse)
     }
 
     pub fn act(&mut self, factor: f32) {

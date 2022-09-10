@@ -2,9 +2,7 @@ use std::cell::RefCell;
 
 use crate::{collision::collide, constraint::Constraint, rigid::Rigid};
 
-const SUBSTEP_COUNT: usize = 10;
-
-fn solve(constraints: Vec<Constraint>, dt: f32) {
+pub fn solve(constraints: Vec<Constraint>, dt: f32) {
     let compliance = 1e-6 / (dt * dt); // TODO: What is the unit of `compliance`?
 
     for mut constraint in constraints {
@@ -14,10 +12,10 @@ fn solve(constraints: Vec<Constraint>, dt: f32) {
     }
 }
 
-fn integrate(rigid: &RefCell<Rigid>, dt: f32) {
-    let dt = dt / SUBSTEP_COUNT as f32;
+pub fn integrate(rigid: &RefCell<Rigid>, dt: f32, substep_count: usize) {
+    let dt = dt / substep_count as f32;
 
-    for _ in 0..SUBSTEP_COUNT {
+    for _ in 0..substep_count {
         rigid.borrow_mut().integrate(dt);
 
         let constraints = collide(rigid);
