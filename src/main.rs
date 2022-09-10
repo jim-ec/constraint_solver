@@ -15,6 +15,7 @@ mod rigid;
 mod frame;
 mod constraint;
 mod collision;
+mod solver;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

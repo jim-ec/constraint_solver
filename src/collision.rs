@@ -2,12 +2,9 @@ use std::cell::RefCell;
 
 use cgmath::{InnerSpace, Vector3};
 
-use crate::{
-    constraint::{Constraint, PositionalConstraint},
-    rigid::Rigid,
-};
+use crate::{constraint::Constraint, rigid::Rigid};
 
-fn collision(rigid: &RefCell<Rigid>) -> Vec<impl Constraint + '_> {
+pub fn collide(rigid: &RefCell<Rigid>) -> Vec<Constraint> {
     let mut constraints = Vec::new();
 
     let vertices = [
@@ -32,7 +29,7 @@ fn collision(rigid: &RefCell<Rigid>) -> Vec<impl Constraint + '_> {
         let delta_position = rigid.borrow().delta(position);
         let delta_tangential_position = delta_position - delta_position.project_on(correction);
 
-        constraints.push(PositionalConstraint {
+        constraints.push(Constraint {
             rigid,
             contacts: (position, target_position - 1.0 * delta_tangential_position),
             distance: 0.0,
