@@ -30,7 +30,8 @@ impl Constraint<'_> {
         let angular_impulse = rigid.frame.quaternion.conjugate()
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
-        (rigid.mass.recip() + (angular_impulse.div_element_wise(rigid.inertia)).dot(angular_impulse)).recip()
+        1.0 / (1.0 / rigid.mass
+            + (angular_impulse.div_element_wise(rigid.rotational_inertia)).dot(angular_impulse))
     }
 
     pub fn act(&mut self, factor: f32) {

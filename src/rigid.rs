@@ -4,11 +4,21 @@ use crate::frame::Frame;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rigid {
+    /// Mass in `kg`
     pub mass: f32,
-    pub inertia: Vector3<f32>,
+
+    /// Rotational inertia in `kg m^2`
+    pub rotational_inertia: Vector3<f32>,
+
+    /// Force acting on the rigid body in `N`
     pub force: Vector3<f32>,
+
+    /// Current velocity of the rigid body in `m s^-1`
     pub velocity: Vector3<f32>,
+
+    /// Current angular velocity of the rigid body in `s^-1`
     pub angular_velocity: Vector3<f32>,
+
     pub frame: Frame,
     pub past_frame: Frame,
 }
@@ -26,7 +36,7 @@ impl Rigid {
 
         Rigid {
             mass,
-            inertia,
+            rotational_inertia: inertia,
             force: Vector3::zero(),
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
@@ -54,7 +64,7 @@ impl Rigid {
         self.frame.position += impulse / self.mass;
 
         let log = (point - self.frame.position)
-            .div_element_wise(self.inertia)
+            .div_element_wise(self.rotational_inertia)
             .cross(impulse);
         let rotation = 0.5 * Quaternion::new(0.0, log.x, log.y, log.z) * self.frame.quaternion;
         self.frame.quaternion = (self.frame.quaternion + rotation).normalize();
