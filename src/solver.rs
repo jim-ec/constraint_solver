@@ -7,7 +7,7 @@ pub fn solve(constraints: Vec<Constraint>, dt: f32) {
 
     for mut constraint in constraints {
         let difference = constraint.current_distance() - constraint.distance;
-        let lagrange_factor = difference / (constraint.inverse_resistance() + compliance);
+        let lagrange_factor = difference / (constraint.resistance().recip() + compliance);
         constraint.act(lagrange_factor)
     }
 }

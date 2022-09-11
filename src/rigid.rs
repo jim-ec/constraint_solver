@@ -4,8 +4,8 @@ use crate::frame::Frame;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rigid {
-    pub inverse_mass: f32,
-    pub inverse_inertia: Vector3<f32>,
+    pub mass: f32,
+    pub inertia: Vector3<f32>,
     pub force: Vector3<f32>,
     pub velocity: Vector3<f32>,
     pub angular_velocity: Vector3<f32>,
@@ -25,8 +25,8 @@ impl Rigid {
             );
 
         Rigid {
-            inverse_mass: 1.0 / mass,
-            inverse_inertia: 1.0 / inertia,
+            mass,
+            inertia,
             force: Vector3::zero(),
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
@@ -37,7 +37,7 @@ impl Rigid {
 
     pub fn integrate(&mut self, dt: f32) {
         // TODO: Consider torque
-        self.velocity += dt * self.inverse_mass * self.force;
+        self.velocity += dt * self.force / self.mass;
         self.past_frame = self.frame;
         self.frame = self
             .frame
@@ -51,11 +51,10 @@ impl Rigid {
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and quaternion.
     pub fn apply_impulse(&mut self, impulse: Vector3<f32>, point: Vector3<f32>) {
-        self.frame.position += self.inverse_mass * impulse;
+        self.frame.position += impulse / self.mass;
 
-        let log = self
-            .inverse_inertia
-            .mul_element_wise(point - self.frame.position)
+        let log = (point - self.frame.position)
+            .div_element_wise(self.inertia)
             .cross(impulse);
         let rotation = 0.5 * Quaternion::new(0.0, log.x, log.y, log.z) * self.frame.quaternion;
         self.frame.quaternion = (self.frame.quaternion + rotation).normalize();
