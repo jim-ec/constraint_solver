@@ -10,8 +10,21 @@ pub struct Rigid {
     /// Rotational inertia in `kg m^2`
     pub rotational_inertia: Vector3<f32>,
 
-    /// Force acting on the rigid body in `N`
-    pub force: Vector3<f32>,
+    /// Force acting on the rigid body outside its frame.
+    /// Measured in `N`.
+    pub external_force: Vector3<f32>,
+
+    /// Force acting on the rigid body within its own frame.
+    /// Measured in `N`.
+    pub internal_force: Vector3<f32>,
+
+    /// Torque acting on the rigid body outside its frame.
+    /// Measrued in `N m`.
+    pub external_torque: Vector3<f32>,
+
+    /// Torque acting on the rigid body within its own frame.
+    /// Measrued in `N m`.
+    pub internal_torque: Vector3<f32>,
 
     /// Current velocity of the rigid body in `m s^-1`
     pub velocity: Vector3<f32>,
@@ -37,7 +50,10 @@ impl Rigid {
         Rigid {
             mass,
             rotational_inertia: inertia,
-            force: Vector3::zero(),
+            internal_force: Vector3::zero(),
+            external_force: Vector3::zero(),
+            internal_torque: Vector3::zero(),
+            external_torque: Vector3::zero(),
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
             frame: Frame::identity(),
@@ -46,8 +62,12 @@ impl Rigid {
     }
 
     pub fn integrate(&mut self, dt: f32) {
-        // TODO: Consider torque
-        self.velocity += dt * self.force / self.mass;
+        let force = self.external_force + self.frame.quaternion * self.internal_force;
+        self.velocity += dt * force / self.mass;
+
+        let torque = self.external_torque + self.frame.quaternion * self.internal_torque;
+        self.angular_velocity += dt * torque.div_element_wise(self.rotational_inertia);
+
         self.past_frame = self.frame;
         self.frame = self
             .frame
