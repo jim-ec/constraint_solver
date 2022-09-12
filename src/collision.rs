@@ -4,7 +4,10 @@ use cgmath::{InnerSpace, Vector3};
 
 use crate::{constraint::Constraint, rigid::Rigid};
 
-pub fn collide(rigid: &RefCell<Rigid>) -> Vec<Constraint> {
+pub fn collide<'a>(
+    cube: &'a RefCell<Rigid>,
+    ground: &'a RefCell<Rigid>,
+) -> Vec<Constraint<'a>> {
     let mut constraints = Vec::new();
 
     let vertices = [
@@ -19,18 +22,18 @@ pub fn collide(rigid: &RefCell<Rigid>) -> Vec<Constraint> {
     ];
 
     for position in vertices {
-        let position = rigid.borrow().frame.act(position);
+        let position = cube.borrow().frame.act(position);
         if position.z >= 0.0 {
             continue;
         }
 
         let target_position = Vector3::new(position.x, position.y, 0.0);
         let correction = target_position - position;
-        let delta_position = rigid.borrow().delta(position);
+        let delta_position = cube.borrow().delta(position);
         let delta_tangential_position = delta_position - delta_position.project_on(correction);
 
         constraints.push(Constraint {
-            rigid,
+            rigids: (cube, ground),
             contacts: (position, target_position - 1.0 * delta_tangential_position),
             distance: 0.0,
         })

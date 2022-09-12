@@ -7,20 +7,22 @@ pub fn solve(constraints: Vec<Constraint>, dt: f32) {
 
     for mut constraint in constraints {
         let difference = constraint.current_distance() - constraint.distance;
-        let lagrange_factor = difference / (constraint.resistance().recip() + compliance);
+        let lagrange_factor = difference / (constraint.resistance() + compliance);
         constraint.act(lagrange_factor)
     }
 }
 
-pub fn integrate(rigid: &RefCell<Rigid>, dt: f32, substep_count: usize) {
+pub fn integrate(cube: &RefCell<Rigid>, ground: &RefCell<Rigid>, dt: f32, substep_count: usize) {
     let dt = dt / substep_count as f32;
 
     for _ in 0..substep_count {
-        rigid.borrow_mut().integrate(dt);
+        cube.borrow_mut().integrate(dt);
+        ground.borrow_mut().integrate(dt);
 
-        let constraints = collide(rigid);
+        let constraints = collide(cube, ground);
         solve(constraints, dt);
 
-        rigid.borrow_mut().derive(dt);
+        cube.borrow_mut().derive(dt);
+        ground.borrow_mut().derive(dt);
     }
 }
