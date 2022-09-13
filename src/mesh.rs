@@ -13,7 +13,6 @@ pub struct Mesh {
     pub color: [f32; 3],
     pub lit: bool,
     pub vertex_position_buffer: wgpu::Buffer,
-    pub vertex_color_buffer: wgpu::Buffer,
     pub bind_group: wgpu::BindGroup,
     pub uniform_buffer: wgpu::Buffer,
     pub vertex_count: usize,
@@ -50,8 +49,6 @@ pub struct MeshUniforms {
 unsafe impl bytemuck::Pod for MeshUniforms {}
 unsafe impl bytemuck::Zeroable for MeshUniforms {}
 
-const DEFAULT_VERTEX_COLOR: [f32; 3] = [1.0, 1.0, 1.0];
-
 impl Mesh {
     pub fn upload_uniforms(&self, queue: &wgpu::Queue, spatial: &Spatial) {
         queue.write_buffer(
@@ -65,10 +62,8 @@ impl Mesh {
         renderer: &renderer::Renderer,
         topology: Topology,
         positions: &[Point],
-        colors: &[[f32; 3]],
     ) -> Self {
         let vertex_count = positions.len();
-        assert_eq!(vertex_count, colors.len());
 
         let vertex_position_buffer =
             renderer
@@ -79,20 +74,6 @@ impl Mesh {
                         std::slice::from_raw_parts(
                             positions.as_ptr() as *const u8,
                             positions.len() * std::mem::size_of::<Point>(),
-                        )
-                    },
-                    usage: wgpu::BufferUsages::VERTEX,
-                });
-
-        let vertex_color_buffer =
-            renderer
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Mesh Vertex Color Buffer"),
-                    contents: unsafe {
-                        std::slice::from_raw_parts(
-                            colors.as_ptr() as *const u8,
-                            colors.len() * std::mem::size_of::<[f32; 3]>(),
                         )
                     },
                     usage: wgpu::BufferUsages::VERTEX,
@@ -132,7 +113,6 @@ impl Mesh {
             color: [0.4, 0.4, 0.4],
             lit: true,
             vertex_position_buffer,
-            vertex_color_buffer,
             bind_group,
             uniform_buffer,
             vertex_count,
@@ -142,63 +122,35 @@ impl Mesh {
     pub fn from_shape(
         renderer: &renderer::Renderer,
         shape: Shape,
-        shape_colors: Option<&[[f32; 3]]>,
     ) -> Self {
         let renderer = renderer;
         let mut positions = Vec::with_capacity(shape.triangles.len() * 3);
-        let mut colors = Vec::with_capacity(shape.triangles.len() * 3);
         for triangle in shape.triangles {
             positions.push(shape.points[triangle.0]);
             positions.push(shape.points[triangle.1]);
             positions.push(shape.points[triangle.2]);
-            colors.push(
-                shape_colors
-                    .map(|shape_colors| shape_colors[triangle.0])
-                    .unwrap_or(DEFAULT_VERTEX_COLOR),
-            );
-            colors.push(
-                shape_colors
-                    .map(|shape_colors| shape_colors[triangle.1])
-                    .unwrap_or(DEFAULT_VERTEX_COLOR),
-            );
-            colors.push(
-                shape_colors
-                    .map(|shape_colors| shape_colors[triangle.2])
-                    .unwrap_or(DEFAULT_VERTEX_COLOR),
-            );
         }
-        Mesh::from_vertices(renderer, Topology::Triangles, &positions, &colors)
+        Mesh::from_vertices(renderer, Topology::Triangles, &positions)
     }
 
     pub fn from_lines(
         renderer: &renderer::Renderer,
         lines: Vec<Vec<Point>>,
-        line_colors: Option<Vec<[f32; 3]>>,
     ) -> Self {
         let mut positions = Vec::new();
-        let mut colors = Vec::new();
 
-        let color_iter = line_colors
-            .map(|line_colors| Box::new(line_colors.into_iter()) as Box<dyn Iterator<Item = _>>)
-            .unwrap_or_else(|| Box::new(std::iter::repeat(DEFAULT_VERTEX_COLOR).take(lines.len())));
-
-        for (line, color) in lines.into_iter().zip_eq(color_iter) {
+        for line in lines {
             for (prev_point, point) in line.into_iter().tuple_windows() {
                 positions.push(prev_point);
                 positions.push(point);
-                colors.push(color);
-                colors.push(color);
             }
         }
 
-        Self::from_vertices(renderer, Topology::Lines, &positions, &colors).lit(false)
+        Self::from_vertices(renderer, Topology::Lines, &positions).lit(false)
     }
 
-    pub fn new_grid(renderer: &renderer::Renderer, sections: usize, subsections: usize) -> Self {
+    pub fn new_grid(renderer: &renderer::Renderer, sections: usize) -> Self {
         let mut lines = Vec::new();
-        let mut colors = Vec::new();
-        let color = [1.0, 1.0, 1.0];
-        let sub_color = [0.2, 0.2, 0.2];
 
         for i in 0..sections {
             let x = i as f32 / sections as f32;
@@ -207,16 +159,6 @@ impl Mesh {
                 vec![Point::at(x, 0.0, 0.0), Point::at(x, 1.0, 0.0)],
                 vec![Point::at(0.0, x, 0.0), Point::at(1.0, x, 0.0)],
             ]);
-            colors.extend([color, color]);
-
-            for i in 1..subsections {
-                let x = x + i as f32 / subsections as f32 / sections as f32;
-                lines.extend([
-                    vec![Point::at(x, 0.0, 0.0), Point::at(x, 1.0, 0.0)],
-                    vec![Point::at(0.0, x, 0.0), Point::at(1.0, x, 0.0)],
-                ]);
-                colors.extend([sub_color, sub_color]);
-            }
         }
 
         lines.push(vec![
@@ -224,21 +166,8 @@ impl Mesh {
             Point::at(1.0, 1.0, 0.0),
             Point::at(0.0, 1.0, 0.0),
         ]);
-        colors.push(color);
 
-        Self::from_lines(renderer, lines, Some(colors))
-    }
-
-    pub fn new_axes(renderer: &renderer::Renderer) -> Self {
-        Self::from_lines(
-            renderer,
-            vec![
-                vec![Point::origin(), Point::at(1.0, 0.0, 0.0)],
-                vec![Point::origin(), Point::at(0.0, 1.0, 0.0)],
-                vec![Point::origin(), Point::at(0.0, 0.0, 1.0)],
-            ],
-            Some(vec![[1.0, 0.2, 0.2], [0.2, 1.0, 0.2], [0.2, 0.2, 1.0]]),
-        )
+        Self::from_lines(renderer, lines)
     }
 
     pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
@@ -284,7 +213,6 @@ pub mod debug {
                             vec![Point::at(0.0, -d, 0.0), Point::at(0.0, d, 0.0)],
                             vec![Point::at(0.0, 0.0, -d), Point::at(0.0, 0.0, d)],
                         ],
-                        None,
                     )
                 }),
                 line: Rc::new({
@@ -292,7 +220,6 @@ pub mod debug {
                     Mesh::from_lines(
                         renderer,
                         vec![vec![Point::at(-d, 0.0, 0.0), Point::at(d, 0.0, 0.0)]],
-                        None,
                     )
                 }),
                 plane: Rc::new(Mesh::from_shape(
@@ -306,7 +233,6 @@ pub mod debug {
                         ],
                         triangles: vec![shapes::Triangle(0, 1, 2), shapes::Triangle(2, 1, 3)],
                     },
-                    None,
                 )),
             }
         }

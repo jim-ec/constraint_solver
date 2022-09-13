@@ -14,14 +14,12 @@ struct Mesh {
 
 struct Vertex {
     @location(0) position: vec4<f32>,
-    @location(1) color: vec3<f32>,
 }
 
 struct Fragment {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) position: vec3<f32>,
     @location(1) world_position: vec3<f32>,
-    @location(3) color: vec3<f32>,
 }
 
 let PI = 3.14159265358979323846264338327950288;
@@ -39,8 +37,6 @@ fn vs_main(vertex: Vertex) -> Fragment {
     frag.position = (camera.view * mesh.transform * position).xyz;
     frag.clip_position = camera.proj * camera.view * mesh.transform * position;
 
-    frag.color = vertex.color;
-
     return frag;
 }
 
@@ -56,7 +52,7 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let v = normalize(vec3<f32>(0.0, 0.0, 1.0) - frag.position);
     let nov = dot(n, v);
 
-    var color = mesh.color * frag.color;
+    var color = mesh.color;
 
     if (bool(mesh.lit)) {
         color = light_intensity * color * nov + ambient_light;

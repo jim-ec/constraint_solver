@@ -18,7 +18,6 @@ use crate::{
 pub struct World {
     pub camera: camera::Camera,
     grid: entity::Entity,
-    axes: entity::Entity,
     cube: entity::Entity,
     rigid: RefCell<rigid::Rigid>,
 }
@@ -28,16 +27,12 @@ impl World {
         let _library = mesh::debug::Library::new(renderer);
 
         let grid = entity::Entity::new()
-            .meshes(vec![Rc::new(mesh::Mesh::new_grid(renderer, 2, 10))])
+            .meshes(vec![Rc::new(mesh::Mesh::new_grid(renderer, 20))])
             .spatial(
                 spatial::Spatial::identity()
                     .scale(20.0)
                     .translator(Translator::new(-1.0, -1.0, 0.0).powf(10.0)),
             );
-
-        let axes = entity::Entity::new()
-            .meshes(vec![Rc::new(mesh::Mesh::new_axes(renderer))])
-            .spatial(spatial::Spatial::translation(0.0, 0.0, 0.1));
 
         let mut cube_shape = shapes::Shape::cube();
         for p in cube_shape.points.iter_mut() {
@@ -45,7 +40,7 @@ impl World {
         }
 
         let cube = entity::Entity::new().meshes(vec![Rc::new(
-            mesh::Mesh::from_shape(renderer, cube_shape, None)
+            mesh::Mesh::from_shape(renderer, cube_shape)
                 .fill(mesh::Fill::Solid)
                 .lit(true),
         )]);
@@ -61,7 +56,6 @@ impl World {
 
         World {
             camera: camera::Camera::initial(),
-            axes,
             grid,
             cube,
             rigid: RefCell::new(rigid),
@@ -129,7 +123,6 @@ impl World {
     pub fn entity(&self) -> entity::Entity {
         let mut root = entity::Entity::new();
         root.sub_entities.push(self.grid.clone());
-        root.sub_entities.push(self.axes.clone());
         root.sub_entities.push(self.cube.clone());
         root
     }
