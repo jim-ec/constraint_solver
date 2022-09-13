@@ -18,11 +18,6 @@ struct Fragment {
     @location(1) world_position: vec3<f32>,
 }
 
-let PI = 3.14159265358979323846264338327950288;
-let TAU = 6.28318530717958647692528676655900577;
-let SQRT2 = 1.41421356237309504880168872420969808;
-let E = 2.71828182845904523536028747135266250;
-
 @vertex
 fn vs_main(@location(0) position: vec4<f32>) -> Fragment {
     var frag: Fragment;
