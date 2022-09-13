@@ -102,10 +102,7 @@ impl Mesh {
         }
     }
 
-    pub fn from_shape(
-        renderer: &renderer::Renderer,
-        shape: Shape,
-    ) -> Self {
+    pub fn from_shape(renderer: &renderer::Renderer, shape: Shape) -> Self {
         let renderer = renderer;
         let mut positions = Vec::with_capacity(shape.triangles.len() * 3);
         for triangle in shape.triangles {
@@ -116,10 +113,7 @@ impl Mesh {
         Mesh::from_vertices(renderer, Topology::Triangles, &positions)
     }
 
-    pub fn from_lines(
-        renderer: &renderer::Renderer,
-        lines: Vec<Vec<Point>>,
-    ) -> Self {
+    pub fn from_lines(renderer: &renderer::Renderer, lines: Vec<Vec<Point>>) -> Self {
         let mut positions = Vec::new();
 
         for line in lines {
@@ -130,27 +124,6 @@ impl Mesh {
         }
 
         Self::from_vertices(renderer, Topology::Lines, &positions).lit(false)
-    }
-
-    pub fn new_grid(renderer: &renderer::Renderer, sections: usize) -> Self {
-        let mut lines = Vec::new();
-
-        for i in 0..sections {
-            let x = i as f32 / sections as f32;
-
-            lines.extend([
-                vec![Point::at(x, 0.0, 0.0), Point::at(x, 1.0, 0.0)],
-                vec![Point::at(0.0, x, 0.0), Point::at(1.0, x, 0.0)],
-            ]);
-        }
-
-        lines.push(vec![
-            Point::at(1.0, 0.0, 0.0),
-            Point::at(1.0, 1.0, 0.0),
-            Point::at(0.0, 1.0, 0.0),
-        ]);
-
-        Self::from_lines(renderer, lines)
     }
 
     pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
