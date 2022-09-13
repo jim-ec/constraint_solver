@@ -12,10 +12,6 @@ struct Mesh {
 @group(0) @binding(0) var<uniform> camera: Camera;
 @group(1) @binding(0) var<uniform> mesh: Mesh;
 
-struct Vertex {
-    @location(0) position: vec4<f32>,
-}
-
 struct Fragment {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) position: vec3<f32>,
@@ -28,11 +24,11 @@ let SQRT2 = 1.41421356237309504880168872420969808;
 let E = 2.71828182845904523536028747135266250;
 
 @vertex
-fn vs_main(vertex: Vertex) -> Fragment {
+fn vs_main(@location(0) position: vec4<f32>) -> Fragment {
     var frag: Fragment;
 
     // Homogenize position.
-    let position = vec4<f32>(vertex.position.xyz / vertex.position.w, 1.0);
+    let position = vec4<f32>(position.xyz / position.w, 1.0);
     frag.world_position = (mesh.transform * position).xyz;
     frag.position = (camera.view * mesh.transform * position).xyz;
     frag.clip_position = camera.proj * camera.view * mesh.transform * position;
