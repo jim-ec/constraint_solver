@@ -1,11 +1,14 @@
-use std::time::{Duration, Instant};
+use std::{
+    f64::consts::TAU,
+    time::{Duration, Instant},
+};
 use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
 };
 
-use crate::{renderer, world};
+use crate::{camera, renderer, world};
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
@@ -21,54 +24,89 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut renderer = renderer::Renderer::new(&window).await?;
 
     let mut world = world::World::new(&renderer);
+    let mut camera = camera::Camera::initial();
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::NewEvents(winit::event::StartCause::Init) => {
             window.set_visible(true);
         }
 
-        Event::WindowEvent { event, .. } => {
-            if !world.input(&event) {
-                match event {
-                    WindowEvent::CloseRequested
-                    | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            },
+        Event::WindowEvent { event, .. } => match event {
+            WindowEvent::CloseRequested
+            | WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Escape),
                         ..
-                    } => *control_flow = ControlFlow::Exit,
+                    },
+                ..
+            } => *control_flow = ControlFlow::Exit,
 
-                    WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Return),
-                                ..
-                            },
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Return),
                         ..
-                    } => {
-                        if window.fullscreen().is_none() {
-                            window.set_fullscreen(Some(winit::window::Fullscreen::Borderless(None)))
-                        } else {
-                            window.set_fullscreen(None)
-                        }
-                    }
-
-                    WindowEvent::Resized(size)
-                    | WindowEvent::ScaleFactorChanged {
-                        new_inner_size: &mut size,
-                        ..
-                    } => {
-                        renderer.resize(size);
-                        window.request_redraw();
-                    }
-                    _ => {}
+                    },
+                ..
+            } => {
+                if window.fullscreen().is_none() {
+                    window.set_fullscreen(Some(winit::window::Fullscreen::Borderless(None)))
+                } else {
+                    window.set_fullscreen(None)
                 }
             }
-        }
+
+            WindowEvent::Resized(size)
+            | WindowEvent::ScaleFactorChanged {
+                new_inner_size: &mut size,
+                ..
+            } => {
+                renderer.resize(size);
+                window.request_redraw();
+            }
+
+            WindowEvent::MouseWheel {
+                delta: MouseScrollDelta::PixelDelta(delta),
+                ..
+            } => {
+                camera.orbit += 0.003 * delta.x;
+                camera.tilt += 0.003 * delta.y;
+                camera.clamp_tilt();
+            }
+
+            WindowEvent::TouchpadMagnify { delta, .. } => {
+                camera.distance *= 1.0 - delta;
+            }
+
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Back),
+                        ..
+                    },
+                ..
+            } => {
+                // Move camera back to initial position while minimizing the path of travel
+                let initial = camera::Camera::initial();
+                let mut delta_orbit = initial.orbit - camera.orbit;
+                delta_orbit %= TAU;
+                if delta_orbit > TAU / 2.0 {
+                    delta_orbit -= TAU;
+                } else if delta_orbit < -TAU / 2.0 {
+                    delta_orbit += TAU;
+                }
+                camera = camera::Camera {
+                    orbit: camera.orbit + delta_orbit,
+                    ..initial
+                };
+            }
+
+            _ => {}
+        },
 
         Event::RedrawRequested(..) => {
             let time = Instant::now();
@@ -80,7 +118,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 delta_time.as_secs_f64(),
             );
 
-            match renderer.render(&world.camera, &world.entity()) {
+            match renderer.render(&camera, &world.entity()) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => renderer.resize(renderer.size),
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

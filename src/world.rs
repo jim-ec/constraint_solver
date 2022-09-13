@@ -1,11 +1,9 @@
-use std::{cell::RefCell, f64::consts::TAU, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 use geometric_algebra::pga3::{Dir, Translator};
-use winit::event::{ElementState, KeyboardInput, MouseScrollDelta, VirtualKeyCode, WindowEvent};
 
 use crate::{
-    camera,
     entity::{self},
     mesh,
     numeric::quat_to_rotor,
@@ -13,7 +11,6 @@ use crate::{
 };
 
 pub struct World {
-    pub camera: camera::Camera,
     cube: entity::Entity,
     rigid: RefCell<rigid::Rigid>,
 }
@@ -41,54 +38,9 @@ impl World {
         rigid.past_frame = rigid.frame;
 
         World {
-            camera: camera::Camera::initial(),
             cube,
             rigid: RefCell::new(rigid),
         }
-    }
-
-    pub fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::MouseWheel {
-                delta: MouseScrollDelta::PixelDelta(delta),
-                ..
-            } => {
-                self.camera.orbit += 0.003 * delta.x;
-                self.camera.tilt += 0.003 * delta.y;
-            }
-
-            WindowEvent::TouchpadMagnify { delta, .. } => {
-                self.camera.distance *= 1.0 - delta;
-            }
-
-            WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Back),
-                        ..
-                    },
-                ..
-            } => {
-                // Move camera back to initial position while minimizing the path of travel
-                let initial = camera::Camera::initial();
-                let mut delta_orbit = initial.orbit - self.camera.orbit;
-                delta_orbit %= TAU;
-                if delta_orbit > TAU / 2.0 {
-                    delta_orbit -= TAU;
-                } else if delta_orbit < -TAU / 2.0 {
-                    delta_orbit += TAU;
-                }
-                self.camera = camera::Camera {
-                    orbit: self.camera.orbit + delta_orbit,
-                    ..initial
-                };
-            }
-
-            _ => return false,
-        }
-        self.camera.clamp_tilt();
-        true
     }
 
     pub fn integrate(&mut self, _t: f64, dt: f64) {
