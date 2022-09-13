@@ -8,8 +8,6 @@ use wgpu::util::DeviceExt;
 #[derive(Debug, Setters)]
 pub struct Mesh {
     pub topology: Topology,
-    pub fill: Fill,
-    pub culling: Culling,
     pub color: [f32; 3],
     pub lit: bool,
     pub vertex_position_buffer: wgpu::Buffer,
@@ -23,19 +21,6 @@ pub enum Topology {
     Triangles,
     Lines,
     Points,
-}
-
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-pub enum Fill {
-    Solid,
-    Wireframe,
-}
-
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-pub enum Culling {
-    Front,
-    Back,
-    None,
 }
 
 #[repr(C)]
@@ -107,8 +92,6 @@ impl Mesh {
             });
 
         Self {
-            fill: Fill::Solid,
-            culling: Culling::Back,
             topology,
             color: [0.4, 0.4, 0.4],
             lit: true,

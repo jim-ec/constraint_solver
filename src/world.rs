@@ -40,9 +40,7 @@ impl World {
         }
 
         let cube = entity::Entity::new().meshes(vec![Rc::new(
-            mesh::Mesh::from_shape(renderer, cube_shape)
-                .fill(mesh::Fill::Solid)
-                .lit(true),
+            mesh::Mesh::from_shape(renderer, cube_shape).lit(true),
         )]);
 
         let mut rigid = rigid::Rigid::new(1.0);

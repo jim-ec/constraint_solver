@@ -8,7 +8,7 @@ use winit::window::Window;
 
 use crate::{
     camera, entity,
-    mesh::{self, Culling, Fill, Mesh, Topology},
+    mesh::{self, Mesh, Topology},
     spatial,
 };
 
@@ -34,11 +34,11 @@ pub struct Renderer {
 }
 
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-struct PipelineKey(Topology, Fill, Culling);
+struct PipelineKey(Topology);
 
 impl From<&Mesh> for PipelineKey {
     fn from(mesh: &Mesh) -> Self {
-        Self(mesh.topology, mesh.fill, mesh.culling)
+        Self(mesh.topology)
     }
 }
 
@@ -91,15 +91,8 @@ impl PipelineKey {
                 },
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: match self.2 {
-                    Culling::Front => Some(wgpu::Face::Front),
-                    Culling::Back => Some(wgpu::Face::Back),
-                    Culling::None => None,
-                },
-                polygon_mode: match self.1 {
-                    Fill::Solid => wgpu::PolygonMode::Fill,
-                    Fill::Wireframe => wgpu::PolygonMode::Line,
-                },
+                cull_mode: Some(wgpu::Face::Back),
+                polygon_mode: wgpu::PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
             },
