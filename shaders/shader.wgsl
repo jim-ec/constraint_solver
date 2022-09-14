@@ -22,10 +22,10 @@ struct Fragment {
 fn vs_main(@location(0) position: vec4<f32>) -> Fragment {
     var frag: Fragment;
 
-    // Homogenize position.
-    let position = vec4(position.xyz / position.w, 1.0);
-    frag.position = (camera.view * mesh.transform * position).xyz;
     frag.clip_position = camera.proj * camera.view * mesh.transform * position;
+
+    let position = camera.view * mesh.transform * position;
+    frag.position = position.xyz / position.w;
 
     return frag;
 }
