@@ -1,4 +1,4 @@
-use crate::{renderer, spatial::Spatial};
+use crate::{numeric::Y_UP, renderer, spatial::Spatial};
 use cgmath::Matrix4;
 use derive_setters::Setters;
 use geometric_algebra::pga3::Point;
@@ -29,7 +29,7 @@ impl Mesh {
             &self.uniform_buffer,
             0,
             bytemuck::cast_slice(&[MeshUniforms {
-                transform: spatial.matrix(),
+                transform: Y_UP * spatial.matrix(),
                 color: self.color,
             }]),
         );
