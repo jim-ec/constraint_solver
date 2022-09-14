@@ -15,7 +15,6 @@ struct Mesh {
 struct Fragment {
     @builtin(position) clip_position: vec4<f32>,
     @location(0) position: vec3<f32>,
-    @location(1) world_position: vec3<f32>,
 }
 
 @vertex
@@ -24,7 +23,6 @@ fn vs_main(@location(0) position: vec4<f32>) -> Fragment {
 
     // Homogenize position.
     let position = vec4(position.xyz / position.w, 1.0);
-    frag.world_position = (mesh.transform * position).xyz;
     frag.position = (camera.view * mesh.transform * position).xyz;
     frag.clip_position = camera.proj * camera.view * mesh.transform * position;
 
