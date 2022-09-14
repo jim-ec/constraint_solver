@@ -165,7 +165,7 @@ impl Renderer {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Shader"),
             source: wgpu::ShaderSource::Wgsl(
-                std::fs::read_to_string("shader.wgsl")
+                std::fs::read_to_string("shaders/shader.wgsl")
                     .expect("Cannot read shader file")
                     .into(),
             ),
