@@ -1,16 +1,9 @@
-use std::{
-    collections::hash_map::{Entry::Vacant, HashMap},
-    rc::Rc,
-};
+use std::rc::Rc;
 
 use lerp::Lerp;
 use winit::window::Window;
 
-use crate::{
-    camera, entity,
-    mesh::{self, Mesh, Topology},
-    spatial,
-};
+use crate::{camera, entity, mesh, spatial};
 
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 const SAMPLES: u32 = 4;
@@ -24,93 +17,12 @@ pub struct Renderer {
     config: wgpu::SurfaceConfiguration,
     pub size: winit::dpi::PhysicalSize<u32>,
     camera_uniform_bind_group: wgpu::BindGroup,
-    pipeline_layout: wgpu::PipelineLayout,
-    pipelines: HashMap<PipelineKey, wgpu::RenderPipeline>,
+    pipeline: wgpu::RenderPipeline,
     pub mesh_uniform_bind_group_layout: wgpu::BindGroupLayout,
     depth_texture: wgpu::Texture,
     color_texture: Option<wgpu::Texture>,
     camera_uniform_buffer: wgpu::Buffer,
     camera: camera::Camera,
-}
-
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-struct PipelineKey(Topology);
-
-impl From<&Mesh> for PipelineKey {
-    fn from(mesh: &Mesh) -> Self {
-        Self(mesh.topology)
-    }
-}
-
-impl PipelineKey {
-    fn create_pipeline(
-        self,
-        device: &wgpu::Device,
-        layout: &wgpu::PipelineLayout,
-        format: wgpu::TextureFormat,
-    ) -> wgpu::RenderPipeline {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Shader"),
-            source: wgpu::ShaderSource::Wgsl(
-                std::fs::read_to_string("shader.wgsl")
-                    .expect("Cannot read shader file")
-                    .into(),
-            ),
-        });
-
-        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Render Pipeline"),
-            layout: Some(layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: "vs_main",
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: std::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &[wgpu::VertexAttribute {
-                        offset: 0,
-                        shader_location: 0,
-                        format: wgpu::VertexFormat::Float32x4,
-                    }],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: "fs_main",
-                targets: &[Some(wgpu::ColorTargetState {
-                    format,
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: match self.0 {
-                    Topology::Triangles => wgpu::PrimitiveTopology::TriangleList,
-                    Topology::Lines => wgpu::PrimitiveTopology::LineList,
-                    Topology::Points => wgpu::PrimitiveTopology::PointList,
-                },
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
-                polygon_mode: wgpu::PolygonMode::Fill,
-                unclipped_depth: false,
-                conservative: false,
-            },
-            multisample: wgpu::MultisampleState {
-                count: SAMPLES,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: DEPTH_FORMAT,
-                depth_write_enabled: true,
-                depth_compare: wgpu::CompareFunction::LessEqual,
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multiview: None,
-        })
-    }
 }
 
 impl Renderer {
@@ -207,15 +119,14 @@ impl Renderer {
                 }],
             });
 
-        let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[
-                    &camera_uniform_bind_group_layout,
-                    &mesh_uniform_bind_group_layout,
-                ],
-                push_constant_ranges: &[],
-            });
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("Render Pipeline Layout"),
+            bind_group_layouts: &[
+                &camera_uniform_bind_group_layout,
+                &mesh_uniform_bind_group_layout,
+            ],
+            push_constant_ranges: &[],
+        });
 
         let depth_texture = device.create_texture(
             &(wgpu::TextureDescriptor {
@@ -251,6 +162,64 @@ impl Renderer {
             None
         };
 
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Shader"),
+            source: wgpu::ShaderSource::Wgsl(
+                std::fs::read_to_string("shader.wgsl")
+                    .expect("Cannot read shader file")
+                    .into(),
+            ),
+        });
+
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Render Pipeline"),
+            layout: Some(&pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: "vs_main",
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &[wgpu::VertexAttribute {
+                        offset: 0,
+                        shader_location: 0,
+                        format: wgpu::VertexFormat::Float32x4,
+                    }],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: "fs_main",
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: swapchain_format,
+                    blend: Some(wgpu::BlendState::REPLACE),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            multisample: wgpu::MultisampleState {
+                count: SAMPLES,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: DEPTH_FORMAT,
+                depth_write_enabled: true,
+                depth_compare: wgpu::CompareFunction::LessEqual,
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multiview: None,
+        });
+
         Ok(Self {
             surface,
             format: swapchain_format,
@@ -259,8 +228,7 @@ impl Renderer {
             config,
             size,
             camera_uniform_bind_group,
-            pipeline_layout: render_pipeline_layout,
-            pipelines: HashMap::new(),
+            pipeline,
             mesh_uniform_bind_group_layout,
             depth_texture,
             color_texture,
@@ -379,7 +347,7 @@ impl Renderer {
         }
 
         let mut spatial_meshes = vec![];
-        self.gather_meshes(entity, spatial::Spatial::identity(), &mut spatial_meshes);
+        Self::gather_meshes(entity, spatial::Spatial::identity(), &mut spatial_meshes);
         for (spatial, mesh) in &spatial_meshes {
             let mut encoder = self.device.create_command_encoder(&Default::default());
 
@@ -411,7 +379,7 @@ impl Renderer {
                     ..Default::default()
                 });
 
-                render_pass.set_pipeline(&self.pipelines[&mesh.as_ref().into()]);
+                render_pass.set_pipeline(&self.pipeline);
                 render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
 
                 self.queue.write_buffer(
@@ -433,7 +401,6 @@ impl Renderer {
     }
 
     fn gather_meshes(
-        &mut self,
         entity: &entity::Entity,
         spatial: spatial::Spatial,
         spatial_meshes: &mut Vec<(spatial::Spatial, Rc<mesh::Mesh>)>,
@@ -442,15 +409,10 @@ impl Renderer {
 
         for mesh in &entity.meshes {
             spatial_meshes.push((spatial, Rc::clone(mesh)));
-
-            let key = mesh.as_ref().into();
-            if let Vacant(e) = self.pipelines.entry(key) {
-                e.insert(key.create_pipeline(&self.device, &self.pipeline_layout, self.format));
-            }
         }
 
         for entity in &entity.sub_entities {
-            self.gather_meshes(entity, spatial, spatial_meshes);
+            Self::gather_meshes(entity, spatial, spatial_meshes);
         }
     }
 }

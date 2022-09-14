@@ -17,8 +17,6 @@ pub struct World {
 
 impl World {
     pub fn new(renderer: &renderer::Renderer) -> World {
-        let _library = mesh::debug::Library::new(renderer);
-
         let mut cube_shape = shapes::Shape::cube();
         for p in cube_shape.points.iter_mut() {
             *p = (p.dir() - Dir::new(0.5, 0.5, 0.5)).point()

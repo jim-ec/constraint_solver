@@ -2,24 +2,15 @@ use crate::{renderer, shapes::Shape, spatial::Spatial};
 use cgmath::Matrix4;
 use derive_setters::Setters;
 use geometric_algebra::pga3::Point;
-use itertools::Itertools;
 use wgpu::util::DeviceExt;
 
 #[derive(Debug, Setters)]
 pub struct Mesh {
-    pub topology: Topology,
     pub color: [f32; 3],
     pub vertex_position_buffer: wgpu::Buffer,
     pub bind_group: wgpu::BindGroup,
     pub uniform_buffer: wgpu::Buffer,
     pub vertex_count: usize,
-}
-
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-pub enum Topology {
-    Triangles,
-    Lines,
-    Points,
 }
 
 #[repr(C)]
@@ -41,11 +32,7 @@ impl Mesh {
         );
     }
 
-    pub fn from_vertices(
-        renderer: &renderer::Renderer,
-        topology: Topology,
-        positions: &[Point],
-    ) -> Self {
+    pub fn from_vertices(renderer: &renderer::Renderer, positions: &[Point]) -> Self {
         let vertex_count = positions.len();
 
         let vertex_position_buffer =
@@ -90,7 +77,6 @@ impl Mesh {
             });
 
         Self {
-            topology,
             color: [0.4, 0.4, 0.4],
             vertex_position_buffer,
             bind_group,
@@ -107,20 +93,7 @@ impl Mesh {
             positions.push(shape.points[triangle.1]);
             positions.push(shape.points[triangle.2]);
         }
-        Mesh::from_vertices(renderer, Topology::Triangles, &positions)
-    }
-
-    pub fn from_lines(renderer: &renderer::Renderer, lines: Vec<Vec<Point>>) -> Self {
-        let mut positions = Vec::new();
-
-        for line in lines {
-            for (prev_point, point) in line.into_iter().tuple_windows() {
-                positions.push(prev_point);
-                positions.push(point);
-            }
-        }
-
-        Self::from_vertices(renderer, Topology::Lines, &positions)
+        Mesh::from_vertices(renderer, &positions)
     }
 
     pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
@@ -136,69 +109,6 @@ impl Mesh {
         MeshUniforms {
             transform: z_up * transform,
             color: self.color,
-        }
-    }
-}
-
-pub mod debug {
-    use super::Mesh;
-    use crate::renderer;
-    use crate::shapes;
-    use geometric_algebra::pga3::Point;
-    use std::rc::Rc;
-
-    pub struct Library {
-        point: Rc<Mesh>,
-        line: Rc<Mesh>,
-        plane: Rc<Mesh>,
-    }
-
-    impl Library {
-        pub fn new(renderer: &renderer::Renderer) -> Self {
-            Self {
-                point: Rc::new({
-                    let d = 0.1;
-                    Mesh::from_lines(
-                        renderer,
-                        vec![
-                            vec![Point::at(-d, 0.0, 0.0), Point::at(d, 0.0, 0.0)],
-                            vec![Point::at(0.0, -d, 0.0), Point::at(0.0, d, 0.0)],
-                            vec![Point::at(0.0, 0.0, -d), Point::at(0.0, 0.0, d)],
-                        ],
-                    )
-                }),
-                line: Rc::new({
-                    let d = 10.0;
-                    Mesh::from_lines(
-                        renderer,
-                        vec![vec![Point::at(-d, 0.0, 0.0), Point::at(d, 0.0, 0.0)]],
-                    )
-                }),
-                plane: Rc::new(Mesh::from_shape(
-                    renderer,
-                    shapes::Shape {
-                        points: vec![
-                            Point::at(-1.0, -1.0, 0.0),
-                            Point::at(1.0, -1.0, 0.0),
-                            Point::at(-1.0, 1.0, 0.0),
-                            Point::at(1.0, 1.0, 0.0),
-                        ],
-                        triangles: vec![shapes::Triangle(0, 1, 2), shapes::Triangle(2, 1, 3)],
-                    },
-                )),
-            }
-        }
-
-        pub fn point(&self) -> Rc<Mesh> {
-            Rc::clone(&self.point)
-        }
-
-        pub fn line(&self) -> Rc<Mesh> {
-            Rc::clone(&self.line)
-        }
-
-        pub fn plane(&self) -> Rc<Mesh> {
-            Rc::clone(&self.plane)
         }
     }
 }
