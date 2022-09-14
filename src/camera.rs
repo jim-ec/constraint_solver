@@ -43,12 +43,12 @@ impl Camera {
         ]
         .into();
 
-        let orbit = Quaternion::from_angle_y(cgmath::Rad(self.orbit as f32));
-        let tilt = Quaternion::from_angle_x(cgmath::Rad(self.tilt as f32));
+        let orbit = Quaternion::from_angle_z(cgmath::Rad(self.orbit as f32));
+        let tilt = Quaternion::from_angle_y(cgmath::Rad(self.tilt as f32));
         let translation =
-            Matrix4::from_translation(Vector3::new(0.0, 0.0, -1.0 * self.distance as f32));
+            Matrix4::from_translation(Vector3::new(-1.0 * self.distance as f32, 0.0, 0.0));
 
-        let view = translation * Matrix4::from(tilt * orbit) * z_up;
+        let view = z_up * translation * Matrix4::from(tilt * orbit);
 
         let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
 
