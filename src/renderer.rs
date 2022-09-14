@@ -438,11 +438,7 @@ impl Renderer {
                 render_pass.set_pipeline(&self.pipeline);
                 render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
 
-                self.queue.write_buffer(
-                    &mesh.uniform_buffer,
-                    0,
-                    bytemuck::cast_slice(&[mesh.uniforms(spatial)]),
-                );
+                mesh.upload_uniforms(&self.queue, spatial);
                 render_pass.set_bind_group(1, &mesh.bind_group, &[]);
                 render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
                 render_pass.draw(0..mesh.vertex_count as u32, 0..1);

@@ -28,7 +28,10 @@ impl Mesh {
         queue.write_buffer(
             &self.uniform_buffer,
             0,
-            bytemuck::cast_slice(&[self.uniforms(spatial)]),
+            bytemuck::cast_slice(&[MeshUniforms {
+                transform: spatial.matrix(),
+                color: self.color,
+            }]),
         );
     }
 
@@ -82,14 +85,6 @@ impl Mesh {
             bind_group,
             uniform_buffer,
             vertex_count,
-        }
-    }
-
-    pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
-        let transform = spatial.matrix();
-        MeshUniforms {
-            transform,
-            color: self.color,
         }
     }
 
