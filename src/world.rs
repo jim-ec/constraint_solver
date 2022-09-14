@@ -24,9 +24,8 @@ impl World {
             *p = (p.dir() - Dir::new(0.5, 0.5, 0.5)).point()
         }
 
-        let cube = entity::Entity::new().meshes(vec![Rc::new(
-            mesh::Mesh::from_shape(renderer, cube_shape).lit(true),
-        )]);
+        let cube = entity::Entity::new()
+            .meshes(vec![Rc::new(mesh::Mesh::from_shape(renderer, cube_shape))]);
 
         let mut rigid = rigid::Rigid::new(1.0);
         rigid.external_force.z = -5.0;

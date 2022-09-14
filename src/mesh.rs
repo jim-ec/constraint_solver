@@ -9,7 +9,6 @@ use wgpu::util::DeviceExt;
 pub struct Mesh {
     pub topology: Topology,
     pub color: [f32; 3],
-    pub lit: bool,
     pub vertex_position_buffer: wgpu::Buffer,
     pub bind_group: wgpu::BindGroup,
     pub uniform_buffer: wgpu::Buffer,
@@ -28,7 +27,6 @@ pub enum Topology {
 pub struct MeshUniforms {
     pub transform: Matrix4<f32>,
     pub color: [f32; 3],
-    pub lit: u32,
 }
 
 unsafe impl bytemuck::Pod for MeshUniforms {}
@@ -94,7 +92,6 @@ impl Mesh {
         Self {
             topology,
             color: [0.4, 0.4, 0.4],
-            lit: true,
             vertex_position_buffer,
             bind_group,
             uniform_buffer,
@@ -123,7 +120,7 @@ impl Mesh {
             }
         }
 
-        Self::from_vertices(renderer, Topology::Lines, &positions).lit(false)
+        Self::from_vertices(renderer, Topology::Lines, &positions)
     }
 
     pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
@@ -139,7 +136,6 @@ impl Mesh {
         MeshUniforms {
             transform: z_up * transform,
             color: self.color,
-            lit: self.lit as u32,
         }
     }
 }

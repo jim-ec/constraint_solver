@@ -6,7 +6,6 @@ struct Camera {
 struct Mesh {
     transform: mat4x4<f32>,
     color: vec3<f32>,
-    lit: u32,
 }
 
 @group(0) @binding(0) var<uniform> camera: Camera;
@@ -43,16 +42,6 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let v = normalize(vec3<f32>(0.0, 0.0, 1.0) - frag.position);
     let nov = dot(n, v);
 
-    var color = mesh.color;
-
-    if (bool(mesh.lit)) {
-        color = light_intensity * color * nov + ambient_light;
-    }
-
+    let color = nov * light_intensity * mesh.color + ambient_light;
     return vec4<f32>(color, 1.0);
-
-    // // Debug normals:
-    // var c = n / 2.0 + 0.5;
-    // c *= c;
-    // return vec4<f32>(c, 1.0);
 }
