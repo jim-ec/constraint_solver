@@ -15,9 +15,9 @@ pub struct Mesh {
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
-pub struct MeshUniforms {
-    pub transform: Matrix4<f32>,
-    pub color: [f32; 3],
+struct MeshUniforms {
+    transform: Matrix4<f32>,
+    color: [f32; 3],
 }
 
 unsafe impl bytemuck::Pod for MeshUniforms {}
