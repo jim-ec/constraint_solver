@@ -29,10 +29,10 @@ fn vs_main(@builtin(vertex_index) id: u32) -> Fragment {
     let position = positions[id];
 
     frag.clip_position = camera.proj * camera.view * position;
-    frag.position = position.xyz;
+    frag.position = position.xyz / position.w;
 
     let camera_position = camera.inverse_view * vec4(0.0, 0.0, 0.0, 1.0);
-    frag.camera_position = camera_position.xyz;
+    frag.camera_position = camera_position.xyz / camera_position.w;
 
     return frag;
 }
