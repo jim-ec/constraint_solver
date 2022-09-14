@@ -43,7 +43,7 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let camera_distance = distance(frag.position, frag.camera_position);
     let distance_attenuation = clamp(25.0 / camera_distance, 0.0, 1.0);
 
-    let tilt_attenuation = abs(dot(vec4(0.0, 0.0, 1.0, 0.0), camera.view * vec4(0.0, 1.0, 0.0, 0.0)));
+    let tilt_attenuation = abs(dot(vec4(0.0, 0.0, 1.0, 0.0), camera.view * vec4(0.0, 0.0, 1.0, 0.0)));
     
     var point_x = abs(frag.position.x) % 1.0;
     var point_y = abs(frag.position.y) % 1.0;
