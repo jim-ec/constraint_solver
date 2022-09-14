@@ -87,16 +87,8 @@ impl Mesh {
 
     pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
         let transform = spatial.matrix();
-        let z_up: Matrix4<f32> = [
-            [0.0, 0.0, 1.0, 0.0],
-            [1.0, 0.0, 0.0, 0.0],
-            [0.0, 1.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 1.0],
-        ]
-        .into();
-
         MeshUniforms {
-            transform: z_up * transform,
+            transform,
             color: self.color,
         }
     }
