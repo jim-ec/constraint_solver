@@ -20,7 +20,6 @@ let MAX = 3.40282347e+38;
 fn vs_main(@builtin(vertex_index) id: u32) -> Fragment {
     var frag: Fragment;
 
-    // let distant = 10.0e+10;
     let distant = 10.0e+3;
     var positions = array(
         vec4(-distant, -distant, 0.0, 1.0),
@@ -45,11 +44,8 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
 
     let tilt_attenuation = abs(dot(vec4(0.0, 0.0, 1.0, 0.0), camera.view * vec4(0.0, 0.0, 1.0, 0.0)));
     
-    var point_x = abs(frag.position.x) % 1.0;
-    var point_y = abs(frag.position.y) % 1.0;
-    point_x = 0.5 - abs(0.5 - point_x);
-    point_y = 0.5 - abs(0.5 - point_y);
-
+    let point_x = 0.5 - abs(0.5 - abs(frag.position.x) % 1.0);
+    let point_y = 0.5 - abs(0.5 - abs(frag.position.y) % 1.0);
     let phase_x = u32(round(abs(frag.position.x) - point_x));
     let phase_y = u32(round(abs(frag.position.y) - point_y));
 
