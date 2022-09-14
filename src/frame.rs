@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Matrix3, Matrix4, Quaternion, Vector3, Zero};
+use cgmath::{InnerSpace, Quaternion, Vector3, Zero};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Frame {
@@ -12,17 +12,6 @@ impl Frame {
             position: Vector3::zero(),
             quaternion: Quaternion::new(1.0, 0.0, 0.0, 0.0),
         }
-    }
-
-    pub fn matrix(&self) -> Matrix4<f32> {
-        let r = Matrix3::from(self.quaternion);
-        [
-            [r[0][0], r[0][1], r[0][2], 1.0],
-            [r[1][0], r[1][1], r[1][2], 1.0],
-            [r[2][0], r[2][1], r[2][2], 1.0],
-            [self.position.x, self.position.y, self.position.z, 1.0],
-        ]
-        .into()
     }
 
     pub fn inverse(&self) -> Frame {

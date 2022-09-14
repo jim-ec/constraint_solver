@@ -1,5 +1,4 @@
 #![feature(iter_advance_by)]
-#![allow(dead_code)]
 
 mod app;
 mod camera;
