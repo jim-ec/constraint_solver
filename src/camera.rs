@@ -1,4 +1,4 @@
-use cgmath::{Matrix4, Quaternion, Rotation3, Vector3};
+use cgmath::{Matrix4, Quaternion, Rotation3, SquareMatrix, Vector3};
 use std::f64::consts::TAU;
 
 pub struct Camera {
@@ -12,6 +12,7 @@ pub struct Camera {
 #[derive(Copy, Clone, Debug)]
 pub struct CameraUniforms {
     pub view: Matrix4<f32>,
+    pub inverse_view: Matrix4<f32>,
     pub proj: Matrix4<f32>,
 }
 
@@ -39,7 +40,11 @@ impl Camera {
             Matrix4::from_translation(Vector3::new(0.0, 0.0, -1.0 * self.distance as f32));
         let view = translation * Matrix4::from(tilt * orbit);
         let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
-        CameraUniforms { view, proj }
+        CameraUniforms {
+            view,
+            inverse_view: view.invert().unwrap(),
+            proj,
+        }
     }
 }
 

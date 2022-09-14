@@ -1,5 +1,6 @@
 struct Camera {
     view: mat4x4<f32>,
+    inverse_view: mat4x4<f32>,
     proj: mat4x4<f32>,
 }
 
