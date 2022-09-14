@@ -1,5 +1,8 @@
 use cgmath::{Matrix4, Quaternion, Rotation3, SquareMatrix, Vector3};
+use geometric_algebra::pga3::{Dir, Rotor, Translator};
 use std::f64::consts::TAU;
+
+use crate::numeric::motor_to_matrix;
 
 pub struct Camera {
     pub orbit: f64,
@@ -43,12 +46,11 @@ impl Camera {
         ]
         .into();
 
-        let orbit = Quaternion::from_angle_z(cgmath::Rad(self.orbit as f32));
-        let tilt = Quaternion::from_angle_y(cgmath::Rad(self.tilt as f32));
-        let translation =
-            Matrix4::from_translation(Vector3::new(-1.0 * self.distance as f32, 0.0, 0.0));
+        let orbit = Rotor::from_angle_axis(self.orbit as f32, Dir::new(0.0, 0.0, -1.0));
+        let tilt = Rotor::from_angle_axis(self.tilt as f32, Dir::new(0.0, -1.0, 0.0));
+        let translation = Translator::new(-1.0 * self.distance as f32, 0.0, 0.0);
 
-        let view = z_up * translation * Matrix4::from(tilt * orbit);
+        let view = z_up * motor_to_matrix(translation * tilt * orbit);
 
         let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
 
