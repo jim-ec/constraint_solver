@@ -1,4 +1,4 @@
-use crate::{renderer, shapes::Shape, spatial::Spatial};
+use crate::{renderer, spatial::Spatial};
 use cgmath::Matrix4;
 use derive_setters::Setters;
 use geometric_algebra::pga3::Point;
@@ -85,17 +85,6 @@ impl Mesh {
         }
     }
 
-    pub fn from_shape(renderer: &renderer::Renderer, shape: Shape) -> Self {
-        let renderer = renderer;
-        let mut positions = Vec::with_capacity(shape.triangles.len() * 3);
-        for triangle in shape.triangles {
-            positions.push(shape.points[triangle.0]);
-            positions.push(shape.points[triangle.1]);
-            positions.push(shape.points[triangle.2]);
-        }
-        Mesh::from_vertices(renderer, &positions)
-    }
-
     pub fn uniforms(&self, spatial: &Spatial) -> MeshUniforms {
         let transform = spatial.matrix();
         let z_up: Matrix4<f32> = [
@@ -110,5 +99,50 @@ impl Mesh {
             transform: z_up * transform,
             color: self.color,
         }
+    }
+
+    pub fn from_triangles(
+        renderer: &renderer::Renderer,
+        points: &[Point],
+        triangles: &[(usize, usize, usize)],
+    ) -> Self {
+        let renderer = renderer;
+        let mut positions = Vec::with_capacity(triangles.len() * 3);
+        for triangle in triangles {
+            positions.push(points[triangle.0]);
+            positions.push(points[triangle.1]);
+            positions.push(points[triangle.2]);
+        }
+        Mesh::from_vertices(renderer, &positions)
+    }
+
+    pub fn new_cube(renderer: &renderer::Renderer) -> Self {
+        Self::from_triangles(
+            renderer,
+            &[
+                Point::at(-0.5, -0.5, -0.5),
+                Point::at(-0.5, -0.5, 0.5),
+                Point::at(-0.5, 0.5, -0.5),
+                Point::at(-0.5, 0.5, 0.5),
+                Point::at(0.5, -0.5, -0.5),
+                Point::at(0.5, -0.5, 0.5),
+                Point::at(0.5, 0.5, -0.5),
+                Point::at(0.5, 0.5, 0.5),
+            ],
+            &[
+                (0, 1, 3),
+                (0, 3, 2),
+                (0, 4, 5),
+                (0, 5, 1),
+                (0, 6, 4),
+                (0, 2, 6),
+                (1, 5, 7),
+                (1, 7, 3),
+                (2, 7, 6),
+                (2, 3, 7),
+                (4, 7, 5),
+                (4, 6, 7),
+            ],
+        )
     }
 }

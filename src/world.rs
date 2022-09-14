@@ -1,13 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
-use geometric_algebra::pga3::{Dir, Translator};
+use geometric_algebra::pga3::Translator;
 
 use crate::{
     entity::{self},
     mesh,
     numeric::quat_to_rotor,
-    renderer, rigid, shapes, solver,
+    renderer, rigid, solver,
 };
 
 pub struct World {
@@ -17,13 +17,7 @@ pub struct World {
 
 impl World {
     pub fn new(renderer: &renderer::Renderer) -> World {
-        let mut cube_shape = shapes::Shape::cube();
-        for p in cube_shape.points.iter_mut() {
-            *p = (p.dir() - Dir::new(0.5, 0.5, 0.5)).point()
-        }
-
-        let cube = entity::Entity::new()
-            .meshes(vec![Rc::new(mesh::Mesh::from_shape(renderer, cube_shape))]);
+        let cube = entity::Entity::new().meshes(vec![Rc::new(mesh::Mesh::new_cube(renderer))]);
 
         let mut rigid = rigid::Rigid::new(1.0);
         rigid.external_force.z = -5.0;

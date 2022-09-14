@@ -3,19 +3,18 @@
 
 mod app;
 mod camera;
+mod collision;
+mod constraint;
 mod entity;
-mod world;
+mod frame;
 mod mesh;
 mod numeric;
 mod renderer;
-mod shapes;
-mod spatial;
-mod simplex;
 mod rigid;
-mod frame;
-mod constraint;
-mod collision;
+mod simplex;
 mod solver;
+mod spatial;
+mod world;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
