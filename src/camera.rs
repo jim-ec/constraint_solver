@@ -14,6 +14,7 @@ pub struct CameraUniforms {
     pub view: Matrix4<f32>,
     pub inverse_view: Matrix4<f32>,
     pub proj: Matrix4<f32>,
+    pub inverse_proj: Matrix4<f32>,
 }
 
 unsafe impl bytemuck::Pod for CameraUniforms {}
@@ -55,6 +56,7 @@ impl Camera {
             view,
             inverse_view: view.invert().unwrap(),
             proj,
+            inverse_proj: proj.invert().unwrap(),
         }
     }
 }
