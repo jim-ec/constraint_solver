@@ -12,6 +12,12 @@ pub struct Spatial {
     pub scale: f32,
 }
 
+impl Default for Spatial {
+    fn default() -> Self {
+        Self::identity()
+    }
+}
+
 // TODO: Maybe rename to `Motion`?
 impl Spatial {
     pub fn identity() -> Self {

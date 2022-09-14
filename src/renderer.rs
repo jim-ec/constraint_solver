@@ -1,9 +1,7 @@
-use std::rc::Rc;
-
 use lerp::Lerp;
 use winit::window::Window;
 
-use crate::{camera, entity, mesh, spatial};
+use crate::{camera, entity};
 
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 const SAMPLES: u32 = 4;
@@ -338,7 +336,7 @@ impl Renderer {
     pub fn render(
         &mut self,
         camera: &camera::Camera,
-        entity: &entity::Entity,
+        entities: &[entity::Entity],
     ) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
         let view = output
@@ -409,12 +407,11 @@ impl Renderer {
 
         let depth_texture_view = self.depth_texture.create_view(&Default::default());
 
-        let mut spatial_meshes = vec![];
-        Self::gather_meshes(entity, spatial::Spatial::identity(), &mut spatial_meshes);
-        for (spatial, mesh) in &spatial_meshes {
-            let mut encoder = self.device.create_command_encoder(&Default::default());
+        for entity in entities {
+            let spatial = &entity.spatial;
+            for mesh in &entity.meshes {
+                let mut encoder = self.device.create_command_encoder(&Default::default());
 
-            {
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                         view: color_texture_view.as_ref().unwrap_or(&view),
@@ -442,60 +439,48 @@ impl Renderer {
                 render_pass.set_bind_group(1, &mesh.bind_group, &[]);
                 render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
                 render_pass.draw(0..mesh.vertex_count as u32, 0..1);
-            }
 
-            self.queue.submit(std::iter::once(encoder.finish()));
+                drop(render_pass);
+
+                self.queue.submit(std::iter::once(encoder.finish()));
+            }
         }
 
         // Render grid:
         {
             let mut encoder = self.device.create_command_encoder(&Default::default());
-            {
-                let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: color_texture_view.as_ref().unwrap_or(&view),
-                        resolve_target: color_texture_view.as_ref().and(Some(&view)),
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
-                        },
-                    })],
-                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                        view: &depth_texture_view,
-                        depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
-                        }),
-                        stencil_ops: None,
-                    }),
-                    ..Default::default()
-                });
 
-                render_pass.set_pipeline(&self.grid_pipeline);
-                render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
-                render_pass.draw(0..3, 0..1);
-            }
+            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: color_texture_view.as_ref().unwrap_or(&view),
+                    resolve_target: color_texture_view.as_ref().and(Some(&view)),
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: true,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &depth_texture_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: true,
+                    }),
+                    stencil_ops: None,
+                }),
+                ..Default::default()
+            });
+
+            render_pass.set_pipeline(&self.grid_pipeline);
+            render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
+            render_pass.draw(0..3, 0..1);
+
+            drop(render_pass);
+
             self.queue.submit(std::iter::once(encoder.finish()));
         }
 
         output.present();
 
         Ok(())
-    }
-
-    fn gather_meshes(
-        entity: &entity::Entity,
-        spatial: spatial::Spatial,
-        spatial_meshes: &mut Vec<(spatial::Spatial, Rc<mesh::Mesh>)>,
-    ) {
-        let spatial = spatial.compose(&entity.spatial);
-
-        for mesh in &entity.meshes {
-            spatial_meshes.push((spatial, Rc::clone(mesh)));
-        }
-
-        for entity in &entity.sub_entities {
-            Self::gather_meshes(entity, spatial, spatial_meshes);
-        }
     }
 }

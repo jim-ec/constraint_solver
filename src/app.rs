@@ -118,7 +118,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 delta_time.as_secs_f64(),
             );
 
-            match renderer.render(&camera, &world.entity()) {
+            match renderer.render(&camera, &world.entities()) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => renderer.resize(renderer.size),
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

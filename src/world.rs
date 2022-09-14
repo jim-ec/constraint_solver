@@ -17,7 +17,7 @@ pub struct World {
 
 impl World {
     pub fn new(renderer: &renderer::Renderer) -> World {
-        let cube = entity::Entity::new().meshes(vec![Rc::new(mesh::Mesh::new_cube(renderer))]);
+        let cube = entity::Entity::default().meshes(vec![Rc::new(mesh::Mesh::new_cube(renderer))]);
 
         let mut rigid = rigid::Rigid::new(1.0);
         rigid.external_force.z = -5.0;
@@ -48,9 +48,7 @@ impl World {
         self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
     }
 
-    pub fn entity(&self) -> entity::Entity {
-        let mut root = entity::Entity::new();
-        root.sub_entities.push(self.cube.clone());
-        root
+    pub fn entities(&self) -> Vec<entity::Entity> {
+        vec![self.cube.clone()]
     }
 }
