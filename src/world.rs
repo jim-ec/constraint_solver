@@ -60,10 +60,15 @@ impl World {
             [1.0, 1.0, 0.0].into(),
         );
 
-        line_debugger.debug_point(Point::at(1.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug_point(Point::at(0.0, 1.0, 0.0), Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug_line(
-            Point::at(1.0, 0.0, 0.0).regressive_product(Point::at(0.0, 1.0, 0.0)),
+        let a = Point::at(1.0, 0.0, 0.0);
+        let b = Point::at(0.0, 1.0, 0.0);
+        let c = Point::at(0.0, 0.0, 1.0);
+
+        line_debugger.debug_point(a, Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug_point(b, Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug_point(c, Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug_plane(
+            a.regressive_product(b).regressive_product(c),
             Vector3::new(1.0, 0.0, 1.0),
         );
 
