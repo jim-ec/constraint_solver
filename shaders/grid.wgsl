@@ -11,9 +11,6 @@ struct Fragment {
     @location(0) position: vec3<f32>,
 }
 
-let PI = 3.14159265358979323846264338327950288;
-let MAX = 3.40282347e+38;
-
 @vertex
 fn vs_main(@builtin(vertex_index) id: u32) -> Fragment {
     var frag: Fragment;
