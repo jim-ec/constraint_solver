@@ -2,7 +2,7 @@ use cgmath::Vector3;
 use geometric_algebra::{
     motion,
     pga3::{Branch, Flat, Line, Origin, Plane, Point, Translator},
-    project, Inverse, LeftContraction, OuterProduct, Reversal, RightContraction, Transformation,
+    Inverse, LeftContraction, OuterProduct, Reversal, RightContraction, Transformation,
 };
 use itertools::Itertools;
 
@@ -26,8 +26,79 @@ struct DebugLineVertex {
 unsafe impl bytemuck::Pod for DebugLineVertex {}
 unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
+pub trait LineDebug {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger);
+}
+
+impl LineDebug for Point {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
+        let d = 0.1;
+        let tx = Translator::new(d, 0.0, 0.0);
+        let ty = Translator::new(0.0, d, 0.0);
+        let tz = Translator::new(0.0, 0.0, d);
+
+        line_debugger.debug_lines(
+            vec![tx.transformation(self), tx.reversal().transformation(self)],
+            color,
+        );
+        line_debugger.debug_lines(
+            vec![ty.transformation(self), ty.reversal().transformation(self)],
+            color,
+        );
+        line_debugger.debug_lines(
+            vec![tz.transformation(self), tz.reversal().transformation(self)],
+            color,
+        );
+    }
+}
+
+impl LineDebug for Line {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
+        let d = 10.0;
+        let branch: Branch = self.into();
+
+        let motor = motion(
+            Origin::new(),
+            self.left_contraction(Origin::new()).outer_product(self),
+        ) * motion(Branch::new(1.0, 0.0, 0.0), branch);
+
+        line_debugger.debug_lines(
+            vec![
+                motor.transformation(Point::at(-d, 0.0, 0.0)),
+                motor.transformation(Point::at(d, 0.0, 0.0)),
+            ],
+            color,
+        )
+    }
+}
+
+impl LineDebug for Plane {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
+        let d = 1.0;
+
+        let p = Origin::new()
+            .right_contraction(self.inverse())
+            .outer_product(self);
+
+        let flat: Flat = self.into();
+
+        let motor = motion(Origin::new(), p) * motion(Flat::new(0.0, 0.0, 1.0), flat);
+
+        line_debugger.debug_lines(
+            vec![
+                motor.transformation(Point::at(d, d, 0.0)),
+                motor.transformation(Point::at(-d, d, 0.0)),
+                motor.transformation(Point::at(-d, -d, 0.0)),
+                motor.transformation(Point::at(d, -d, 0.0)),
+                motor.transformation(Point::at(d, d, 0.0)),
+            ],
+            color,
+        )
+    }
+}
+
 impl LineDebugger {
-    pub fn debug(&mut self, line: Vec<Point>, color: Vector3<f32>) {
+    pub fn debug_lines(&mut self, line: Vec<Point>, color: Vector3<f32>) {
         for (p1, p2) in line.into_iter().tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
@@ -45,76 +116,8 @@ impl LineDebugger {
     }
 
     #[allow(dead_code)]
-    pub fn debug_point(&mut self, point: Point, color: Vector3<f32>) {
-        let d = 0.1;
-        let tx = Translator::new(d, 0.0, 0.0);
-        let ty = Translator::new(0.0, d, 0.0);
-        let tz = Translator::new(0.0, 0.0, d);
-
-        self.debug(
-            vec![
-                tx.transformation(point),
-                tx.reversal().transformation(point),
-            ],
-            color,
-        );
-        self.debug(
-            vec![
-                ty.transformation(point),
-                ty.reversal().transformation(point),
-            ],
-            color,
-        );
-        self.debug(
-            vec![
-                tz.transformation(point),
-                tz.reversal().transformation(point),
-            ],
-            color,
-        );
-    }
-
-    #[allow(dead_code)]
-    pub fn debug_line(&mut self, line: Line, color: Vector3<f32>) {
-        let d = 10.0;
-        let branch: Branch = line.into();
-
-        let motor = motion(
-            Origin::new(),
-            line.left_contraction(Origin::new()).outer_product(line),
-        ) * motion(Branch::new(1.0, 0.0, 0.0), branch);
-
-        self.debug(
-            vec![
-                motor.transformation(Point::at(-d, 0.0, 0.0)),
-                motor.transformation(Point::at(d, 0.0, 0.0)),
-            ],
-            color,
-        )
-    }
-
-    #[allow(dead_code)]
-    pub fn debug_plane(&mut self, plane: Plane, color: Vector3<f32>) {
-        let d = 1.0;
-
-        let p = Origin::new()
-            .right_contraction(plane.inverse())
-            .outer_product(plane);
-
-        let flat: Flat = plane.into();
-
-        let motor = motion(Origin::new(), p) * motion(Flat::new(0.0, 0.0, 1.0), flat);
-
-        self.debug(
-            vec![
-                motor.transformation(Point::at(d, d, 0.0)),
-                motor.transformation(Point::at(-d, d, 0.0)),
-                motor.transformation(Point::at(-d, -d, 0.0)),
-                motor.transformation(Point::at(d, -d, 0.0)),
-                motor.transformation(Point::at(d, d, 0.0)),
-            ],
-            color,
-        )
+    pub fn debug(&mut self, geometry: impl LineDebug, color: Vector3<f32>) {
+        geometry.debug(color, self)
     }
 
     pub fn new(renderer: &renderer::Renderer) -> Self {

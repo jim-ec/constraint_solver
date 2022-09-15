@@ -48,7 +48,7 @@ impl World {
             rigid.frame.position.z,
         );
 
-        line_debugger.debug(
+        line_debugger.debug_lines(
             vec![
                 Point::origin(),
                 Point::at(
@@ -64,10 +64,13 @@ impl World {
         let b = Point::at(0.0, 1.0, 0.0);
         let c = Point::at(0.0, 0.0, 1.0);
 
-        line_debugger.debug_point(a, Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug_point(b, Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug_point(c, Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug_plane(
+        line_debugger.debug(a, Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug(b, Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug(c, Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug(a.regressive_product(b), Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug(b.regressive_product(c), Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug(c.regressive_product(a), Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug(
             a.regressive_product(b).regressive_product(c),
             Vector3::new(1.0, 0.0, 1.0),
         );
