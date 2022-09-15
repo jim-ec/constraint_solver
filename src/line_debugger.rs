@@ -186,14 +186,7 @@ impl LineDebugger {
                     mask: !0,
                     alpha_to_coverage_enabled: false,
                 },
-                depth_stencil: Some(wgpu::DepthStencilState {
-                    format: renderer::DEPTH_FORMAT,
-                    depth_write_enabled: true,
-                    // depth_compare: wgpu::CompareFunction::LessEqual,
-                    depth_compare: wgpu::CompareFunction::Always,
-                    stencil: Default::default(),
-                    bias: Default::default(),
-                }),
+                depth_stencil: None,
                 multiview: None,
             });
 
@@ -222,14 +215,6 @@ impl LineDebugger {
                     store: true,
                 },
             })],
-            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: &renderer.depth_texture_view,
-                depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Load,
-                    store: true,
-                }),
-                stencil_ops: None,
-            }),
             ..Default::default()
         });
 
