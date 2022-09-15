@@ -2,8 +2,8 @@ use winit::window::Window;
 
 use crate::{camera, entity, line_debugger};
 
-pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
-pub const SAMPLES: u32 = 4;
+pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+pub const SAMPLES: u32 = 1;
 
 pub struct Renderer {
     surface: wgpu::Surface,
@@ -130,7 +130,8 @@ impl Renderer {
                 sample_count: SAMPLES,
                 dimension: wgpu::TextureDimension::D2,
                 format: DEPTH_FORMAT,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
             }),
         );
 
