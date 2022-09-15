@@ -1,4 +1,4 @@
-use cgmath::Matrix4;
+use cgmath::{Matrix4, Vector4};
 use geometric_algebra::pga3::{Dir, Rotor, Translator};
 use std::f64::consts::TAU;
 
@@ -52,19 +52,18 @@ impl Camera {
 fn perspective_matrix(fovy: f64, aspect: f64, near: f64, far: Option<f64>) -> Matrix4<f32> {
     let tan_half_fovy = (0.5 * fovy).tan();
     if let Some(far) = far {
-        [
-            [(1.0 / (aspect * tan_half_fovy)) as f32, 0.0, 0.0, 0.0],
-            [0.0, (1.0 / (tan_half_fovy)) as f32, 0.0, 0.0],
-            [0.0, 0.0, (-(far + near) / (far - near)) as f32, -1.0],
-            [0.0, 0.0, (-(2.0 * far * near) / (far - near)) as f32, 0.0],
-        ]
+        Matrix4::from_cols(
+            Vector4::new((1.0 / (aspect * tan_half_fovy)) as f32, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, (1.0 / (tan_half_fovy)) as f32, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, (-(far + near) / (far - near)) as f32, -1.0),
+            Vector4::new(0.0, 0.0, (-(2.0 * far * near) / (far - near)) as f32, 0.0),
+        )
     } else {
-        [
-            [(1.0 / (aspect * tan_half_fovy)) as f32, 0.0, 0.0, 0.0],
-            [0.0, (1.0 / (tan_half_fovy)) as f32, 0.0, 0.0],
-            [0.0, 0.0, -1.0, -1.0],
-            [0.0, 0.0, (-2.0 * near) as f32, 0.0],
-        ]
+        Matrix4::from_cols(
+            Vector4::new((1.0 / (aspect * tan_half_fovy)) as f32, 0.0, 0.0, 0.0),
+            Vector4::new(0.0, (1.0 / (tan_half_fovy)) as f32, 0.0, 0.0),
+            Vector4::new(0.0, 0.0, -1.0, -1.0),
+            Vector4::new(0.0, 0.0, (-2.0 * near) as f32, 0.0),
+        )
     }
-    .into()
 }
