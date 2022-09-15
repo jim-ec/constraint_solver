@@ -77,13 +77,13 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 delta: MouseScrollDelta::PixelDelta(delta),
                 ..
             } => {
-                camera.orbit += 0.003 * delta.x as f32;
-                camera.tilt += 0.003 * delta.y as f32;
-                camera.clamp_tilt();
+                camera_target.orbit += 0.003 * delta.x as f32;
+                camera_target.tilt += 0.003 * delta.y as f32;
+                camera_target.clamp_tilt();
             }
 
             WindowEvent::TouchpadMagnify { delta, .. } => {
-                camera.distance *= 1.0 - delta as f32;
+                camera_target.distance *= 1.0 - delta as f32;
             }
 
             WindowEvent::KeyboardInput {
@@ -97,15 +97,15 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             } => {
                 // Move camera back to initial position while minimizing the path of travel
                 let initial = camera::Camera::initial();
-                let mut delta_orbit = initial.orbit - camera.orbit;
+                let mut delta_orbit = initial.orbit - camera_target.orbit;
                 delta_orbit %= TAU;
                 if delta_orbit > TAU / 2.0 {
                     delta_orbit -= TAU;
                 } else if delta_orbit < -TAU / 2.0 {
                     delta_orbit += TAU;
                 }
-                camera = camera::Camera {
-                    orbit: camera.orbit + delta_orbit,
+                camera_target = camera::Camera {
+                    orbit: camera_target.orbit + delta_orbit,
                     ..initial
                 };
             }
@@ -124,11 +124,11 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 &mut line_debugger,
             );
 
-            camera_target.orbit = camera_target.orbit.lerp(camera.orbit, CAMERA_RESPONSIVNESS);
-            camera_target.tilt = camera_target.tilt.lerp(camera.tilt, CAMERA_RESPONSIVNESS);
-            camera_target.distance = camera_target
+            camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
+            camera.tilt = camera.tilt.lerp(camera_target.tilt, CAMERA_RESPONSIVNESS);
+            camera.distance = camera_target
                 .distance
-                .lerp(camera.distance, CAMERA_RESPONSIVNESS);
+                .lerp(camera_target.distance, CAMERA_RESPONSIVNESS);
 
             match renderer.render(&camera, &world.entities(), &mut line_debugger) {
                 Ok(_) => {}
