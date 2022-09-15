@@ -21,3 +21,4 @@ palette = "0.6.1"
 stavec = { git = "https://github.com/Jim-Eckerlein/stavec", branch = "develop" }
 winit = { git = "https://github.com/rust-windowing/winit" }
 derive_setters = "0.1.5"
+memoffset = "0.6.5"

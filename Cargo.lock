@@ -423,6 +423,7 @@ dependencies = [
  "itertools",
  "lerp",
  "log",
+ "memoffset",
  "noise",
  "palette",
  "rand 0.8.5",

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
-use geometric_algebra::pga3::Translator;
+use geometric_algebra::pga3::{Point, Translator};
 
 use crate::{
     entity::{self},
@@ -34,7 +34,7 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, _t: f32, dt: f32) {
+    pub fn integrate(&mut self, renderer: &mut renderer::Renderer, _t: f32, dt: f32) {
         solver::integrate(&self.rigid, dt, 25);
 
         let rigid = self.rigid.borrow();
@@ -43,6 +43,18 @@ impl World {
             rigid.frame.position.x,
             rigid.frame.position.y,
             rigid.frame.position.z,
+        );
+
+        renderer.debug_line(
+            vec![
+                Point::origin(),
+                Point::at(
+                    rigid.frame.position.x,
+                    rigid.frame.position.y,
+                    rigid.frame.position.z,
+                ),
+            ],
+            [1.0, 1.0, 0.0].into(),
         );
 
         self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
