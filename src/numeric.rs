@@ -36,8 +36,9 @@ pub const Z_UP: Matrix4<f32> = Matrix4::from_cols(
     Vector4::new(0.0, 0.0, 0.0, 1.0),
 );
 
+/// The identity matrix.
 #[allow(dead_code)]
-pub const ID: Matrix4<f32> = Matrix4::from_cols(
+pub const IDENTITY: Matrix4<f32> = Matrix4::from_cols(
     Vector4::new(1.0, 0.0, 0.0, 0.0),
     Vector4::new(0.0, 1.0, 0.0, 0.0),
     Vector4::new(0.0, 0.0, 1.0, 0.0),
