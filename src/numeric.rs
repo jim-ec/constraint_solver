@@ -19,6 +19,7 @@ pub fn motor_to_matrix(m: Motor) -> Matrix4<f32> {
 }
 
 /// Converts from a Z-up right-handed coordinate system into a Y-up left-handed coordinate system.
+#[allow(dead_code)]
 pub const Y_UP: Matrix4<f32> = Matrix4::from_cols(
     Vector4::new(0.0, 0.0, 1.0, 0.0),
     Vector4::new(1.0, 0.0, 0.0, 0.0),
@@ -27,9 +28,18 @@ pub const Y_UP: Matrix4<f32> = Matrix4::from_cols(
 );
 
 /// Converts from a Y-up left-handed coordinate system into a Z-up right-handed coordinate system.
+#[allow(dead_code)]
 pub const Z_UP: Matrix4<f32> = Matrix4::from_cols(
     Vector4::new(0.0, 1.0, 0.0, 0.0),
     Vector4::new(0.0, 0.0, 1.0, 0.0),
     Vector4::new(1.0, 0.0, 0.0, 0.0),
+    Vector4::new(0.0, 0.0, 0.0, 1.0),
+);
+
+#[allow(dead_code)]
+pub const ID: Matrix4<f32> = Matrix4::from_cols(
+    Vector4::new(1.0, 0.0, 0.0, 0.0),
+    Vector4::new(0.0, 1.0, 0.0, 0.0),
+    Vector4::new(0.0, 0.0, 1.0, 0.0),
     Vector4::new(0.0, 0.0, 0.0, 1.0),
 );
