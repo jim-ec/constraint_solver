@@ -164,7 +164,7 @@ impl Renderer {
         let grid_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: None,
             source: wgpu::ShaderSource::Wgsl(
-                std::fs::read_to_string("shaders/grid.wgsl")
+                std::fs::read_to_string("shaders/grid_worldspace.wgsl")
                     .expect("Cannot read shader file")
                     .into(),
             ),
@@ -472,7 +472,7 @@ impl Renderer {
 
             render_pass.set_pipeline(&self.grid_pipeline);
             render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
-            render_pass.draw(0..3, 0..1);
+            render_pass.draw(0..6, 0..1);
 
             drop(render_pass);
 
