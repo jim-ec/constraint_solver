@@ -40,13 +40,13 @@ impl Camera {
     }
 
     pub fn uniforms(&self, aspect: f64) -> CameraUniforms {
-        let orbit = Rotor::from_angle_axis(self.orbit as f32, Dir::new(0.0, -1.0, 0.0));
-        let tilt = Rotor::from_angle_axis(self.tilt as f32, Dir::new(-1.0, 0.0, 0.0));
-        let translation = Translator::new(0.0, 0.0, -1.0 * self.distance as f32);
+        let orbit = Rotor::from_angle_axis(self.orbit as f32, Dir::new(0.0, 0.0, -1.0));
+        let tilt = Rotor::from_angle_axis(self.tilt as f32, Dir::new(0.0, -1.0, 0.0));
+        let translation = Translator::new(-1.0 * self.distance as f32, 0.0, 0.0);
 
         let view_motor = translation * tilt * orbit;
-        let view = motor_to_matrix(view_motor) * Y_UP;
-        let view_inverse = Z_UP * motor_to_matrix(view_motor.reversal());
+        let view = Y_UP * motor_to_matrix(view_motor);
+        let view_inverse = motor_to_matrix(view_motor.reversal()) * Z_UP;
 
         let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
 
