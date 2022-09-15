@@ -319,9 +319,10 @@ impl Renderer {
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             }),
         );
+        self.depth_texture_view = self.depth_texture.create_view(&Default::default());
 
         if SAMPLES > 1 {
-            self.color_texture = Some(self.device.create_texture(&wgpu::TextureDescriptor {
+            let texture = self.device.create_texture(&wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
                     width: size.width,
@@ -333,7 +334,9 @@ impl Renderer {
                 dimension: wgpu::TextureDimension::D2,
                 format: self.swapchain_format,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            }))
+            });
+            self.color_texture_view = Some(texture.create_view(&Default::default()));
+            self.color_texture = Some(texture);
         }
     }
 
