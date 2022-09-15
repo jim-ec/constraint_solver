@@ -2,7 +2,7 @@ use cgmath::Vector3;
 use geometric_algebra::{
     motion,
     pga3::{Branch, Flat, Line, Origin, Plane, Point, Translator},
-    project, Inverse, LeftContraction, OuterProduct, Reversal, RightContraction, Transformation,
+    project, LeftContraction, OuterProduct, Reversal, Transformation,
 };
 use itertools::Itertools;
 
@@ -32,11 +32,10 @@ pub trait LineDebug {
 
 impl LineDebug for Point {
     fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
-        let d = 0.1;
-        let tx = Translator::new(d, 0.0, 0.0);
-        let ty = Translator::new(0.0, d, 0.0);
-        let tz = Translator::new(0.0, 0.0, d);
-
+        const D: f32 = 0.1;
+        let tx = Translator::new(D, 0.0, 0.0);
+        let ty = Translator::new(0.0, D, 0.0);
+        let tz = Translator::new(0.0, 0.0, D);
         line_debugger.debug_lines(
             vec![tx.transformation(self), tx.reversal().transformation(self)],
             color,
@@ -54,18 +53,16 @@ impl LineDebug for Point {
 
 impl LineDebug for Line {
     fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
-        let d = 10.0;
+        const D: f32 = 10.0;
         let branch: Branch = self.into();
-
         let motor = motion(
             Origin::new(),
             self.left_contraction(Origin::new()).outer_product(self),
         ) * motion(Branch::new(1.0, 0.0, 0.0), branch);
-
         line_debugger.debug_lines(
             vec![
-                motor.transformation(Point::at(-d, 0.0, 0.0)),
-                motor.transformation(Point::at(d, 0.0, 0.0)),
+                motor.transformation(Point::at(-D, 0.0, 0.0)),
+                motor.transformation(Point::at(D, 0.0, 0.0)),
             ],
             color,
         )
@@ -74,17 +71,17 @@ impl LineDebug for Line {
 
 impl LineDebug for Plane {
     fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
-        let d = 1.0;
+        const D: f32 = 1.0;
         let flat: Flat = self.into();
         let motor = motion(Origin::new(), project(Origin::new(), self))
             * motion(Flat::new(0.0, 0.0, 1.0), flat);
         line_debugger.debug_lines(
             vec![
-                motor.transformation(Point::at(d, d, 0.0)),
-                motor.transformation(Point::at(-d, d, 0.0)),
-                motor.transformation(Point::at(-d, -d, 0.0)),
-                motor.transformation(Point::at(d, -d, 0.0)),
-                motor.transformation(Point::at(d, d, 0.0)),
+                motor.transformation(Point::at(D, D, 0.0)),
+                motor.transformation(Point::at(-D, D, 0.0)),
+                motor.transformation(Point::at(-D, -D, 0.0)),
+                motor.transformation(Point::at(D, -D, 0.0)),
+                motor.transformation(Point::at(D, D, 0.0)),
             ],
             color,
         )
