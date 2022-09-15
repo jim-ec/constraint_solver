@@ -164,7 +164,7 @@ impl Renderer {
         let grid_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: None,
             source: wgpu::ShaderSource::Wgsl(
-                std::fs::read_to_string("shaders/grid_worldspace.wgsl")
+                std::fs::read_to_string("shaders/grid.wgsl")
                     .expect("Cannot read shader file")
                     .into(),
             ),

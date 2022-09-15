@@ -49,7 +49,7 @@ impl Camera {
         let view = motor_to_matrix(motor);
 
         let near = 0.01;
-        let proj = perspective_matrix(60.0_f64.to_radians(), aspect, near, Some(100.0));
+        let proj = perspective_matrix(60.0_f64.to_radians(), aspect, near, None);
 
         CameraUniforms {
             view,
