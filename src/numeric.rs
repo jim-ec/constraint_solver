@@ -25,3 +25,11 @@ pub const Y_UP: Matrix4<f32> = Matrix4::from_cols(
     Vector4::new(0.0, 1.0, 0.0, 0.0),
     Vector4::new(0.0, 0.0, 0.0, 1.0),
 );
+
+/// Converts from a Y-up left-handed coordinate system into a Z-up right-handed coordinate system.
+pub const Z_UP: Matrix4<f32> = Matrix4::from_cols(
+    Vector4::new(0.0, 1.0, 0.0, 0.0),
+    Vector4::new(0.0, 0.0, 1.0, 0.0),
+    Vector4::new(1.0, 0.0, 0.0, 0.0),
+    Vector4::new(0.0, 0.0, 0.0, 1.0),
+);

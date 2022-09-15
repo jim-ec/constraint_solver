@@ -5,7 +5,7 @@ use geometric_algebra::{
 };
 use std::f64::consts::TAU;
 
-use crate::numeric::motor_to_matrix;
+use crate::numeric::{motor_to_matrix, Y_UP, Z_UP};
 
 pub struct Camera {
     pub orbit: f64,
@@ -45,15 +45,15 @@ impl Camera {
         let tilt = Rotor::from_angle_axis(self.tilt as f32, Dir::new(-1.0, 0.0, 0.0));
         let translation = Translator::new(0.0, 0.0, -1.0 * self.distance as f32);
 
-        let motor = translation * tilt * orbit;
-        let view = motor_to_matrix(motor);
+        let view_motor = translation * tilt * orbit;
+        let view = motor_to_matrix(view_motor) * Y_UP;
+        let inverse_view = Z_UP * motor_to_matrix(view_motor.reversal());
 
-        let near = 0.01;
-        let proj = perspective_matrix(60.0_f64.to_radians(), aspect, near, None);
+        let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
 
         CameraUniforms {
             view,
-            inverse_view: motor_to_matrix(motor.reversal()),
+            inverse_view,
             proj,
             inverse_proj: proj.invert().unwrap(),
         }
