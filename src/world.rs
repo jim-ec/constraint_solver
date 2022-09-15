@@ -1,7 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
-use geometric_algebra::pga3::{Point, Translator};
+use geometric_algebra::{
+    pga3::{Point, Translator},
+    RegressiveProduct,
+};
 
 use crate::{
     entity::{self},
@@ -57,7 +60,12 @@ impl World {
             [1.0, 1.0, 0.0].into(),
         );
 
-        line_debugger.debug_point(Point::at(1.0, 1.0, 1.0), Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug_point(Point::at(1.0, 0.0, 0.0), Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug_point(Point::at(0.0, 1.0, 0.0), Vector3::new(1.0, 0.0, 1.0));
+        line_debugger.debug_line(
+            Point::at(1.0, 0.0, 0.0).regressive_product(Point::at(0.0, 1.0, 0.0)),
+            Vector3::new(1.0, 0.0, 1.0),
+        );
 
         self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
     }

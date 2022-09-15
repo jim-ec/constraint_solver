@@ -1,7 +1,8 @@
 use cgmath::Vector3;
 use geometric_algebra::{
-    pga3::{Point, Translator},
-    Reversal, Transformation,
+    motion,
+    pga3::{Branch, Line, Origin, Point, Translator},
+    LeftContraction, OuterProduct, Reversal, Transformation,
 };
 use itertools::Itertools;
 
@@ -70,6 +71,24 @@ impl LineDebugger {
             ],
             color,
         );
+    }
+
+    pub fn debug_line(&mut self, line: Line, color: Vector3<f32>) {
+        let d = 10.0;
+        let branch: Branch = line.into();
+
+        let motor = motion(
+            Origin::new(),
+            line.left_contraction(Origin::new()).outer_product(line),
+        ) * motion(Branch::new(1.0, 0.0, 0.0), branch);
+
+        self.debug(
+            vec![
+                motor.transformation(Point::at(-d, 0.0, 0.0)),
+                motor.transformation(Point::at(d, 0.0, 0.0)),
+            ],
+            color,
+        )
     }
 
     pub fn new(renderer: &renderer::Renderer) -> Self {
