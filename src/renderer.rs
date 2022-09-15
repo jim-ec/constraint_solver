@@ -1,11 +1,9 @@
-use lerp::Lerp;
 use winit::window::Window;
 
 use crate::{camera, entity, line_debugger};
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 pub const SAMPLES: u32 = 4;
-pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 
 pub struct Renderer {
     surface: wgpu::Surface,
@@ -24,7 +22,6 @@ pub struct Renderer {
     pub depth_texture: wgpu::Texture,
     pub depth_texture_view: wgpu::TextureView,
     camera_uniform_buffer: wgpu::Buffer,
-    camera: camera::Camera,
 }
 
 impl Renderer {
@@ -295,7 +292,6 @@ impl Renderer {
             depth_texture_view: depth_texture.create_view(&Default::default()),
             depth_texture,
             camera_uniform_buffer,
-            camera: camera::Camera::initial(),
         })
     }
 
@@ -347,19 +343,20 @@ impl Renderer {
         entities: &[entity::Entity],
         line_debugger: &mut line_debugger::LineDebugger,
     ) -> Result<(), wgpu::SurfaceError> {
-        self.camera.orbit = self.camera.orbit.lerp(camera.orbit, CAMERA_RESPONSIVNESS);
-        self.camera.tilt = self.camera.tilt.lerp(camera.tilt, CAMERA_RESPONSIVNESS);
-        self.camera.distance = self
-            .camera
-            .distance
-            .lerp(camera.distance, CAMERA_RESPONSIVNESS);
-
         let surface_texture = self.surface.get_current_texture()?;
         let view = surface_texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
         self.clear_surface(&view);
+
+        self.queue.write_buffer(
+            &self.camera_uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[
+                camera.uniforms(self.size.width as f32 / self.size.height as f32)
+            ]),
+        );
 
         for entity in entities {
             self.render_entity(&view, entity);
@@ -378,14 +375,6 @@ impl Renderer {
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
-        self.queue.write_buffer(
-            &self.camera_uniform_buffer,
-            0,
-            bytemuck::cast_slice(&[self
-                .camera
-                .uniforms(self.size.width as f32 / self.size.height as f32)]),
-        );
 
         encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {

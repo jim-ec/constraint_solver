@@ -4,6 +4,7 @@ use std::f32::consts::TAU;
 
 use crate::numeric::{motor_to_matrix, Y_UP};
 
+#[derive(Debug, Clone, Copy)]
 pub struct Camera {
     pub orbit: f32,
     pub tilt: f32,

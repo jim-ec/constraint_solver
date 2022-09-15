@@ -1,3 +1,4 @@
+use lerp::Lerp;
 use std::{
     f32::consts::TAU,
     time::{Duration, Instant},
@@ -9,6 +10,8 @@ use winit::{
 };
 
 use crate::{camera, line_debugger, renderer, world};
+
+pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
@@ -26,6 +29,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut world = world::World::new(&renderer);
     let mut camera = camera::Camera::initial();
+    let mut camera_target = camera;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::NewEvents(winit::event::StartCause::Init) => {
@@ -119,6 +123,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 delta_time.as_secs_f32(),
                 &mut line_debugger,
             );
+
+            camera_target.orbit = camera_target.orbit.lerp(camera.orbit, CAMERA_RESPONSIVNESS);
+            camera_target.tilt = camera_target.tilt.lerp(camera.tilt, CAMERA_RESPONSIVNESS);
+            camera_target.distance = camera_target
+                .distance
+                .lerp(camera.distance, CAMERA_RESPONSIVNESS);
 
             match renderer.render(&camera, &world.entities(), &mut line_debugger) {
                 Ok(_) => {}
