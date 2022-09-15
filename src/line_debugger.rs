@@ -44,6 +44,7 @@ impl LineDebugger {
         );
     }
 
+    #[allow(dead_code)]
     pub fn debug_point(&mut self, point: Point, color: Vector3<f32>) {
         let d = 0.1;
         let tx = Translator::new(d, 0.0, 0.0);
@@ -73,6 +74,7 @@ impl LineDebugger {
         );
     }
 
+    #[allow(dead_code)]
     pub fn debug_line(&mut self, line: Line, color: Vector3<f32>) {
         let d = 10.0;
         let branch: Branch = line.into();
@@ -91,6 +93,7 @@ impl LineDebugger {
         )
     }
 
+    #[allow(dead_code)]
     pub fn debug_plane(&mut self, plane: Plane, color: Vector3<f32>) {
         let d = 1.0;
 
