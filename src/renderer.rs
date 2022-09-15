@@ -347,108 +347,83 @@ impl Renderer {
         entities: &[entity::Entity],
         line_debugger: &mut line_debugger::LineDebugger,
     ) -> Result<(), wgpu::SurfaceError> {
-        let output = self.surface.get_current_texture()?;
-        let view = output
+        self.camera.orbit = self.camera.orbit.lerp(camera.orbit, CAMERA_RESPONSIVNESS);
+        self.camera.tilt = self.camera.tilt.lerp(camera.tilt, CAMERA_RESPONSIVNESS);
+        self.camera.distance = self
+            .camera
+            .distance
+            .lerp(camera.distance, CAMERA_RESPONSIVNESS);
+
+        let surface_texture = self.surface.get_current_texture()?;
+        let view = surface_texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        {
-            let mut encoder = self
-                .device
-                .create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                    label: Some("Render Encoder"),
-                });
-
-            self.camera.orbit = self.camera.orbit.lerp(camera.orbit, CAMERA_RESPONSIVNESS);
-            self.camera.tilt = self.camera.tilt.lerp(camera.tilt, CAMERA_RESPONSIVNESS);
-            self.camera.distance = self
-                .camera
-                .distance
-                .lerp(camera.distance, CAMERA_RESPONSIVNESS);
-
-            self.queue.write_buffer(
-                &self.camera_uniform_buffer,
-                0,
-                bytemuck::cast_slice(&[self
-                    .camera
-                    .uniforms(self.size.width as f32 / self.size.height as f32)]),
-            );
-
-            encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: self.texture_view(&view),
-                    resolve_target: self.resolve_target(&view),
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.01,
-                            g: 0.01,
-                            b: 0.01,
-                            a: 1.0,
-                        }),
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth_texture_view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: true,
-                    }),
-                    stencil_ops: None,
-                }),
-                ..Default::default()
-            });
-
-            self.queue.submit(std::iter::once(encoder.finish()));
-        }
+        self.clear_surface(&view);
 
         for entity in entities {
-            let spatial = &entity.spatial;
-            for mesh in &entity.meshes {
-                let mut encoder = self.device.create_command_encoder(&Default::default());
-
-                let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: self.texture_view(&view),
-                        resolve_target: self.resolve_target(&view),
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
-                        },
-                    })],
-                    depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                        view: &self.depth_texture_view,
-                        depth_ops: Some(wgpu::Operations {
-                            load: wgpu::LoadOp::Load,
-                            store: true,
-                        }),
-                        stencil_ops: None,
-                    }),
-                    ..Default::default()
-                });
-
-                render_pass.set_pipeline(&self.pipeline);
-                render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
-
-                mesh.upload_uniforms(&self.queue, spatial);
-                render_pass.set_bind_group(1, &mesh.bind_group, &[]);
-                render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
-                render_pass.draw(0..mesh.vertex_count as u32, 0..1);
-
-                drop(render_pass);
-
-                self.queue.submit(std::iter::once(encoder.finish()));
-            }
+            self.render_entity(&view, entity);
         }
 
-        // Render grid:
-        {
+        self.render_grid(&view);
+
+        line_debugger.render(self, &view);
+
+        surface_texture.present();
+
+        Ok(())
+    }
+
+    fn clear_surface(&mut self, view: &wgpu::TextureView) {
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
+
+        self.queue.write_buffer(
+            &self.camera_uniform_buffer,
+            0,
+            bytemuck::cast_slice(&[self
+                .camera
+                .uniforms(self.size.width as f32 / self.size.height as f32)]),
+        );
+
+        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: self.texture_view(view),
+                resolve_target: self.resolve_target(view),
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.01,
+                        g: 0.01,
+                        b: 0.01,
+                        a: 1.0,
+                    }),
+                    store: true,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &self.depth_texture_view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: true,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+
+        self.queue.submit(std::iter::once(encoder.finish()));
+    }
+
+    fn render_entity(&self, view: &wgpu::TextureView, entity: &entity::Entity) {
+        let spatial = &entity.spatial;
+        for mesh in &entity.meshes {
             let mut encoder = self.device.create_command_encoder(&Default::default());
 
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: self.texture_view(&view),
-                    resolve_target: self.resolve_target(&view),
+                    view: self.texture_view(view),
+                    resolve_target: self.resolve_target(view),
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
@@ -465,20 +440,50 @@ impl Renderer {
                 ..Default::default()
             });
 
-            render_pass.set_pipeline(&self.grid_pipeline);
+            render_pass.set_pipeline(&self.pipeline);
             render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
-            render_pass.draw(0..6, 0..1);
+
+            mesh.upload_uniforms(&self.queue, spatial);
+            render_pass.set_bind_group(1, &mesh.bind_group, &[]);
+            render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
+            render_pass.draw(0..mesh.vertex_count as u32, 0..1);
 
             drop(render_pass);
 
             self.queue.submit(std::iter::once(encoder.finish()));
         }
+    }
 
-        line_debugger.render(self, &view);
+    fn render_grid(&self, view: &wgpu::TextureView) {
+        let mut encoder = self.device.create_command_encoder(&Default::default());
 
-        output.present();
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: self.texture_view(view),
+                resolve_target: self.resolve_target(view),
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: true,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &self.depth_texture_view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: true,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
 
-        Ok(())
+        render_pass.set_pipeline(&self.grid_pipeline);
+        render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
+        render_pass.draw(0..6, 0..1);
+
+        drop(render_pass);
+
+        self.queue.submit(std::iter::once(encoder.finish()));
     }
 
     pub fn texture_view<'a>(&'a self, view: &'a wgpu::TextureView) -> &'a wgpu::TextureView {
