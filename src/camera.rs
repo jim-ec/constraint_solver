@@ -18,9 +18,9 @@ pub struct Camera {
 #[derive(Copy, Clone, Debug)]
 pub struct CameraUniforms {
     pub view: Matrix4<f32>,
-    pub inverse_view: Matrix4<f32>,
+    pub view_inverse: Matrix4<f32>,
     pub proj: Matrix4<f32>,
-    pub inverse_proj: Matrix4<f32>,
+    pub proj_inverse: Matrix4<f32>,
 }
 
 unsafe impl bytemuck::Pod for CameraUniforms {}
@@ -47,15 +47,16 @@ impl Camera {
 
         let view_motor = translation * tilt * orbit;
         let view = motor_to_matrix(view_motor) * Y_UP;
-        let inverse_view = Z_UP * motor_to_matrix(view_motor.reversal());
+        let view_inverse = Z_UP * motor_to_matrix(view_motor.reversal());
 
         let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
+        let proj_inverse = proj.invert().unwrap();
 
         CameraUniforms {
             view,
-            inverse_view,
+            view_inverse,
             proj,
-            inverse_proj: proj.invert().unwrap(),
+            proj_inverse,
         }
     }
 }
