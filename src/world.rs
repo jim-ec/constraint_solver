@@ -45,7 +45,7 @@ impl World {
             rigid.frame.position.z,
         );
 
-        line_debugger.debug_line(
+        line_debugger.debug(
             vec![
                 Point::origin(),
                 Point::at(
@@ -56,6 +56,8 @@ impl World {
             ],
             [1.0, 1.0, 0.0].into(),
         );
+
+        line_debugger.debug_point(Point::at(1.0, 1.0, 1.0), Vector3::new(1.0, 0.0, 1.0));
 
         self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
     }

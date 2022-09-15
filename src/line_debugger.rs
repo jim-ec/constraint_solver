@@ -1,5 +1,8 @@
 use cgmath::Vector3;
-use geometric_algebra::pga3::Point;
+use geometric_algebra::{
+    pga3::{Point, Translator},
+    Reversal, Transformation,
+};
 use itertools::Itertools;
 
 use crate::renderer;
@@ -23,7 +26,7 @@ unsafe impl bytemuck::Pod for DebugLineVertex {}
 unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 impl LineDebugger {
-    pub fn debug_line(&mut self, line: Vec<Point>, color: Vector3<f32>) {
+    pub fn debug(&mut self, line: Vec<Point>, color: Vector3<f32>) {
         for (p1, p2) in line.into_iter().tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
@@ -37,6 +40,35 @@ impl LineDebugger {
         assert!(
             self.vertices.len() < MAX_VERTEX_COUNT,
             "Exceeded maximal debug line vertex count {MAX_VERTEX_COUNT}"
+        );
+    }
+
+    pub fn debug_point(&mut self, point: Point, color: Vector3<f32>) {
+        let d = 0.1;
+        let tx = Translator::new(d, 0.0, 0.0);
+        let ty = Translator::new(0.0, d, 0.0);
+        let tz = Translator::new(0.0, 0.0, d);
+
+        self.debug(
+            vec![
+                tx.transformation(point),
+                tx.reversal().transformation(point),
+            ],
+            color,
+        );
+        self.debug(
+            vec![
+                ty.transformation(point),
+                ty.reversal().transformation(point),
+            ],
+            color,
+        );
+        self.debug(
+            vec![
+                tz.transformation(point),
+                tz.reversal().transformation(point),
+            ],
+            color,
         );
     }
 
