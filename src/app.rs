@@ -8,7 +8,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::{camera, renderer, world};
+use crate::{camera, line_debugger, renderer, world};
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
@@ -22,6 +22,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
+    let mut line_debugger = line_debugger::LineDebugger::new(&renderer);
 
     let mut world = world::World::new(&renderer);
     let mut camera = camera::Camera::initial();
@@ -114,12 +115,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             last_render_time = time;
 
             world.integrate(
-                &mut renderer,
                 time.duration_since(time_start).as_secs_f32(),
                 delta_time.as_secs_f32(),
+                &mut line_debugger,
             );
 
-            match renderer.render(&camera, &world.entities()) {
+            match renderer.render(&camera, &world.entities(), &mut line_debugger) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => renderer.resize(renderer.size),
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

@@ -14,6 +14,7 @@ mod simplex;
 mod solver;
 mod spatial;
 mod world;
+mod line_debugger;
 
 #[async_std::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

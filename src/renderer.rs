@@ -1,46 +1,31 @@
-use cgmath::Vector3;
-use geometric_algebra::pga3::Point;
-use itertools::Itertools;
 use lerp::Lerp;
 use winit::window::Window;
 
-use crate::{camera, entity};
+use crate::{camera, entity, line_debugger};
 
-const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
-const SAMPLES: u32 = 4;
-const CAMERA_RESPONSIVNESS: f32 = 0.5;
-const MAX_VERTEX_COUNT: usize = 1024;
+pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
+pub const SAMPLES: u32 = 4;
+pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 
 pub struct Renderer {
     surface: wgpu::Surface,
-    format: wgpu::TextureFormat,
+    pub swapchain_format: wgpu::TextureFormat,
     pub device: wgpu::Device,
-    queue: wgpu::Queue,
+    pub queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     pub size: winit::dpi::PhysicalSize<u32>,
-    camera_uniform_bind_group: wgpu::BindGroup,
+    pub camera_uniform_bind_group: wgpu::BindGroup,
     pipeline: wgpu::RenderPipeline,
     grid_pipeline: wgpu::RenderPipeline,
-    line_pipeline: wgpu::RenderPipeline,
+    pub camera_uniform_bind_group_layout: wgpu::BindGroupLayout,
     pub mesh_uniform_bind_group_layout: wgpu::BindGroupLayout,
-    depth_texture: wgpu::Texture,
-    color_texture: Option<wgpu::Texture>,
+    pub color_texture: Option<wgpu::Texture>,
+    pub color_texture_view: Option<wgpu::TextureView>,
+    pub depth_texture: wgpu::Texture,
+    pub depth_texture_view: wgpu::TextureView,
     camera_uniform_buffer: wgpu::Buffer,
     camera: camera::Camera,
-
-    debug_line_vertices: Vec<DebugLineVertex>,
-    debug_line_buffer: wgpu::Buffer,
 }
-
-#[repr(C, align(16))]
-#[derive(Debug, Clone, Copy)]
-struct DebugLineVertex {
-    position: Point,
-    color: Vector3<f32>,
-}
-
-unsafe impl bytemuck::Pod for DebugLineVertex {}
-unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 impl Renderer {
     pub async fn new(window: &Window) -> Result<Self, Box<dyn std::error::Error>> {
@@ -188,15 +173,6 @@ impl Renderer {
             ),
         });
 
-        let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: None,
-            source: wgpu::ShaderSource::Wgsl(
-                std::fs::read_to_string("shaders/line.wgsl")
-                    .expect("Cannot read shader file")
-                    .into(),
-            ),
-        });
-
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: None,
             layout: Some(
@@ -300,81 +276,9 @@ impl Renderer {
             multiview: None,
         });
 
-        let line_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: None,
-            layout: Some(
-                &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    bind_group_layouts: &[&camera_uniform_bind_group_layout],
-                    ..Default::default()
-                }),
-            ),
-            vertex: wgpu::VertexState {
-                module: &line_shader,
-                entry_point: "vs_main",
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: std::mem::size_of::<DebugLineVertex>() as wgpu::BufferAddress,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &[
-                        wgpu::VertexAttribute {
-                            offset: memoffset::offset_of!(DebugLineVertex, position)
-                                as wgpu::BufferAddress,
-                            shader_location: 0,
-                            format: wgpu::VertexFormat::Float32x4,
-                        },
-                        wgpu::VertexAttribute {
-                            offset: memoffset::offset_of!(DebugLineVertex, color)
-                                as wgpu::BufferAddress,
-                            shader_location: 1,
-                            format: wgpu::VertexFormat::Float32x3,
-                        },
-                    ],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &line_shader,
-                entry_point: "fs_main",
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: swapchain_format,
-                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::LineList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
-                polygon_mode: wgpu::PolygonMode::Fill,
-                unclipped_depth: false,
-                conservative: false,
-            },
-            multisample: wgpu::MultisampleState {
-                count: SAMPLES,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            depth_stencil: Some(wgpu::DepthStencilState {
-                format: DEPTH_FORMAT,
-                depth_write_enabled: true,
-                // depth_compare: wgpu::CompareFunction::LessEqual,
-                depth_compare: wgpu::CompareFunction::Always,
-                stencil: Default::default(),
-                bias: Default::default(),
-            }),
-            multiview: None,
-        });
-
-        let debug_line_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            label: None,
-            size: (MAX_VERTEX_COUNT * std::mem::size_of::<DebugLineVertex>())
-                as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-
         Ok(Self {
             surface,
-            format: swapchain_format,
+            swapchain_format,
             device,
             queue,
             config,
@@ -382,14 +286,16 @@ impl Renderer {
             camera_uniform_bind_group,
             pipeline,
             grid_pipeline,
-            line_pipeline,
+            camera_uniform_bind_group_layout,
             mesh_uniform_bind_group_layout,
-            depth_texture,
+            color_texture_view: color_texture
+                .as_ref()
+                .map(|color_texture| color_texture.create_view(&Default::default())),
             color_texture,
+            depth_texture_view: depth_texture.create_view(&Default::default()),
+            depth_texture,
             camera_uniform_buffer,
-            debug_line_buffer,
             camera: camera::Camera::initial(),
-            debug_line_vertices: vec![],
         })
     }
 
@@ -429,7 +335,7 @@ impl Renderer {
                 mip_level_count: 1,
                 sample_count: SAMPLES,
                 dimension: wgpu::TextureDimension::D2,
-                format: self.format,
+                format: self.swapchain_format,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             }))
         }
@@ -439,6 +345,7 @@ impl Renderer {
         &mut self,
         camera: &camera::Camera,
         entities: &[entity::Entity],
+        line_debugger: &mut line_debugger::LineDebugger,
     ) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
         let view = output
@@ -467,17 +374,10 @@ impl Renderer {
                     .uniforms(self.size.width as f32 / self.size.height as f32)]),
             );
 
-            let color_texture_view = self
-                .color_texture
-                .as_ref()
-                .map(|color_texture| color_texture.create_view(&Default::default()));
-
-            let depth_texture_view = self.depth_texture.create_view(&Default::default());
-
             encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: color_texture_view.as_ref().unwrap_or(&view),
-                    resolve_target: color_texture_view.as_ref().and(Some(&view)),
+                    view: self.texture_view(&view),
+                    resolve_target: self.resolve_target(&view),
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
                             r: 0.01,
@@ -489,7 +389,7 @@ impl Renderer {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_texture_view,
+                    view: &self.depth_texture_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.0),
                         store: true,
@@ -502,13 +402,6 @@ impl Renderer {
             self.queue.submit(std::iter::once(encoder.finish()));
         }
 
-        let color_texture_view = self
-            .color_texture
-            .as_ref()
-            .map(|color_texture| color_texture.create_view(&Default::default()));
-
-        let depth_texture_view = self.depth_texture.create_view(&Default::default());
-
         for entity in entities {
             let spatial = &entity.spatial;
             for mesh in &entity.meshes {
@@ -516,15 +409,15 @@ impl Renderer {
 
                 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                        view: color_texture_view.as_ref().unwrap_or(&view),
-                        resolve_target: color_texture_view.as_ref().and(Some(&view)),
+                        view: self.texture_view(&view),
+                        resolve_target: self.resolve_target(&view),
                         ops: wgpu::Operations {
                             load: wgpu::LoadOp::Load,
                             store: true,
                         },
                     })],
                     depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                        view: &depth_texture_view,
+                        view: &self.depth_texture_view,
                         depth_ops: Some(wgpu::Operations {
                             load: wgpu::LoadOp::Load,
                             store: true,
@@ -554,15 +447,15 @@ impl Renderer {
 
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: color_texture_view.as_ref().unwrap_or(&view),
-                    resolve_target: color_texture_view.as_ref().and(Some(&view)),
+                    view: self.texture_view(&view),
+                    resolve_target: self.resolve_target(&view),
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_texture_view,
+                    view: &self.depth_texture_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
@@ -581,67 +474,21 @@ impl Renderer {
             self.queue.submit(std::iter::once(encoder.finish()));
         }
 
-        // Render debug lines:
-        {
-            self.queue.write_buffer(
-                &self.debug_line_buffer,
-                0,
-                bytemuck::cast_slice(self.debug_line_vertices.as_slice()),
-            );
-
-            let mut encoder = self.device.create_command_encoder(&Default::default());
-
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: color_texture_view.as_ref().unwrap_or(&view),
-                    resolve_target: color_texture_view.as_ref().and(Some(&view)),
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_texture_view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: true,
-                    }),
-                    stencil_ops: None,
-                }),
-                ..Default::default()
-            });
-
-            render_pass.set_pipeline(&self.line_pipeline);
-            render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
-            render_pass.set_vertex_buffer(0, self.debug_line_buffer.slice(..));
-            render_pass.draw(0..self.debug_line_vertices.len() as u32, 0..1);
-
-            drop(render_pass);
-
-            self.queue.submit(std::iter::once(encoder.finish()));
-
-            self.debug_line_vertices.clear();
-        }
+        line_debugger.render(self, &view);
 
         output.present();
 
         Ok(())
     }
 
-    pub fn debug_line(&mut self, line: Vec<Point>, color: Vector3<f32>) {
-        for (p1, p2) in line.into_iter().tuple_windows() {
-            self.debug_line_vertices.push(DebugLineVertex {
-                position: p1,
-                color,
-            });
-            self.debug_line_vertices.push(DebugLineVertex {
-                position: p2,
-                color,
-            });
-        }
-        assert!(
-            self.debug_line_vertices.len() < MAX_VERTEX_COUNT,
-            "Exceeded maximal debug line vertex count {MAX_VERTEX_COUNT}"
-        );
+    pub fn texture_view<'a>(&'a self, view: &'a wgpu::TextureView) -> &'a wgpu::TextureView {
+        self.color_texture_view.as_ref().unwrap_or(view)
+    }
+
+    pub fn resolve_target<'a>(
+        &'a self,
+        view: &'a wgpu::TextureView,
+    ) -> Option<&'a wgpu::TextureView> {
+        self.color_texture_view.as_ref().and(Some(view))
     }
 }

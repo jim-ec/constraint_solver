@@ -5,7 +5,7 @@ use geometric_algebra::pga3::{Point, Translator};
 
 use crate::{
     entity::{self},
-    mesh,
+    line_debugger, mesh,
     numeric::quat_to_rotor,
     renderer, rigid, solver,
 };
@@ -34,7 +34,7 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, renderer: &mut renderer::Renderer, _t: f32, dt: f32) {
+    pub fn integrate(&mut self, _t: f32, dt: f32, line_debugger: &mut line_debugger::LineDebugger) {
         solver::integrate(&self.rigid, dt, 25);
 
         let rigid = self.rigid.borrow();
@@ -45,7 +45,7 @@ impl World {
             rigid.frame.position.z,
         );
 
-        renderer.debug_line(
+        line_debugger.debug_line(
             vec![
                 Point::origin(),
                 Point::at(
