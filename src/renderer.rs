@@ -5,7 +5,7 @@ use crate::{camera, entity};
 
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 const SAMPLES: u32 = 4;
-const CAMERA_RESPONSIVNESS: f64 = 0.5;
+const CAMERA_RESPONSIVNESS: f32 = 0.5;
 
 pub struct Renderer {
     surface: wgpu::Surface,
@@ -362,7 +362,7 @@ impl Renderer {
                 0,
                 bytemuck::cast_slice(&[self
                     .camera
-                    .uniforms(self.size.width as f64 / self.size.height as f64)]),
+                    .uniforms(self.size.width as f32 / self.size.height as f32)]),
             );
 
             let color_texture_view = self

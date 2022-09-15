@@ -1,5 +1,5 @@
 use std::{
-    f64::consts::TAU,
+    f32::consts::TAU,
     time::{Duration, Instant},
 };
 use winit::{
@@ -72,13 +72,13 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 delta: MouseScrollDelta::PixelDelta(delta),
                 ..
             } => {
-                camera.orbit += 0.003 * delta.x;
-                camera.tilt += 0.003 * delta.y;
+                camera.orbit += 0.003 * delta.x as f32;
+                camera.tilt += 0.003 * delta.y as f32;
                 camera.clamp_tilt();
             }
 
             WindowEvent::TouchpadMagnify { delta, .. } => {
-                camera.distance *= 1.0 - delta;
+                camera.distance *= 1.0 - delta as f32;
             }
 
             WindowEvent::KeyboardInput {
@@ -114,8 +114,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             last_render_time = time;
 
             world.integrate(
-                time.duration_since(time_start).as_secs_f64(),
-                delta_time.as_secs_f64(),
+                time.duration_since(time_start).as_secs_f32(),
+                delta_time.as_secs_f32(),
             );
 
             match renderer.render(&camera, &world.entities()) {
@@ -127,7 +127,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Event::MainEventsCleared => {
-            let target_frametime = Duration::from_secs_f64(1.0 / 60.0);
+            let target_frametime = Duration::from_secs_f32(1.0 / 60.0);
             let time_since_last_frame = last_render_time.elapsed();
             if time_since_last_frame >= target_frametime {
                 window.request_redraw();

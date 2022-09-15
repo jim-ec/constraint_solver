@@ -34,8 +34,8 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, _t: f64, dt: f64) {
-        solver::integrate(&self.rigid, dt as f32, 25);
+    pub fn integrate(&mut self, _t: f32, dt: f32) {
+        solver::integrate(&self.rigid, dt, 25);
 
         let rigid = self.rigid.borrow();
 
