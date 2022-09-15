@@ -25,8 +25,8 @@ unsafe impl bytemuck::Zeroable for CameraUniforms {}
 impl Camera {
     pub fn initial() -> Self {
         Self {
-            orbit: 1.0,
-            tilt: 0.2 * 0.25 * TAU,
+            orbit: -0.1 * TAU,
+            tilt: 0.3 * 0.25 * TAU,
             distance: 12.0,
             fovy: 60.0,
         }
