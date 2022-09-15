@@ -20,8 +20,8 @@ fn vs_main(@builtin(vertex_index) id: u32) -> Fragment {
 
     let distant = 10.0e+3;
     var positions = array(
-        vec4(-distant, 0.0, -distant, 1.0),
-        vec4(-distant, 0.0, distant, 1.0),
+        vec4(-distant, -distant, 0.0, 1.0),
+        vec4(-distant, distant, 0.0, 1.0),
         vec4(distant, 0.0, 0.0, 1.0),
     );
     let position = positions[id];
@@ -33,9 +33,9 @@ fn vs_main(@builtin(vertex_index) id: u32) -> Fragment {
 }
 
 fn axis(position: vec3<f32>) -> vec3<f32> {
-    let width = min(fwidth(2.0 * position.xz), vec2(2.0));
+    let width = min(fwidth(2.0 * position.xy), vec2(2.0));
 
-    if position.z > -width.y && position.z < width.y {
+    if position.y > -width.y && position.y < width.y {
         return vec3(1.0, 0.2, 0.2);
     }
     if position.x > -width.x && position.x < width.x {
@@ -45,7 +45,7 @@ fn axis(position: vec3<f32>) -> vec3<f32> {
 }
 
 fn grid(position: vec3<f32>, phase: f32) -> f32 {
-    let position = position.xz / phase;
+    let position = position.xy / phase;
     let grid = abs(fract(position - 0.5) - 0.5) / fwidth(2.0 * position);
     return 1.0 - min(min(grid.x, grid.y), 1.0);
 }
@@ -56,12 +56,12 @@ fn radius_attenuation(frag: Fragment, visible_radius: f32) -> f32 {
 }
 
 fn tilt_attenuation(falloff: f32) -> f32 {
-    let attenuation = 1.0 - abs(dot(vec4(0.0, 1.0, 0.0, 0.0), normalize(camera.view * vec4(0.0, 1.0, 0.0, 0.0))));
+    let attenuation = 1.0 - abs(dot(vec4(0.0, 1.0, 0.0, 0.0), normalize(camera.view * vec4(0.0, 0.0, 1.0, 0.0))));
     return pow(attenuation, falloff);
 }
 
 fn perspective_distortion_attenuation(frag: Fragment, amount: f32) -> f32 {
-    let change = abs(fwidth(frag.position.x) + fwidth(frag.position.z));
+    let change = abs(fwidth(frag.position.x) + fwidth(frag.position.y));
     return 1.0 / (amount * change);
 }
 
