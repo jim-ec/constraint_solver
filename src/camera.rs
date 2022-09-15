@@ -38,7 +38,7 @@ impl Camera {
     pub fn uniforms(&self, aspect: f64) -> CameraUniforms {
         let orbit = Rotor::from_angle_axis(self.orbit as f32, Dir::new(0.0, 0.0, -1.0));
         let tilt = Rotor::from_angle_axis(self.tilt as f32, Dir::new(0.0, -1.0, 0.0));
-        let translation = Translator::new(-1.0 * self.distance as f32, 0.0, 0.0);
+        let translation = Translator::new(-self.distance as f32, 0.0, 0.0);
 
         let view_motor = translation * tilt * orbit;
         let view = motor_to_matrix(view_motor);
