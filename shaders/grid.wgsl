@@ -52,7 +52,7 @@ fn radius_attenuation(frag: Fragment, visible_radius: f32) -> f32 {
 }
 
 fn tilt_attenuation(falloff: f32) -> f32 {
-    let attenuation = 1.0 - abs(dot(vec4(0.0, 1.0, 0.0, 0.0), normalize(camera.view * vec4(0.0, 0.0, 1.0, 0.0))));
+    let attenuation = 1.0 - abs(dot(vec4(0.0, 0.0, 1.0, 0.0), normalize(camera.view * vec4(0.0, 0.0, 1.0, 0.0))));
     return pow(attenuation, falloff);
 }
 
