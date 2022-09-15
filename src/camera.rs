@@ -1,4 +1,4 @@
-use cgmath::{Matrix4, SquareMatrix};
+use cgmath::Matrix4;
 use geometric_algebra::{
     pga3::{Dir, Rotor, Translator},
     Reversal,
@@ -20,7 +20,6 @@ pub struct CameraUniforms {
     pub view: Matrix4<f32>,
     pub view_inverse: Matrix4<f32>,
     pub proj: Matrix4<f32>,
-    pub proj_inverse: Matrix4<f32>,
 }
 
 unsafe impl bytemuck::Pod for CameraUniforms {}
@@ -50,13 +49,11 @@ impl Camera {
         let view_inverse = Z_UP * motor_to_matrix(view_motor.reversal());
 
         let proj = perspective_matrix(60.0_f64.to_radians(), aspect, 0.01, None);
-        let proj_inverse = proj.invert().unwrap();
 
         CameraUniforms {
             view,
             view_inverse,
             proj,
-            proj_inverse,
         }
     }
 }
