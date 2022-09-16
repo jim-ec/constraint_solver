@@ -27,11 +27,11 @@ unsafe impl bytemuck::Pod for DebugLineVertex {}
 unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 pub trait LineDebug {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger);
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point);
 }
 
 impl LineDebug for Point {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, _projectee: Point) {
         const D: f32 = 0.1;
         let tx = Translator::new(D, 0.0, 0.0);
         let ty = Translator::new(0.0, D, 0.0);
@@ -52,10 +52,10 @@ impl LineDebug for Point {
 }
 
 impl LineDebug for Line {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point) {
         const D: f32 = 10.0;
         let branch: Branch = self.into();
-        let motor = motion(Origin::new(), project(Origin::new(), self))
+        let motor = motion(Origin::new(), project(projectee, self))
             * motion(Branch::new(1.0, 0.0, 0.0), branch);
         line_debugger.debug_lines(
             vec![
@@ -68,10 +68,10 @@ impl LineDebug for Line {
 }
 
 impl LineDebug for Plane {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger) {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point) {
         const D: f32 = 1.0;
         let flat: Flat = self.into();
-        let motor = motion(Origin::new(), project(Origin::new(), self))
+        let motor = motion(Origin::new(), project(projectee, self))
             * motion(Flat::new(0.0, 0.0, 1.0), flat);
         line_debugger.debug_lines(
             vec![
@@ -106,7 +106,12 @@ impl LineDebugger {
 
     #[allow(dead_code)]
     pub fn debug(&mut self, geometry: impl LineDebug, color: Vector3<f32>) {
-        geometry.debug(color, self)
+        geometry.debug(color, self, Point::origin())
+    }
+
+    #[allow(dead_code)]
+    pub fn debug_at(&mut self, geometry: impl LineDebug, color: Vector3<f32>, projectee: Point) {
+        geometry.debug(color, self, projectee)
     }
 
     pub fn new(renderer: &renderer::Renderer) -> Self {
