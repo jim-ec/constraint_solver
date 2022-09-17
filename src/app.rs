@@ -126,7 +126,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
             camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
             camera.tilt = camera.tilt.lerp(camera_target.tilt, CAMERA_RESPONSIVNESS);
-            camera.distance = camera_target
+            camera.distance = camera
                 .distance
                 .lerp(camera_target.distance, CAMERA_RESPONSIVNESS);
 
