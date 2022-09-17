@@ -1,7 +1,7 @@
 use cgmath::Vector3;
 use geometric_algebra::{
     motion,
-    pga3::{Branch, Flat, Line, Origin, Plane, Point, Translator},
+    pga3::{Branch, Dir, Flat, Line, Origin, Plane, Point, Translator},
     project, Reversal, Transformation,
 };
 use itertools::Itertools;
@@ -51,6 +51,12 @@ impl LineDebug for Point {
     }
 }
 
+impl LineDebug for Dir {
+    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, _projectee: Point) {
+        line_debugger.debug_lines(vec![Point::origin(), self.point()], color);
+    }
+}
+
 impl LineDebug for Line {
     fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point) {
         const D: f32 = 10.0;
@@ -63,7 +69,7 @@ impl LineDebug for Line {
                 motor.transformation(Point::at(D, 0.0, 0.0)),
             ],
             color,
-        )
+        );
     }
 }
 
@@ -82,7 +88,7 @@ impl LineDebug for Plane {
                 motor.transformation(Point::at(D, D, 0.0)),
             ],
             color,
-        )
+        );
     }
 }
 

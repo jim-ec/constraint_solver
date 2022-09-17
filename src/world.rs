@@ -2,8 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 use geometric_algebra::{
-    pga3::{Point, Translator},
-    RegressiveProduct,
+    pga3::{Dir, Point, Translator},
+    project, RegressiveProduct,
 };
 
 use crate::{
@@ -74,6 +74,11 @@ impl World {
             a.regressive_product(b).regressive_product(c),
             Vector3::new(1.0, 0.0, 1.0),
         );
+
+        let x = Dir::new(2.0, 3.0, 4.0);
+        let y = project(x, a.regressive_product(b).regressive_product(c));
+        line_debugger.debug(x, Vector3::new(0.0, 1.0, 1.0));
+        line_debugger.debug(y, Vector3::new(0.0, 1.0, 1.0));
 
         self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
     }
