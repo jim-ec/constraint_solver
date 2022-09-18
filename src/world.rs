@@ -1,10 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
-use geometric_algebra::{
-    pga3::{Dir, Point, Translator},
-    project, RegressiveProduct,
-};
+use geometric_algebra::pga3::Translator;
 
 use crate::{
     entity::{self},
@@ -37,7 +34,12 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, _t: f32, dt: f32, line_debugger: &mut line_debugger::LineDebugger) {
+    pub fn integrate(
+        &mut self,
+        _t: f32,
+        dt: f32,
+        _line_debugger: &mut line_debugger::LineDebugger,
+    ) {
         solver::integrate(&self.rigid, dt, 25);
 
         let rigid = self.rigid.borrow();
@@ -47,38 +49,6 @@ impl World {
             rigid.frame.position.y,
             rigid.frame.position.z,
         );
-
-        line_debugger.debug_lines(
-            vec![
-                Point::origin(),
-                Point::at(
-                    rigid.frame.position.x,
-                    rigid.frame.position.y,
-                    rigid.frame.position.z,
-                ),
-            ],
-            [1.0, 1.0, 0.0].into(),
-        );
-
-        let a = Point::at(1.0, 0.0, 0.0);
-        let b = Point::at(0.0, 1.0, 0.0);
-        let c = Point::at(0.0, 0.0, 1.0);
-
-        line_debugger.debug(a, Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug(b, Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug(c, Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug(a.regressive_product(b), Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug(b.regressive_product(c), Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug(c.regressive_product(a), Vector3::new(1.0, 0.0, 1.0));
-        line_debugger.debug(
-            a.regressive_product(b).regressive_product(c),
-            Vector3::new(1.0, 0.0, 1.0),
-        );
-
-        let x = Dir::new(2.0, 3.0, 4.0);
-        let y = project(x, a.regressive_product(b).regressive_product(c));
-        line_debugger.debug(x, Vector3::new(0.0, 1.0, 1.0));
-        line_debugger.debug(y, Vector3::new(0.0, 1.0, 1.0));
 
         self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
     }
