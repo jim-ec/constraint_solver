@@ -33,11 +33,8 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let ambient_light = 0.005;
     let light_intensity = 2.0;
     
-    // Compute normal based on positional derivatives.
-    // A normal vector of (0, 0, 1) points toward the viewer.
-    let n = normalize(cross(dpdy(frag.position), dpdx(frag.position)));
-
-    let v = normalize(vec3(0.0, 0.0, 1.0) - frag.position);
+    let n = normalize(cross(dpdx(frag.position), dpdy(frag.position)));
+    let v = normalize(frag.position - vec3(0.0, 0.0, 1.0));
     let nov = dot(n, v);
 
     let color = nov * light_intensity * mesh.color + ambient_light;
