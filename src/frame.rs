@@ -30,7 +30,7 @@ impl Frame {
     }
 
     pub fn act(&self, x: Vector3<f32>) -> Vector3<f32> {
-        rotor_to_quat(self.rotor) * x + self.position
+        rotor_to_quat(self.rotor.signum()) * x + self.position
     }
 
     pub fn integrate(
