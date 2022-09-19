@@ -1,10 +1,7 @@
-use cgmath::{ElementWise, InnerSpace, Quaternion, Vector3, Zero};
+use cgmath::{ElementWise, Vector3, Zero};
 use geometric_algebra::pga3::{Rotor, Scalar};
 
-use crate::{
-    frame::Frame,
-    numeric::{quat_to_rotor, rotor_to_quat},
-};
+use crate::{frame::Frame, numeric::rotor_to_quat};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rigid {

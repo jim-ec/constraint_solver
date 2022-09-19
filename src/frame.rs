@@ -1,10 +1,10 @@
-use cgmath::{InnerSpace, Quaternion, Vector3, Zero};
+use cgmath::{Vector3, Zero};
 use geometric_algebra::{
     pga3::{Rotor, Scalar},
-    Inverse, Magnitude, One, Reversal, ScalarPart, Signum,
+    Inverse, One, ScalarPart, Signum,
 };
 
-use crate::numeric::{quat_to_rotor, rotor_to_quat};
+use crate::numeric::rotor_to_quat;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Frame {
