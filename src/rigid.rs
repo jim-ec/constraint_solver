@@ -1,6 +1,9 @@
 use cgmath::{ElementWise, InnerSpace, Quaternion, Vector3, Zero};
 
-use crate::frame::Frame;
+use crate::{
+    frame::Frame,
+    numeric::{quat_to_rotor, rotor_to_quat},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rigid {
@@ -62,10 +65,10 @@ impl Rigid {
     }
 
     pub fn integrate(&mut self, dt: f32) {
-        let force = self.external_force + self.frame.quaternion * self.internal_force;
+        let force = self.external_force + rotor_to_quat(self.frame.rotor) * self.internal_force;
         self.velocity += dt * force / self.mass;
 
-        let torque = self.external_torque + self.frame.quaternion * self.internal_torque;
+        let torque = self.external_torque + rotor_to_quat(self.frame.rotor) * self.internal_torque;
         self.angular_velocity += dt * torque.div_element_wise(self.rotational_inertia);
 
         self.past_frame = self.frame;
@@ -86,8 +89,9 @@ impl Rigid {
         let log = (point - self.frame.position)
             .div_element_wise(self.rotational_inertia)
             .cross(impulse);
-        let rotation = 0.5 * Quaternion::new(0.0, log.x, log.y, log.z) * self.frame.quaternion;
-        self.frame.quaternion = (self.frame.quaternion + rotation).normalize();
+        let rotation =
+            0.5 * Quaternion::new(0.0, log.x, log.y, log.z) * rotor_to_quat(self.frame.rotor);
+        self.frame.rotor = quat_to_rotor((rotor_to_quat(self.frame.rotor) + rotation).normalize());
     }
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.

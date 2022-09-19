@@ -1,8 +1,9 @@
 use std::cell::RefCell;
 
 use cgmath::{ElementWise, InnerSpace, Vector3};
+use geometric_algebra::Inverse;
 
-use crate::rigid::Rigid;
+use crate::{numeric::rotor_to_quat, rigid::Rigid};
 
 #[derive(Debug)]
 pub struct Constraint<'a> {
@@ -27,7 +28,7 @@ impl Constraint<'_> {
     pub fn resistance(&self) -> f32 {
         let rigid = self.rigid.borrow();
 
-        let angular_impulse = rigid.frame.quaternion.conjugate()
+        let angular_impulse = rotor_to_quat(rigid.frame.rotor.inverse())
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
         1.0 / (1.0 / rigid.mass

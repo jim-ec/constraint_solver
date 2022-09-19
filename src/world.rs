@@ -24,8 +24,10 @@ impl World {
         rigid.velocity.z = -0.2;
         rigid.angular_velocity.z = 1.0;
         rigid.frame.position.z = 5.0;
-        rigid.frame.quaternion =
-            Quaternion::from_axis_angle(Vector3::new(1.0, 0.5, 0.2).normalize(), Rad(1.0));
+        rigid.frame.rotor = quat_to_rotor(Quaternion::from_axis_angle(
+            Vector3::new(1.0, 0.5, 0.2).normalize(),
+            Rad(1.0),
+        ));
         rigid.past_frame = rigid.frame;
 
         World {
@@ -50,7 +52,7 @@ impl World {
             rigid.frame.position.z,
         );
 
-        self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
+        self.cube.spatial.rotor = rigid.frame.rotor;
     }
 
     pub fn entities(&self) -> Vec<entity::Entity> {
