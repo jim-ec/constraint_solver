@@ -29,7 +29,7 @@ impl Constraint<'_> {
         let rigid = self.rigid.borrow();
 
         let angular_impulse = rotor_to_quat(rigid.frame.rotor.inverse())
-            * (self.contacts.0 - rigid.frame.position()).cross(self.direction());
+            * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
         1.0 / (1.0 / rigid.mass
             + (angular_impulse.div_element_wise(rigid.rotational_inertia)).dot(angular_impulse))

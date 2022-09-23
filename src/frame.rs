@@ -1,40 +1,36 @@
-use cgmath::Vector3;
+use cgmath::{Vector3, Zero};
 use geometric_algebra::{
-    pga3::{Rotor, Scalar, Translator},
-    Inverse, One, ScalarPart, Signum, Transformation,
+    pga3::{Rotor, Scalar},
+    Inverse, One, ScalarPart, Signum,
 };
 
-use crate::numeric::{rotor_to_quat, translator_to_vector, vector_to_translator};
+use crate::numeric::rotor_to_quat;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Frame {
-    pub translator: Translator,
+    pub position: Vector3<f32>,
     pub rotor: Rotor,
 }
 
 impl Frame {
     pub fn identity() -> Frame {
         Frame {
-            translator: Translator::one(),
+            position: Vector3::zero(),
             rotor: Rotor::one(),
         }
     }
 
-    pub fn position(&self) -> Vector3<f32> {
-        translator_to_vector(self.translator)
-    }
-
     pub fn inverse(&self) -> Frame {
         let inverse_orientation = self.rotor.inverse();
-        let inverse_translator = inverse_orientation.transformation(self.translator.inverse());
+        let inverse_position = rotor_to_quat(inverse_orientation) * -self.position;
         Frame {
-            translator: inverse_translator,
+            position: inverse_position,
             rotor: inverse_orientation,
         }
     }
 
     pub fn act(&self, x: Vector3<f32>) -> Vector3<f32> {
-        rotor_to_quat(self.rotor.signum()) * x + self.position()
+        rotor_to_quat(self.rotor.signum()) * x + self.position
     }
 
     pub fn integrate(
@@ -43,7 +39,7 @@ impl Frame {
         linear_velocity: Vector3<f32>,
         angular_velocity: Vector3<f32>,
     ) -> Frame {
-        let position = self.position() + dt * linear_velocity;
+        let position = self.position + dt * linear_velocity;
 
         let delta_rotor = Scalar::new(0.5 * dt)
             * -Rotor::new(
@@ -56,14 +52,11 @@ impl Frame {
 
         let rotor = (self.rotor + delta_rotor).signum();
 
-        Frame {
-            translator: vector_to_translator(position),
-            rotor,
-        }
+        Frame { position, rotor }
     }
 
     pub fn derive(&self, dt: f32, past: Frame) -> (Vector3<f32>, Vector3<f32>) {
-        let derived_position = (self.position() - past.position()) / dt;
+        let derived_position = (self.position - past.position) / dt;
 
         let derived_rotation = {
             let delta = Scalar::new(-2.0 / dt) * self.rotor * past.rotor.inverse();
