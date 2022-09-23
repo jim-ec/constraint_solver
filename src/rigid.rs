@@ -1,7 +1,10 @@
-use cgmath::{ElementWise, Vector3, Zero};
+use cgmath::{ElementWise, InnerSpace, Quaternion, Vector3, Zero};
 use geometric_algebra::pga3::{Rotor, Scalar};
 
-use crate::{frame::Frame, numeric::rotor_to_quat};
+use crate::{
+    frame::Frame,
+    numeric::{quat_to_rotor, rotor_to_quat},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rigid {
@@ -87,9 +90,9 @@ impl Rigid {
         let log = (point - self.frame.position)
             .div_element_wise(self.rotational_inertia)
             .cross(impulse);
-
-        self.frame.rotor +=
-            Scalar::new(0.5) * -Rotor::new(log.x, log.y, log.z, 0.0) * self.frame.rotor;
+        let rotation =
+            0.5 * Quaternion::new(0.0, log.x, log.y, log.z) * rotor_to_quat(self.frame.rotor);
+        self.frame.rotor = quat_to_rotor((rotor_to_quat(self.frame.rotor) + rotation).normalize());
     }
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.
