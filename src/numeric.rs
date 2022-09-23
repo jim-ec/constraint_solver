@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Matrix4, Quaternion, Vector4};
+use cgmath::{Matrix4, Quaternion, Vector4};
 use geometric_algebra::{
     pga3::{Motor, Point, Rotor},
     Transformation,

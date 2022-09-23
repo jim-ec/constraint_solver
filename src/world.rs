@@ -1,14 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
-use cgmath::{Vector3, Zero};
-use geometric_algebra::{
-    pga3::{Dir, Rotor, Translator},
-    Dual, Signum,
-};
+use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
+use geometric_algebra::pga3::Translator;
 
 use crate::{
     entity::{self},
-    line_debugger, mesh, renderer, rigid, solver,
+    line_debugger, mesh,
+    numeric::quat_to_rotor,
+    renderer, rigid, solver,
 };
 
 pub struct World {
@@ -25,8 +24,8 @@ impl World {
         rigid.velocity.z = -0.2;
         rigid.angular_velocity.z = 1.0;
         rigid.frame.position.z = 5.0;
-        rigid.frame.rotor =
-            Rotor::from_angle_axis(1.0, Dir::new(1.0, 0.5, 0.2).dual().signum().dual());
+        rigid.frame.quaternion =
+            Quaternion::from_axis_angle(Vector3::new(1.0, 0.5, 0.2).normalize(), Rad(1.0));
         rigid.past_frame = rigid.frame;
 
         World {
@@ -46,7 +45,7 @@ impl World {
             rigid.frame.position.z,
         );
 
-        self.cube.spatial.rotor = rigid.frame.rotor;
+        self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
 
         line_debugger.debug_lines(
             vec![Vector3::zero(), rigid.frame.position],
