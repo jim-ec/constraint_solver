@@ -57,8 +57,8 @@ impl Rigid {
             external_torque: Vector3::zero(),
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
-            frame: Frame::identity(),
-            past_frame: Frame::identity(),
+            frame: Frame::default(),
+            past_frame: Frame::default(),
         }
     }
 

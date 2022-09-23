@@ -12,14 +12,16 @@ pub struct Frame {
     pub rotor: Rotor,
 }
 
-impl Frame {
-    pub fn identity() -> Frame {
+impl Default for Frame {
+    fn default() -> Self {
         Frame {
             position: Vector3::zero(),
             rotor: Rotor::one(),
         }
     }
+}
 
+impl Frame {
     pub fn inverse(&self) -> Frame {
         let inverse_orientation = self.rotor.inverse();
         let inverse_position = rotor_to_quat(inverse_orientation) * -self.position;
