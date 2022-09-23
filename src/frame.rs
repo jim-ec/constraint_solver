@@ -1,7 +1,7 @@
 use cgmath::Vector3;
 use geometric_algebra::{
     pga3::{Rotor, Scalar, Translator},
-    Exp, Inverse, Ln, One, Powf, ScalarPart, Signum, Transformation,
+    Inverse, One, Powf, ScalarPart, Signum, Transformation,
 };
 
 use crate::numeric::{rotor_to_quat, translator_to_vector, vector_to_translator};
@@ -60,19 +60,14 @@ impl Frame {
     }
 
     pub fn derive(&self, dt: f32, past: Frame) -> (Vector3<f32>, Vector3<f32>) {
-        let translator_derivative = (self.translator.ln() - past.translator.ln())
-            .exp()
-            .powf(1.0 / dt);
+        let derived_position = (self.position() - past.position()) / dt;
 
         let derived_rotation = {
-            let mut delta = Scalar::new(-2.0 / dt) * self.rotor * past.rotor.inverse();
-            delta = -delta.constrain();
+            let delta = Scalar::new(-2.0 / dt) * self.rotor * past.rotor.inverse();
+            let delta = -delta.constrain();
             Vector3::new(delta.g0[1], delta.g0[2], delta.g0[3])
         };
 
-        (
-            translator_to_vector(translator_derivative),
-            derived_rotation,
-        )
+        (derived_position, derived_rotation)
     }
 }
