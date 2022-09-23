@@ -1,5 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
+use cgmath::{Vector3, Zero};
 use geometric_algebra::{
     pga3::{Dir, Rotor, Translator},
     Dual, Signum,
@@ -34,12 +35,7 @@ impl World {
         }
     }
 
-    pub fn integrate(
-        &mut self,
-        _t: f32,
-        dt: f32,
-        _line_debugger: &mut line_debugger::LineDebugger,
-    ) {
+    pub fn integrate(&mut self, _t: f32, dt: f32, line_debugger: &mut line_debugger::LineDebugger) {
         solver::integrate(&self.rigid, dt, 25);
 
         let rigid = self.rigid.borrow();
@@ -51,6 +47,11 @@ impl World {
         );
 
         self.cube.spatial.rotor = rigid.frame.rotor;
+
+        line_debugger.debug_lines(
+            vec![Vector3::zero(), rigid.frame.position],
+            Vector3::new(1.0, 1.0, 0.0),
+        )
     }
 
     pub fn entities(&self) -> Vec<entity::Entity> {

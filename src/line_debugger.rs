@@ -1,9 +1,4 @@
 use cgmath::Vector3;
-use geometric_algebra::{
-    motion,
-    pga3::{Branch, Dir, Flat, Line, Origin, Plane, Point, Translator},
-    project, Reversal, Transformation,
-};
 use itertools::Itertools;
 
 use crate::renderer;
@@ -19,81 +14,16 @@ pub struct LineDebugger {
 #[repr(C, align(16))]
 #[derive(Debug, Clone, Copy)]
 struct DebugLineVertex {
-    position: Point,
+    position: Vector3<f32>,
     color: Vector3<f32>,
 }
 
 unsafe impl bytemuck::Pod for DebugLineVertex {}
 unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
-pub trait LineDebug {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point);
-}
-
-impl LineDebug for Point {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, _projectee: Point) {
-        const D: f32 = 0.1;
-        let tx = Translator::new(D, 0.0, 0.0);
-        let ty = Translator::new(0.0, D, 0.0);
-        let tz = Translator::new(0.0, 0.0, D);
-        line_debugger.debug_lines(
-            vec![tx.transformation(self), tx.reversal().transformation(self)],
-            color,
-        );
-        line_debugger.debug_lines(
-            vec![ty.transformation(self), ty.reversal().transformation(self)],
-            color,
-        );
-        line_debugger.debug_lines(
-            vec![tz.transformation(self), tz.reversal().transformation(self)],
-            color,
-        );
-    }
-}
-
-impl LineDebug for Dir {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, _projectee: Point) {
-        line_debugger.debug_lines(vec![Point::origin(), self.point()], color);
-    }
-}
-
-impl LineDebug for Line {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point) {
-        const D: f32 = 10.0;
-        let branch: Branch = self.into();
-        let motor = motion(Origin::new(), project(projectee, self))
-            * motion(Branch::new(1.0, 0.0, 0.0), branch);
-        line_debugger.debug_lines(
-            vec![
-                motor.transformation(Point::at(-D, 0.0, 0.0)),
-                motor.transformation(Point::at(D, 0.0, 0.0)),
-            ],
-            color,
-        );
-    }
-}
-
-impl LineDebug for Plane {
-    fn debug(self, color: Vector3<f32>, line_debugger: &mut LineDebugger, projectee: Point) {
-        const D: f32 = 1.0;
-        let flat: Flat = self.into();
-        let motor = motion(Origin::new(), project(projectee, self))
-            * motion(Flat::new(0.0, 0.0, 1.0), flat);
-        line_debugger.debug_lines(
-            vec![
-                motor.transformation(Point::at(D, D, 0.0)),
-                motor.transformation(Point::at(-D, D, 0.0)),
-                motor.transformation(Point::at(-D, -D, 0.0)),
-                motor.transformation(Point::at(D, -D, 0.0)),
-                motor.transformation(Point::at(D, D, 0.0)),
-            ],
-            color,
-        );
-    }
-}
-
 impl LineDebugger {
-    pub fn debug_lines(&mut self, line: Vec<Point>, color: Vector3<f32>) {
+    #[allow(dead_code)]
+    pub fn debug_lines(&mut self, line: Vec<Vector3<f32>>, color: Vector3<f32>) {
         for (p1, p2) in line.into_iter().tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
@@ -108,16 +38,6 @@ impl LineDebugger {
             self.vertices.len() < MAX_VERTEX_COUNT,
             "Exceeded maximal debug line vertex count {MAX_VERTEX_COUNT}"
         );
-    }
-
-    #[allow(dead_code)]
-    pub fn debug(&mut self, geometry: impl LineDebug, color: Vector3<f32>) {
-        geometry.debug(color, self, Point::origin())
-    }
-
-    #[allow(dead_code)]
-    pub fn debug_at(&mut self, geometry: impl LineDebug, color: Vector3<f32>, projectee: Point) {
-        geometry.debug(color, self, projectee)
     }
 
     pub fn new(renderer: &renderer::Renderer) -> Self {
