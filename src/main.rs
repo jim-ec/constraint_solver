@@ -11,7 +11,6 @@ mod renderer;
 mod rigid;
 mod simplex;
 mod solver;
-mod spatial;
 mod world;
 
 #[async_std::main]

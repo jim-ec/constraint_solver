@@ -1,16 +1,8 @@
-use cgmath::{Matrix4, Quaternion, Vector4};
+use cgmath::{Matrix4, Vector4};
 use geometric_algebra::{
-    pga3::{Motor, Point, Rotor},
+    pga3::{Motor, Point},
     Transformation,
 };
-
-pub fn quat_to_rotor(q: Quaternion<f32>) -> Rotor {
-    Rotor::new(-q.v.x, -q.v.y, -q.v.z, q.s)
-}
-
-pub fn rotor_to_quat(r: Rotor) -> Quaternion<f32> {
-    Quaternion::new(r.g0[0], -r.g0[1], -r.g0[2], -r.g0[3])
-}
 
 pub fn motor_to_matrix(m: Motor) -> Matrix4<f32> {
     [

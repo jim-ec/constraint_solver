@@ -1,4 +1,4 @@
-use crate::{renderer, spatial::Spatial};
+use crate::{renderer, frame::Frame};
 use cgmath::Matrix4;
 use derive_setters::Setters;
 use geometric_algebra::pga3::Point;
@@ -24,12 +24,12 @@ unsafe impl bytemuck::Pod for MeshUniforms {}
 unsafe impl bytemuck::Zeroable for MeshUniforms {}
 
 impl Mesh {
-    pub fn upload_uniforms(&self, queue: &wgpu::Queue, spatial: &Spatial) {
+    pub fn upload_uniforms(&self, queue: &wgpu::Queue, frame: &Frame) {
         queue.write_buffer(
             &self.uniform_buffer,
             0,
             bytemuck::cast_slice(&[MeshUniforms {
-                transform: spatial.matrix(),
+                transform: frame.matrix(),
                 color: self.color,
             }]),
         );

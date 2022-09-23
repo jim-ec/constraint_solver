@@ -408,7 +408,7 @@ impl Renderer {
     }
 
     fn render_entity(&self, view: &wgpu::TextureView, entity: &entity::Entity) {
-        let spatial = &entity.spatial;
+        let frame = &entity.frame;
         for mesh in &entity.meshes {
             let mut encoder = self.device.create_command_encoder(&Default::default());
 
@@ -435,7 +435,7 @@ impl Renderer {
             render_pass.set_pipeline(&self.pipeline);
             render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
 
-            mesh.upload_uniforms(&self.queue, spatial);
+            mesh.upload_uniforms(&self.queue, frame);
             render_pass.set_bind_group(1, &mesh.bind_group, &[]);
             render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
             render_pass.draw(0..mesh.vertex_count as u32, 0..1);

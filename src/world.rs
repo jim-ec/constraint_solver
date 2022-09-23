@@ -1,13 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
-use geometric_algebra::pga3::Translator;
 
 use crate::{
     entity::{self},
-    line_debugger, mesh,
-    numeric::quat_to_rotor,
-    renderer, rigid, solver,
+    line_debugger, mesh, renderer, rigid, solver,
 };
 
 pub struct World {
@@ -39,13 +36,7 @@ impl World {
 
         let rigid = self.rigid.borrow();
 
-        self.cube.spatial.translator = Translator::new(
-            rigid.frame.position.x,
-            rigid.frame.position.y,
-            rigid.frame.position.z,
-        );
-
-        self.cube.spatial.rotor = quat_to_rotor(rigid.frame.quaternion);
+        self.cube.frame = rigid.frame;
 
         line_debugger.debug_lines(
             vec![Vector3::zero(), rigid.frame.position],
