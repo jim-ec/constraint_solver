@@ -307,7 +307,7 @@ impl Renderer {
 
         self.depth_texture = self.device.create_texture(
             &(wgpu::TextureDescriptor {
-                label: Some("Depth Texture"),
+                label: None,
                 size: wgpu::Extent3d {
                     width: self.config.width,
                     height: self.config.height,

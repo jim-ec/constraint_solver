@@ -41,7 +41,7 @@ impl Mesh {
             renderer
                 .device
                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("Mesh Vertex Position Buffer"),
+                    label: None,
                     contents: unsafe {
                         std::slice::from_raw_parts(
                             positions.as_ptr() as *const u8,
@@ -59,7 +59,7 @@ impl Mesh {
 
             uniform_buffer = renderer.device.create_buffer(
                 &(wgpu::BufferDescriptor {
-                    label: Some("Mesh Uniform Buffer"),
+                    label: None,
                     size: padded_size as wgpu::BufferAddress,
                     usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
                     mapped_at_creation: false,
@@ -70,7 +70,7 @@ impl Mesh {
         let bind_group = renderer
             .device
             .create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("Mesh Uniforms"),
+                label: None,
                 layout: &renderer.mesh_uniform_bind_group_layout,
                 entries: &[wgpu::BindGroupEntry {
                     binding: 0,
