@@ -1,7 +1,7 @@
 use cgmath::Vector3;
 use geometric_algebra::{
     pga3::{Rotor, Scalar, Translator},
-    Inverse, One, ScalarPart, Signum, Transformation,
+    Inverse, One, Powf, ScalarPart, Signum, Transformation,
 };
 
 use crate::numeric::{rotor_to_quat, translator_to_vector, vector_to_translator};
@@ -43,7 +43,7 @@ impl Frame {
         linear_velocity: Vector3<f32>,
         angular_velocity: Vector3<f32>,
     ) -> Frame {
-        let position = self.position() + dt * linear_velocity;
+        let translator = self.translator * vector_to_translator(linear_velocity).powf(dt);
 
         let delta_rotor = Scalar::new(0.5 * dt)
             * -Rotor::new(
@@ -56,10 +56,7 @@ impl Frame {
 
         let rotor = (self.rotor + delta_rotor).signum();
 
-        Frame {
-            translator: vector_to_translator(position),
-            rotor,
-        }
+        Frame { translator, rotor }
     }
 
     pub fn derive(&self, dt: f32, past: Frame) -> (Vector3<f32>, Vector3<f32>) {
