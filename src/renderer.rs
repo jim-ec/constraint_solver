@@ -1,7 +1,7 @@
 use cgmath::Vector3;
 use winit::window::Window;
 
-use crate::{camera, entity, line_debugger};
+use crate::{camera, frame, line_debugger, mesh};
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 pub const SAMPLES: u32 = 4;
@@ -344,7 +344,7 @@ impl Renderer {
     pub fn render(
         &mut self,
         camera: &camera::Camera,
-        entities: &[entity::Entity],
+        geometry: &[(frame::Frame, &mesh::Mesh)],
         line_debugger: &mut line_debugger::LineDebugger,
     ) -> Result<(), wgpu::SurfaceError> {
         let surface_texture = self.surface.get_current_texture()?;
@@ -362,8 +362,8 @@ impl Renderer {
             ]),
         );
 
-        for entity in entities {
-            self.render_entity(&view, entity);
+        for &(frame, mesh) in geometry {
+            self.render_entity(&view, frame, mesh);
         }
 
         self.render_grid(&view);
@@ -408,10 +408,7 @@ impl Renderer {
         self.queue.submit(std::iter::once(encoder.finish()));
     }
 
-    fn render_entity(&self, view: &wgpu::TextureView, entity: &entity::Entity) {
-        let mesh = &entity.mesh;
-        let frame = &entity.frame;
-
+    fn render_entity(&self, view: &wgpu::TextureView, frame: frame::Frame, mesh: &mesh::Mesh) {
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {

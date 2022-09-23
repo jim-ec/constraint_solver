@@ -23,7 +23,7 @@ unsafe impl bytemuck::Pod for MeshUniforms {}
 unsafe impl bytemuck::Zeroable for MeshUniforms {}
 
 impl Mesh {
-    pub fn upload_uniforms(&self, queue: &wgpu::Queue, frame: &Frame) {
+    pub fn upload_uniforms(&self, queue: &wgpu::Queue, frame: Frame) {
         queue.write_buffer(
             &self.uniform_buffer,
             0,

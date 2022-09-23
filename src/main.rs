@@ -2,7 +2,6 @@ mod app;
 mod camera;
 mod collision;
 mod constraint;
-mod entity;
 mod frame;
 mod line_debugger;
 mod mesh;

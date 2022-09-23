@@ -2,10 +2,7 @@ use std::cell::RefCell;
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
 
-use crate::{
-    entity::{self},
-    line_debugger, mesh, renderer, rigid, solver,
-};
+use crate::{frame, line_debugger, mesh, renderer, rigid, solver};
 
 pub struct World {
     cube: mesh::Mesh,
@@ -42,10 +39,7 @@ impl World {
         )
     }
 
-    pub fn entities(&self) -> Vec<entity::Entity> {
-        vec![entity::Entity {
-            frame: self.rigid.borrow().frame,
-            mesh: &self.cube,
-        }]
+    pub fn entities(&self) -> Vec<(frame::Frame, &mesh::Mesh)> {
+        vec![(self.rigid.borrow().frame, &self.cube)]
     }
 }
