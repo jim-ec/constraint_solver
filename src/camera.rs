@@ -1,8 +1,8 @@
-use cgmath::{Matrix4, Vector4};
-use geometric_algebra::pga3::{Dir, Rotor, Translator};
 use std::f32::consts::TAU;
 
-use crate::numeric::{motor_to_matrix, Y_UP};
+use cgmath::{Matrix4, Quaternion, Rotation3, Vector3, Vector4};
+
+use crate::numeric::Y_UP;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {
@@ -37,12 +37,12 @@ impl Camera {
     }
 
     pub fn uniforms(&self, aspect: f32) -> CameraUniforms {
-        let orbit = Rotor::from_angle_axis(self.orbit, Dir::new(0.0, 0.0, -1.0));
-        let tilt = Rotor::from_angle_axis(self.tilt, Dir::new(0.0, -1.0, 0.0));
-        let translation = Translator::new(-self.distance, 0.0, 0.0);
+        let orbit = Quaternion::from_angle_z(cgmath::Rad(self.orbit as f32));
+        let tilt = Quaternion::from_angle_y(cgmath::Rad(self.tilt as f32));
+        let translation =
+            Matrix4::from_translation(Vector3::new(-1.0 * self.distance as f32, 0.0, 0.0));
 
-        let view_motor = translation * tilt * orbit;
-        let view = motor_to_matrix(view_motor);
+        let view = translation * Matrix4::from(tilt * orbit);
 
         let proj = perspective_matrix(f32::to_radians(60.0), aspect, 0.01, None) * Y_UP;
 

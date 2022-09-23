@@ -1,18 +1,4 @@
 use cgmath::{Matrix4, Vector4};
-use geometric_algebra::{
-    pga3::{Motor, Point},
-    Transformation,
-};
-
-pub fn motor_to_matrix(m: Motor) -> Matrix4<f32> {
-    [
-        m.transformation(Point::new(1.0, 0.0, 0.0, 0.0)).g0.into(),
-        m.transformation(Point::new(0.0, 1.0, 0.0, 0.0)).g0.into(),
-        m.transformation(Point::new(0.0, 0.0, 1.0, 0.0)).g0.into(),
-        m.transformation(Point::new(0.0, 0.0, 0.0, 1.0)).g0.into(),
-    ]
-    .into()
-}
 
 /// Converts from a Z-up right-handed coordinate system into a Y-up left-handed coordinate system.
 #[allow(dead_code)]
