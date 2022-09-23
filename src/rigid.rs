@@ -1,7 +1,10 @@
 use cgmath::{ElementWise, Vector3, Zero};
 use geometric_algebra::pga3::{Rotor, Scalar};
 
-use crate::{frame::Frame, numeric::rotor_to_quat};
+use crate::{
+    frame::Frame,
+    numeric::{rotor_to_quat, vector_to_translator},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Rigid {
@@ -82,9 +85,9 @@ impl Rigid {
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and quaternion.
     pub fn apply_impulse(&mut self, impulse: Vector3<f32>, point: Vector3<f32>) {
-        self.frame.position += impulse / self.mass;
+        self.frame.translator = vector_to_translator(self.frame.position() + impulse / self.mass);
 
-        let log = (point - self.frame.position)
+        let log = (point - self.frame.position())
             .div_element_wise(self.rotational_inertia)
             .cross(impulse);
 

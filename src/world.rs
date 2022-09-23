@@ -23,7 +23,7 @@ impl World {
         rigid.external_force.z = -5.0;
         rigid.velocity.z = -0.2;
         rigid.angular_velocity.z = 1.0;
-        rigid.frame.position.z = 5.0;
+        rigid.frame.translator = Translator::new(0.0, 0.0, 5.0);
         rigid.frame.rotor =
             Rotor::from_angle_axis(1.0, Dir::new(1.0, 0.5, 0.2).dual().signum().dual());
         rigid.past_frame = rigid.frame;
@@ -44,12 +44,7 @@ impl World {
 
         let rigid = self.rigid.borrow();
 
-        self.cube.spatial.translator = Translator::new(
-            rigid.frame.position.x,
-            rigid.frame.position.y,
-            rigid.frame.position.z,
-        );
-
+        self.cube.spatial.translator = rigid.frame.translator;
         self.cube.spatial.rotor = rigid.frame.rotor;
     }
 
