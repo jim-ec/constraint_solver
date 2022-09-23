@@ -409,42 +409,42 @@ impl Renderer {
     }
 
     fn render_entity(&self, view: &wgpu::TextureView, entity: &entity::Entity) {
+        let mesh = &entity.mesh;
         let frame = &entity.frame;
-        for mesh in &entity.meshes {
-            let mut encoder = self.device.create_command_encoder(&Default::default());
 
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: self.texture_view(view),
-                    resolve_target: self.resolve_target(view),
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: true,
-                    },
-                })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth_texture_view,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: true,
-                    }),
-                    stencil_ops: None,
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: self.texture_view(view),
+                resolve_target: self.resolve_target(view),
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: true,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &self.depth_texture_view,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: true,
                 }),
-                ..Default::default()
-            });
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
 
-            render_pass.set_pipeline(&self.pipeline);
-            render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
+        render_pass.set_pipeline(&self.pipeline);
+        render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
 
-            mesh.upload_uniforms(&self.queue, frame);
-            render_pass.set_bind_group(1, &mesh.bind_group, &[]);
-            render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
-            render_pass.draw(0..mesh.vertex_count as u32, 0..1);
+        mesh.upload_uniforms(&self.queue, frame);
+        render_pass.set_bind_group(1, &mesh.bind_group, &[]);
+        render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
+        render_pass.draw(0..mesh.vertex_count as u32, 0..1);
 
-            drop(render_pass);
+        drop(render_pass);
 
-            self.queue.submit(std::iter::once(encoder.finish()));
-        }
+        self.queue.submit(std::iter::once(encoder.finish()));
     }
 
     fn render_grid(&self, view: &wgpu::TextureView) {

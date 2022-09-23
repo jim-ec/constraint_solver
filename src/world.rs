@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::cell::RefCell;
 
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
 
@@ -8,13 +8,13 @@ use crate::{
 };
 
 pub struct World {
-    cube: entity::Entity,
+    cube: mesh::Mesh,
     rigid: RefCell<rigid::Rigid>,
 }
 
 impl World {
     pub fn new(renderer: &renderer::Renderer) -> World {
-        let cube = entity::Entity::default().meshes(vec![Rc::new(mesh::Mesh::new_cube(renderer))]);
+        let cube = mesh::Mesh::new_cube(renderer);
 
         let mut rigid = rigid::Rigid::new(1.0);
         rigid.external_force.z = -5.0;
@@ -36,8 +36,6 @@ impl World {
 
         let rigid = self.rigid.borrow();
 
-        self.cube.frame = rigid.frame;
-
         line_debugger.debug_lines(
             vec![Vector3::zero(), rigid.frame.position],
             Vector3::new(1.0, 1.0, 0.0),
@@ -45,6 +43,9 @@ impl World {
     }
 
     pub fn entities(&self) -> Vec<entity::Entity> {
-        vec![self.cube.clone()]
+        vec![entity::Entity {
+            frame: self.rigid.borrow().frame,
+            mesh: &self.cube,
+        }]
     }
 }
