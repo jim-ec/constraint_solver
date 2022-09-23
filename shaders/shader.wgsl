@@ -17,12 +17,11 @@ struct Fragment {
 }
 
 @vertex
-fn vs_main(@location(0) position: vec4<f32>) -> Fragment {
+fn vs_main(@location(0) position: vec3<f32>) -> Fragment {
     var frag: Fragment;
 
-    frag.clip_position = camera.proj * camera.view * mesh.transform * position;
-
-    let position = camera.view * mesh.transform * position;
+    let position = camera.view * mesh.transform * vec4(position, 1.0);
+    frag.clip_position = camera.proj * position;
     frag.position = position.xyz / position.w;
 
     return frag;

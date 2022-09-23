@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-geometric_algebra = { git = "https://github.com/jim-Eckerlein/geometric_algebra" }
 itertools = "0.10.3"
 wgpu = "0.13"
 env_logger = "0.9"

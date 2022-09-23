@@ -9,7 +9,6 @@ mod mesh;
 mod numeric;
 mod renderer;
 mod rigid;
-mod simplex;
 mod solver;
 mod world;
 

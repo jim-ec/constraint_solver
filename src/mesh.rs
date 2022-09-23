@@ -1,7 +1,6 @@
-use crate::{renderer, frame::Frame};
-use cgmath::Matrix4;
+use crate::{frame::Frame, renderer};
+use cgmath::{Matrix4, Vector3};
 use derive_setters::Setters;
-use geometric_algebra::pga3::Point;
 use wgpu::util::DeviceExt;
 
 #[derive(Debug, Setters)]
@@ -35,7 +34,7 @@ impl Mesh {
         );
     }
 
-    pub fn from_vertices(renderer: &renderer::Renderer, positions: &[Point]) -> Self {
+    pub fn from_vertices(renderer: &renderer::Renderer, positions: &[Vector3<f32>]) -> Self {
         let vertex_count = positions.len();
 
         let vertex_position_buffer =
@@ -46,7 +45,7 @@ impl Mesh {
                     contents: unsafe {
                         std::slice::from_raw_parts(
                             positions.as_ptr() as *const u8,
-                            positions.len() * std::mem::size_of::<Point>(),
+                            positions.len() * std::mem::size_of::<Vector3<f32>>(),
                         )
                     },
                     usage: wgpu::BufferUsages::VERTEX,
@@ -90,15 +89,15 @@ impl Mesh {
 
     pub fn from_triangles(
         renderer: &renderer::Renderer,
-        points: &[Point],
+        vertices: &[Vector3<f32>],
         triangles: &[(usize, usize, usize)],
     ) -> Self {
         let renderer = renderer;
         let mut positions = Vec::with_capacity(triangles.len() * 3);
         for triangle in triangles {
-            positions.push(points[triangle.0]);
-            positions.push(points[triangle.1]);
-            positions.push(points[triangle.2]);
+            positions.push(vertices[triangle.0]);
+            positions.push(vertices[triangle.1]);
+            positions.push(vertices[triangle.2]);
         }
         Mesh::from_vertices(renderer, &positions)
     }
@@ -107,14 +106,14 @@ impl Mesh {
         Self::from_triangles(
             renderer,
             &[
-                Point::at(-0.5, -0.5, -0.5),
-                Point::at(-0.5, -0.5, 0.5),
-                Point::at(-0.5, 0.5, -0.5),
-                Point::at(-0.5, 0.5, 0.5),
-                Point::at(0.5, -0.5, -0.5),
-                Point::at(0.5, -0.5, 0.5),
-                Point::at(0.5, 0.5, -0.5),
-                Point::at(0.5, 0.5, 0.5),
+                Vector3::new(-0.5, -0.5, -0.5),
+                Vector3::new(-0.5, -0.5, 0.5),
+                Vector3::new(-0.5, 0.5, -0.5),
+                Vector3::new(-0.5, 0.5, 0.5),
+                Vector3::new(0.5, -0.5, -0.5),
+                Vector3::new(0.5, -0.5, 0.5),
+                Vector3::new(0.5, 0.5, -0.5),
+                Vector3::new(0.5, 0.5, 0.5),
             ],
             &[
                 (0, 1, 3),

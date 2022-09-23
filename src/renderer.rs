@@ -1,3 +1,4 @@
+use cgmath::Vector3;
 use winit::window::Window;
 
 use crate::{camera, entity, line_debugger};
@@ -185,7 +186,7 @@ impl Renderer {
                 module: &shader,
                 entry_point: "vs_main",
                 buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: std::mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    array_stride: std::mem::size_of::<Vector3<f32>>() as wgpu::BufferAddress,
                     step_mode: wgpu::VertexStepMode::Vertex,
                     attributes: &[wgpu::VertexAttribute {
                         offset: 0,
