@@ -6,7 +6,7 @@ use crate::rigid::Rigid;
 
 #[derive(Debug)]
 pub struct Constraint<'a> {
-    pub rigid: &'a RefCell<Rigid>,
+    pub rigid: &'a RefCell<&'a mut Rigid>,
     pub contacts: (Vector3<f32>, Vector3<f32>),
     pub distance: f32,
 }

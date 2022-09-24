@@ -4,7 +4,7 @@ use cgmath::{InnerSpace, Vector3};
 
 use crate::{constraint::Constraint, rigid::Rigid};
 
-pub fn collide(rigid: &RefCell<Rigid>) -> Vec<Constraint> {
+pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
     let mut constraints = Vec::new();
 
     let vertices = [

@@ -1,12 +1,10 @@
-use std::cell::RefCell;
-
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
 
 use crate::{frame, line_debugger, mesh, renderer, rigid, solver};
 
 pub struct World {
     cube: mesh::Mesh,
-    rigid: RefCell<rigid::Rigid>,
+    rigid: rigid::Rigid,
 }
 
 impl World {
@@ -22,24 +20,19 @@ impl World {
             Quaternion::from_axis_angle(Vector3::new(1.0, 0.5, 0.2).normalize(), Rad(1.0));
         rigid.past_frame = rigid.frame;
 
-        World {
-            cube,
-            rigid: RefCell::new(rigid),
-        }
+        World { cube, rigid }
     }
 
     pub fn integrate(&mut self, _t: f32, dt: f32, line_debugger: &mut line_debugger::LineDebugger) {
-        solver::integrate(&self.rigid, dt, 25);
-
-        let rigid = self.rigid.borrow();
+        solver::step(&mut self.rigid, dt, 25);
 
         line_debugger.debug_lines(
-            vec![Vector3::zero(), rigid.frame.position],
+            vec![Vector3::zero(), self.rigid.frame.position],
             Vector3::new(1.0, 1.0, 0.0),
         )
     }
 
     pub fn entities(&self) -> Vec<(frame::Frame, &mesh::Mesh)> {
-        vec![(self.rigid.borrow().frame, &self.cube)]
+        vec![(self.rigid.frame, &self.cube)]
     }
 }
