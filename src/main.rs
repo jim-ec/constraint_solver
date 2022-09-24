@@ -5,7 +5,6 @@ mod constraint;
 mod frame;
 mod line_debugger;
 mod mesh;
-mod numeric;
 mod renderer;
 mod rigid;
 mod solver;

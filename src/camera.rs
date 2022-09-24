@@ -2,8 +2,6 @@ use std::f32::consts::TAU;
 
 use cgmath::{Matrix4, Quaternion, Rotation3, Vector3, Vector4};
 
-use crate::numeric::Y_UP;
-
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {
     pub orbit: f32,
@@ -21,6 +19,14 @@ pub struct CameraUniforms {
 
 unsafe impl bytemuck::Pod for CameraUniforms {}
 unsafe impl bytemuck::Zeroable for CameraUniforms {}
+
+/// Converts from a Z-up right-handed coordinate system into a Y-up left-handed coordinate system.
+const Y_UP: Matrix4<f32> = Matrix4::from_cols(
+    Vector4::new(0.0, 0.0, 1.0, 0.0),
+    Vector4::new(1.0, 0.0, 0.0, 0.0),
+    Vector4::new(0.0, 1.0, 0.0, 0.0),
+    Vector4::new(0.0, 0.0, 0.0, 1.0),
+);
 
 impl Camera {
     pub fn initial() -> Self {
