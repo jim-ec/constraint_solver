@@ -55,21 +55,17 @@ impl Rigid {
     }
 
     pub fn gjk(&self, other: &Rigid) -> bool {
-        let mut support = self.minkowski_support(other, Vector3::unit_x());
-        let mut simplex = Simplex::Point(support);
-
-        let mut direction = -support;
+        let mut direction = -self.minkowski_support(other, Vector3::unit_x());
+        let mut simplex = Simplex::Point(-direction);
 
         loop {
-            support = self.minkowski_support(other, direction);
+            let support = self.minkowski_support(other, direction);
 
             if !same_direction(direction, support) {
                 return false;
             }
 
-            simplex = simplex.extend(support);
-
-            (simplex, direction) = simplex.next();
+            (simplex, direction) = simplex.enclose(support);
             if let Simplex::Tetrahedron(_, _, _, _) = simplex {
                 return true;
             }
@@ -80,6 +76,7 @@ impl Rigid {
 /// Simplices up to 3-D.
 /// For GJK to work, the invariant that points preceding within the simplex tuple were more recently added
 /// to the simplex must be upheld.
+// TODO: Is the `Tetrahedron` variant really required?
 #[derive(Debug, Clone, Copy)]
 enum Simplex {
     Point(Vector3<f64>),
@@ -89,22 +86,13 @@ enum Simplex {
 }
 
 impl Simplex {
-    fn extend(self, v: Vector3<f64>) -> Self {
-        match self {
-            Simplex::Point(a) => Simplex::Line(v, a),
-            Simplex::Line(a, b) => Simplex::Triangle(v, a, b),
-            Simplex::Triangle(a, b, c) => Simplex::Tetrahedron(v, a, b, c),
-            Simplex::Tetrahedron(_, _, _, _) => panic!(),
-        }
-    }
-
     #[must_use]
-    fn next(self) -> (Self, Vector3<f64>) {
+    fn enclose(self, v: Vector3<f64>) -> (Self, Vector3<f64>) {
         match self {
-            Simplex::Point(a) => (Simplex::Point(a), Vector3::unit_x()),
-            Simplex::Line(a, b) => Self::line(a, b),
-            Simplex::Triangle(a, b, c) => Self::triangle(a, b, c),
-            Simplex::Tetrahedron(a, b, c, d) => Self::tetrahedron(a, b, c, d),
+            Simplex::Point(a) => Self::line(v, a),
+            Simplex::Line(a, b) => Self::triangle(v, a, b),
+            Simplex::Triangle(a, b, c) => Self::tetrahedron(v, a, b, c),
+            Simplex::Tetrahedron(_, _, _, _) => panic!(),
         }
     }
 
