@@ -65,10 +65,13 @@ impl Rigid {
                 return false;
             }
 
-            (simplex, direction) = simplex.enclose(support);
-            if let Simplex::Tetrahedron(_, _, _, _) = simplex {
-                return true;
-            }
+            match simplex.enclose(support) {
+                Ok((_, _, _, _)) => return true,
+                Err((next_simplex, next_direction)) => {
+                    simplex = next_simplex;
+                    direction = next_direction;
+                }
+            };
         }
     }
 }
@@ -76,23 +79,21 @@ impl Rigid {
 /// Simplices up to 3-D.
 /// For GJK to work, the invariant that points preceding within the simplex tuple were more recently added
 /// to the simplex must be upheld.
-// TODO: Is the `Tetrahedron` variant really required?
 #[derive(Debug, Clone, Copy)]
 enum Simplex {
     Point(Vector3<f64>),
     Line(Vector3<f64>, Vector3<f64>),
     Triangle(Vector3<f64>, Vector3<f64>, Vector3<f64>),
-    Tetrahedron(Vector3<f64>, Vector3<f64>, Vector3<f64>, Vector3<f64>),
 }
 
+type Tetrahedron = (Vector3<f64>, Vector3<f64>, Vector3<f64>, Vector3<f64>);
+
 impl Simplex {
-    #[must_use]
-    fn enclose(self, v: Vector3<f64>) -> (Self, Vector3<f64>) {
+    fn enclose(self, v: Vector3<f64>) -> Result<Tetrahedron, (Self, Vector3<f64>)> {
         match self {
-            Simplex::Point(a) => Self::line(v, a),
-            Simplex::Line(a, b) => Self::triangle(v, a, b),
+            Simplex::Point(a) => Err(Self::line(v, a)),
+            Simplex::Line(a, b) => Err(Self::triangle(v, a, b)),
             Simplex::Triangle(a, b, c) => Self::tetrahedron(v, a, b, c),
-            Simplex::Tetrahedron(_, _, _, _) => panic!(),
         }
     }
 
@@ -134,7 +135,7 @@ impl Simplex {
         b: Vector3<f64>,
         c: Vector3<f64>,
         d: Vector3<f64>,
-    ) -> (Self, Vector3<f64>) {
+    ) -> Result<Tetrahedron, (Self, Vector3<f64>)> {
         let ab = b - a;
         let ac = c - a;
         let ad = d - a;
@@ -145,17 +146,17 @@ impl Simplex {
         let adb = ad.cross(ab);
 
         if same_direction(abc, ao) {
-            Self::triangle(a, b, c)
+            Err(Self::triangle(a, b, c))
         } else if same_direction(acd, ao) {
-            Self::triangle(a, c, d)
+            Err(Self::triangle(a, c, d))
         } else if same_direction(adb, ao) {
-            Self::triangle(a, d, b)
+            Err(Self::triangle(a, d, b))
         } else {
-            (Self::Tetrahedron(a, b, c, d), Vector3::unit_x())
+            Ok((a, b, c, d))
         }
     }
 }
 
-fn same_direction(direction: Vector3<f64>, ao: Vector3<f64>) -> bool {
-    direction.dot(ao) > 0.0
+fn same_direction(a: Vector3<f64>, b: Vector3<f64>) -> bool {
+    a.dot(b) > 0.0
 }
