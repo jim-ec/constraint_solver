@@ -38,3 +38,11 @@ pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
 
     constraints
 }
+
+#[allow(dead_code)]
+fn support(dir: Vector3<f32>) -> Vector3<f32> {
+    CUBE_VERTICES
+        .into_iter()
+        .max_by(|a, b| a.dot(dir).total_cmp(&b.dot(dir)))
+        .unwrap()
+}
