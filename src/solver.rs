@@ -2,9 +2,9 @@ use std::cell::RefCell;
 
 use crate::{collision::ground, constraint::Constraint, rigid::Rigid};
 
-pub fn step(rigid: &mut Rigid, dt: f32, substep_count: usize) {
+pub fn step(rigid: &mut Rigid, dt: f64, substep_count: usize) {
     let rigid = RefCell::new(rigid);
-    let dt = dt / substep_count as f32;
+    let dt = dt / substep_count as f64;
 
     for _ in 0..substep_count {
         rigid.borrow_mut().integrate(dt);
@@ -16,7 +16,7 @@ pub fn step(rigid: &mut Rigid, dt: f32, substep_count: usize) {
     }
 }
 
-pub fn solve(constraints: Vec<Constraint>, dt: f32) {
+pub fn solve(constraints: Vec<Constraint>, dt: f64) {
     let compliance = 1e-6 / (dt * dt);
 
     for mut constraint in constraints {

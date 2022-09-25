@@ -119,8 +119,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             last_render_time = time;
 
             world.integrate(
-                time.duration_since(time_start).as_secs_f32(),
-                delta_time.as_secs_f32(),
+                time.duration_since(time_start).as_secs_f64(),
+                delta_time.as_secs_f64(),
                 &mut line_debugger,
             );
 

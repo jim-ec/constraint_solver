@@ -4,7 +4,7 @@ use cgmath::{InnerSpace, Vector3};
 
 use crate::{constraint::Constraint, rigid::Rigid};
 
-const CUBE_VERTICES: [Vector3<f32>; 8] = [
+const CUBE_VERTICES: [Vector3<f64>; 8] = [
     Vector3::new(-0.5, -0.5, -0.5),
     Vector3::new(0.5, -0.5, -0.5),
     Vector3::new(-0.5, 0.5, -0.5),
@@ -40,7 +40,7 @@ pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
 }
 
 #[allow(dead_code)]
-fn support(dir: Vector3<f32>) -> Vector3<f32> {
+fn support(dir: Vector3<f64>) -> Vector3<f64> {
     CUBE_VERTICES
         .into_iter()
         .max_by(|a, b| a.dot(dir).total_cmp(&b.dot(dir)))

@@ -2,8 +2,8 @@ use cgmath::{InnerSpace, Matrix4, Quaternion, Vector3, Zero};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Frame {
-    pub position: Vector3<f32>,
-    pub quaternion: Quaternion<f32>,
+    pub position: Vector3<f64>,
+    pub quaternion: Quaternion<f64>,
 }
 
 impl Default for Frame {
@@ -17,11 +17,11 @@ impl Default for Frame {
 
 impl Frame {
     pub fn matrix(&self) -> Matrix4<f32> {
-        let mut m: Matrix4<f32> = self.quaternion.into();
+        let mut m: Matrix4<f64> = self.quaternion.into();
         m.w.x = self.position.x;
         m.w.y = self.position.y;
         m.w.z = self.position.z;
-        m
+        m.cast().unwrap()
     }
 
     pub fn inverse(&self) -> Frame {
@@ -33,15 +33,15 @@ impl Frame {
         }
     }
 
-    pub fn act(&self, x: Vector3<f32>) -> Vector3<f32> {
+    pub fn act(&self, x: Vector3<f64>) -> Vector3<f64> {
         self.quaternion * x + self.position
     }
 
     pub fn integrate(
         &self,
-        dt: f32,
-        linear_velocity: Vector3<f32>,
-        angular_velocity: Vector3<f32>,
+        dt: f64,
+        linear_velocity: Vector3<f64>,
+        angular_velocity: Vector3<f64>,
     ) -> Frame {
         // TODO: Do we essentially exponentiate a branch and an ideal line?
         let position = self.position + dt * linear_velocity;
@@ -63,7 +63,7 @@ impl Frame {
         }
     }
 
-    pub fn derive(&self, dt: f32, past: Frame) -> (Vector3<f32>, Vector3<f32>) {
+    pub fn derive(&self, dt: f64, past: Frame) -> (Vector3<f64>, Vector3<f64>) {
         // TODO: Are we essentially taking the logarithm of a translator and a rotor?
         let derived_position = (self.position - past.position) / dt;
 

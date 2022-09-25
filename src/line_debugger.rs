@@ -23,8 +23,8 @@ unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 impl LineDebugger {
     #[allow(dead_code)]
-    pub fn debug_lines(&mut self, line: Vec<Vector3<f32>>, color: Vector3<f32>) {
-        for (p1, p2) in line.into_iter().tuple_windows() {
+    pub fn debug_lines(&mut self, line: Vec<Vector3<f64>>, color: Vector3<f32>) {
+        for (p1, p2) in line.into_iter().map(|p| p.cast().unwrap()).tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
                 color,

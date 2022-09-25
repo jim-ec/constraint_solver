@@ -23,7 +23,7 @@ impl World {
         World { cube, rigid }
     }
 
-    pub fn integrate(&mut self, _t: f32, dt: f32, line_debugger: &mut line_debugger::LineDebugger) {
+    pub fn integrate(&mut self, _t: f64, dt: f64, line_debugger: &mut line_debugger::LineDebugger) {
         solver::step(&mut self.rigid, dt, 25);
 
         line_debugger.debug_lines(
