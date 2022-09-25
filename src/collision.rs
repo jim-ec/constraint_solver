@@ -4,22 +4,22 @@ use cgmath::{InnerSpace, Vector3};
 
 use crate::{constraint::Constraint, rigid::Rigid};
 
+const CUBE_VERTICES: [Vector3<f32>; 8] = [
+    Vector3::new(-0.5, -0.5, -0.5),
+    Vector3::new(0.5, -0.5, -0.5),
+    Vector3::new(-0.5, 0.5, -0.5),
+    Vector3::new(0.5, 0.5, -0.5),
+    Vector3::new(-0.5, -0.5, 0.5),
+    Vector3::new(0.5, -0.5, 0.5),
+    Vector3::new(-0.5, 0.5, 0.5),
+    Vector3::new(0.5, 0.5, 0.5),
+];
+
 pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
     let mut constraints = Vec::new();
 
-    let vertices = [
-        Vector3::new(-0.5, -0.5, -0.5),
-        Vector3::new(0.5, -0.5, -0.5),
-        Vector3::new(-0.5, 0.5, -0.5),
-        Vector3::new(0.5, 0.5, -0.5),
-        Vector3::new(-0.5, -0.5, 0.5),
-        Vector3::new(0.5, -0.5, 0.5),
-        Vector3::new(-0.5, 0.5, 0.5),
-        Vector3::new(0.5, 0.5, 0.5),
-    ];
-
-    for position in vertices {
-        let position = rigid.borrow().frame.act(position);
+    for vertex in CUBE_VERTICES {
+        let position = rigid.borrow().frame.act(vertex);
         if position.z >= 0.0 {
             continue;
         }
