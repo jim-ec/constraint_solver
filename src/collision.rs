@@ -63,8 +63,7 @@ impl Rigid {
         loop {
             support = self.minkowski_support(other, direction);
 
-            // TODO: Use `!same_direction()`?
-            if support.dot(direction) <= 0.0 {
+            if !same_direction(direction, support) {
                 return false;
             }
 
