@@ -22,6 +22,8 @@ struct MeshUniforms {
 unsafe impl bytemuck::Pod for MeshUniforms {}
 unsafe impl bytemuck::Zeroable for MeshUniforms {}
 
+pub const DEFAULT_COLOR: [f32; 3] = [0.4; 3];
+
 impl Mesh {
     pub fn upload_uniforms(&self, queue: &wgpu::Queue, frame: Frame) {
         queue.write_buffer(
@@ -79,7 +81,7 @@ impl Mesh {
             });
 
         Self {
-            color: [0.4, 0.4, 0.4],
+            color: DEFAULT_COLOR,
             vertex_position_buffer,
             bind_group,
             uniform_buffer,

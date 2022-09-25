@@ -1902,7 +1902,7 @@ dependencies = [
 [[package]]
 name = "stavec"
 version = "0.1.2"
-source = "git+https://github.com/Jim-Eckerlein/stavec?branch=develop#243843f6afa5697ba1ba7cd40ebcea9ab5c3ef4c"
+source = "git+https://github.com/agerasev/stavec?branch=master#91e736ebefbb2a2750e770f6c5ac4c962ad1ebbc"
 
 [[package]]
 name = "strsim"

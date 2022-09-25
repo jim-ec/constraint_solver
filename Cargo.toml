@@ -16,8 +16,7 @@ rand = "0.8.5"
 noise = "0.7.0"
 common_macros = "0.1.1"
 palette = "0.6.1"
-# stavec = "0.1.2"
-stavec = { git = "https://github.com/Jim-Eckerlein/stavec", branch = "develop" }
+stavec = { git = "https://github.com/agerasev/stavec", branch = "master" }
 winit = { git = "https://github.com/rust-windowing/winit" }
 derive_setters = "0.1.5"
 memoffset = "0.6.5"

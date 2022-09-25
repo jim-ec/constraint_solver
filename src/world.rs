@@ -5,6 +5,8 @@ use crate::{frame, line_debugger, mesh, renderer, rigid, solver};
 pub struct World {
     cube: mesh::Mesh,
     rigid: rigid::Rigid,
+
+    rigid2: rigid::Rigid,
 }
 
 impl World {
@@ -18,9 +20,17 @@ impl World {
         rigid.frame.position.z = 5.0;
         rigid.frame.quaternion =
             Quaternion::from_axis_angle(Vector3::new(1.0, 0.5, 0.2).normalize(), Rad(1.0));
-        rigid.past_frame = rigid.frame;
+        rigid = rigid.forget_past();
 
-        World { cube, rigid }
+        let mut rigid2 = rigid::Rigid::new(1.0);
+        rigid2.frame.position.z = 2.1;
+        rigid2 = rigid2.forget_past();
+
+        World {
+            cube,
+            rigid,
+            rigid2,
+        }
     }
 
     pub fn integrate(&mut self, _t: f64, dt: f64, line_debugger: &mut line_debugger::LineDebugger) {
@@ -32,7 +42,16 @@ impl World {
         )
     }
 
-    pub fn entities(&self) -> Vec<(frame::Frame, &mesh::Mesh)> {
-        vec![(self.rigid.frame, &self.cube)]
+    pub fn entities(&mut self) -> Vec<(frame::Frame, &mesh::Mesh)> {
+        if self.rigid.gjk(&self.rigid2) {
+            self.cube.color = [1.0, 0.0, 0.0];
+        } else {
+            self.cube.color = mesh::DEFAULT_COLOR;
+        }
+
+        vec![
+            (self.rigid.frame, &self.cube),
+            (self.rigid2.frame, &self.cube),
+        ]
     }
 }

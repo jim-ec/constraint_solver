@@ -1,8 +1,9 @@
 use cgmath::{ElementWise, InnerSpace, Quaternion, Vector3, Zero};
+use derive_setters::Setters;
 
 use crate::frame::Frame;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Setters)]
 pub struct Rigid {
     /// Mass in `kg`
     pub mass: f64,
@@ -59,6 +60,11 @@ impl Rigid {
             frame: Frame::default(),
             past_frame: Frame::default(),
         }
+    }
+
+    #[must_use]
+    pub fn forget_past(self) -> Self {
+        self.past_frame(self.frame)
     }
 
     pub fn integrate(&mut self, dt: f64) {
