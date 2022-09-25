@@ -70,7 +70,7 @@ impl Rigid {
 
             simplex = simplex.extend(support);
 
-            simplex = simplex.next(&mut direction);
+            (simplex, direction) = simplex.next();
             if let Simplex::Tetrahedron(_, _, _, _) = simplex {
                 return true;
             }
@@ -100,34 +100,27 @@ impl Simplex {
     }
 
     #[must_use]
-    fn next(self, direction: &mut Vector3<f64>) -> Self {
+    fn next(self) -> (Self, Vector3<f64>) {
         match self {
-            Simplex::Point(a) => Simplex::Point(a),
-            Simplex::Line(a, b) => Self::line(a, b, direction),
-            Simplex::Triangle(a, b, c) => Self::triangle(a, b, c, direction),
-            Simplex::Tetrahedron(a, b, c, d) => Self::tetrahedron(a, b, c, d, direction),
+            Simplex::Point(a) => (Simplex::Point(a), Vector3::unit_x()),
+            Simplex::Line(a, b) => Self::line(a, b),
+            Simplex::Triangle(a, b, c) => Self::triangle(a, b, c),
+            Simplex::Tetrahedron(a, b, c, d) => Self::tetrahedron(a, b, c, d),
         }
     }
 
-    fn line(a: Vector3<f64>, b: Vector3<f64>, direction: &mut Vector3<f64>) -> Self {
+    fn line(a: Vector3<f64>, b: Vector3<f64>) -> (Self, Vector3<f64>) {
         let ab = b - a;
         let ao = -a;
 
         if same_direction(ab, ao) {
-            *direction = ab.cross(ao).cross(ab);
-            Simplex::Line(a, b)
+            (Simplex::Line(a, b), ab.cross(ao).cross(ab))
         } else {
-            *direction = ao;
-            Simplex::Point(a)
+            (Simplex::Point(a), ao)
         }
     }
 
-    fn triangle(
-        a: Vector3<f64>,
-        b: Vector3<f64>,
-        c: Vector3<f64>,
-        direction: &mut Vector3<f64>,
-    ) -> Self {
+    fn triangle(a: Vector3<f64>, b: Vector3<f64>, c: Vector3<f64>) -> (Self, Vector3<f64>) {
         let ab = b - a;
         let ac = c - a;
         let ao = -a;
@@ -136,19 +129,16 @@ impl Simplex {
 
         if same_direction(abc.cross(ac), ao) {
             if same_direction(ac, ao) {
-                *direction = ac.cross(ao).cross(ac);
-                Simplex::Line(a, c)
+                (Simplex::Line(a, c), ac.cross(ao).cross(ac))
             } else {
-                Self::line(a, b, direction)
+                Self::line(a, b)
             }
         } else if same_direction(ab.cross(abc), ao) {
-            Self::line(a, b, direction)
+            Self::line(a, b)
         } else if same_direction(abc, ao) {
-            *direction = abc;
-            Simplex::Triangle(a, b, c)
+            (Simplex::Triangle(a, b, c), abc)
         } else {
-            *direction = -abc;
-            Simplex::Triangle(a, c, b)
+            (Simplex::Triangle(a, c, b), -abc)
         }
     }
 
@@ -157,8 +147,7 @@ impl Simplex {
         b: Vector3<f64>,
         c: Vector3<f64>,
         d: Vector3<f64>,
-        direction: &mut Vector3<f64>,
-    ) -> Self {
+    ) -> (Self, Vector3<f64>) {
         let ab = b - a;
         let ac = c - a;
         let ad = d - a;
@@ -169,13 +158,13 @@ impl Simplex {
         let adb = ad.cross(ab);
 
         if same_direction(abc, ao) {
-            Self::triangle(a, b, c, direction)
+            Self::triangle(a, b, c)
         } else if same_direction(acd, ao) {
-            Self::triangle(a, c, d, direction)
+            Self::triangle(a, c, d)
         } else if same_direction(adb, ao) {
-            Self::triangle(a, d, b, direction)
+            Self::triangle(a, d, b)
         } else {
-            Self::Tetrahedron(a, b, c, d)
+            (Self::Tetrahedron(a, b, c, d), Vector3::unit_x())
         }
     }
 }
