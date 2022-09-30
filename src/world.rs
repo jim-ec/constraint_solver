@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
+use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
 use crate::{frame, line_debugger, mesh, renderer, rigid, solver};
 
@@ -12,7 +12,7 @@ pub struct World {
 impl World {
     pub fn new(
         renderer: &renderer::Renderer,
-        line_debugger: &mut line_debugger::LineDebugger,
+        #[allow(unused_variables)] line_debugger: &mut line_debugger::LineDebugger,
     ) -> World {
         let cube = mesh::Mesh::new_cube(renderer);
 
@@ -38,9 +38,9 @@ impl World {
 
     pub fn integrate(
         &mut self,
-        _t: f64,
-        dt: f64,
-        _line_debugger: &mut line_debugger::LineDebugger,
+        #[allow(unused_variables)] t: f64,
+        #[allow(unused_variables)] dt: f64,
+        #[allow(unused_variables)] line_debugger: &mut line_debugger::LineDebugger,
     ) {
         solver::step(&mut self.rigid, dt, 25);
     }

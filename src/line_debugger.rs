@@ -193,6 +193,7 @@ impl LineDebugger {
         renderer.queue.submit(std::iter::once(encoder.finish()));
     }
 
+    #[allow(dead_code)]
     fn clear(&mut self) {
         self.vertices.clear();
     }
