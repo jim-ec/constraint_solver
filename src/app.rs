@@ -12,10 +12,10 @@ use winit::{
 use crate::{camera, line_debugger, renderer, world};
 
 pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
+pub const FRAME_TIME: f64 = 1.0 / 60.0;
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
-    let time_start = Instant::now();
     let mut last_render_time = Instant::now();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
@@ -30,6 +30,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut world = world::World::new(&renderer, &mut line_debugger);
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
+
+    let mut time = 0.0;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::NewEvents(winit::event::StartCause::Init) => {
@@ -114,15 +116,10 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         },
 
         Event::RedrawRequested(..) => {
-            let time = Instant::now();
-            let delta_time = time.duration_since(last_render_time);
-            last_render_time = time;
+            last_render_time = Instant::now();
 
-            world.integrate(
-                time.duration_since(time_start).as_secs_f64(),
-                delta_time.as_secs_f64(),
-                &mut line_debugger,
-            );
+            world.integrate(time, FRAME_TIME, &mut line_debugger);
+            time += FRAME_TIME;
 
             camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
             camera.tilt = camera.tilt.lerp(camera_target.tilt, CAMERA_RESPONSIVNESS);
@@ -139,7 +136,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         Event::MainEventsCleared => {
-            let target_frametime = Duration::from_secs_f32(1.0 / 60.0);
+            let target_frametime = Duration::from_secs_f64(FRAME_TIME);
             let time_since_last_frame = last_render_time.elapsed();
             if time_since_last_frame >= target_frametime {
                 window.request_redraw();

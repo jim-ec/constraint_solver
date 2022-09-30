@@ -39,10 +39,10 @@ impl World {
     pub fn integrate(
         &mut self,
         _t: f64,
-        _dt: f64,
-        line_debugger: &mut line_debugger::LineDebugger,
+        dt: f64,
+        _line_debugger: &mut line_debugger::LineDebugger,
     ) {
-        // solver::step(&mut self.rigid, dt, 25);
+        solver::step(&mut self.rigid, dt, 25);
     }
 
     pub fn entities(&mut self) -> Vec<(frame::Frame, &mesh::Mesh)> {
