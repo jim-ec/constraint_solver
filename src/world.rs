@@ -10,7 +10,10 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(renderer: &renderer::Renderer) -> World {
+    pub fn new(
+        renderer: &renderer::Renderer,
+        line_debugger: &mut line_debugger::LineDebugger,
+    ) -> World {
         let cube = mesh::Mesh::new_cube(renderer);
 
         let mut rigid = rigid::Rigid::new(1.0);
@@ -33,13 +36,13 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, _t: f64, dt: f64, line_debugger: &mut line_debugger::LineDebugger) {
-        solver::step(&mut self.rigid, dt, 25);
-
-        line_debugger.debug_lines(
-            vec![Vector3::zero(), self.rigid.frame.position],
-            Vector3::new(1.0, 1.0, 0.0),
-        )
+    pub fn integrate(
+        &mut self,
+        _t: f64,
+        _dt: f64,
+        line_debugger: &mut line_debugger::LineDebugger,
+    ) {
+        // solver::step(&mut self.rigid, dt, 25);
     }
 
     pub fn entities(&mut self) -> Vec<(frame::Frame, &mesh::Mesh)> {

@@ -27,7 +27,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut renderer = renderer::Renderer::new(&window).await?;
     let mut line_debugger = line_debugger::LineDebugger::new(&renderer);
 
-    let mut world = world::World::new(&renderer);
+    let mut world = world::World::new(&renderer, &mut line_debugger);
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
 

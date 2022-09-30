@@ -3,7 +3,7 @@ use itertools::Itertools;
 
 use crate::renderer;
 
-const MAX_VERTEX_COUNT: usize = 1024;
+const MAX_VERTEX_COUNT: usize = 4096;
 
 pub struct LineDebugger {
     vertices: Vec<DebugLineVertex>,
@@ -23,7 +23,7 @@ unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 impl LineDebugger {
     #[allow(dead_code)]
-    pub fn debug_lines(&mut self, line: Vec<Vector3<f64>>, color: Vector3<f32>) {
+    pub fn line(&mut self, line: Vec<Vector3<f64>>, color: Vector3<f32>) {
         for (p1, p2) in line.into_iter().map(|p| p.cast().unwrap()).tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
@@ -34,6 +34,42 @@ impl LineDebugger {
                 color,
             });
         }
+        assert!(
+            self.vertices.len() < MAX_VERTEX_COUNT,
+            "Exceeded maximal debug line vertex count {MAX_VERTEX_COUNT}"
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn point(&mut self, point: Vector3<f64>, color: Vector3<f32>) {
+        const D: f32 = 0.5;
+        let point: Vector3<f32> = point.cast().unwrap();
+        self.vertices.extend([
+            DebugLineVertex {
+                position: point - D * Vector3::unit_x(),
+                color,
+            },
+            DebugLineVertex {
+                position: point + D * Vector3::unit_x(),
+                color,
+            },
+            DebugLineVertex {
+                position: point - D * Vector3::unit_y(),
+                color,
+            },
+            DebugLineVertex {
+                position: point + D * Vector3::unit_y(),
+                color,
+            },
+            DebugLineVertex {
+                position: point - D * Vector3::unit_z(),
+                color,
+            },
+            DebugLineVertex {
+                position: point + D * Vector3::unit_z(),
+                color,
+            },
+        ]);
         assert!(
             self.vertices.len() < MAX_VERTEX_COUNT,
             "Exceeded maximal debug line vertex count {MAX_VERTEX_COUNT}"
@@ -155,7 +191,9 @@ impl LineDebugger {
         drop(render_pass);
 
         renderer.queue.submit(std::iter::once(encoder.finish()));
+    }
 
+    fn clear(&mut self) {
         self.vertices.clear();
     }
 }
