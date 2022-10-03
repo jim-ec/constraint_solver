@@ -54,7 +54,7 @@ impl Rigid {
         self.support(direction) - other.support(-direction)
     }
 
-    pub fn gjk(&self, other: &Rigid) -> bool {
+    pub fn gjk(&self, other: &Rigid) -> Option<Tetrahedron> {
         let mut direction = -self.minkowski_support(other, Vector3::unit_x());
         let mut simplex = Simplex::Point(-direction);
 
@@ -62,11 +62,11 @@ impl Rigid {
             let support = self.minkowski_support(other, direction);
 
             if !same_direction(direction, support) {
-                return false;
+                return None;
             }
 
             match simplex.enclose(support) {
-                Ok((_, _, _, _)) => return true,
+                Ok(simplex) => return Some(simplex),
                 Err((next_simplex, next_direction)) => {
                     simplex = next_simplex;
                     direction = next_direction;

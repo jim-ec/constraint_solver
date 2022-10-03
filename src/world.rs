@@ -41,16 +41,30 @@ impl World {
         #[allow(unused_variables)] dt: f64,
         #[allow(unused_variables)] line_debugger: &mut line_debugger::LineDebugger,
     ) {
-        solver::step(&mut self.rigid, dt, 25);
-    }
+        line_debugger.clear();
 
-    pub fn entities(&mut self) -> Vec<(frame::Frame, &mesh::Mesh)> {
-        if self.rigid.gjk(&self.rigid2) {
+        solver::step(&mut self.rigid, dt, 25);
+
+        const DEBUG_GJK: Vector3<f32> = Vector3 {
+            x: 1.0,
+            y: 0.0,
+            z: 1.0,
+        };
+
+        if let Some((a, b, c, d)) = self.rigid.gjk(&self.rigid2) {
             self.cube.color = [1.0, 0.0, 0.0];
+            line_debugger.line(vec![a, b], DEBUG_GJK);
+            line_debugger.line(vec![a, c], DEBUG_GJK);
+            line_debugger.line(vec![a, d], DEBUG_GJK);
+            line_debugger.line(vec![b, c], DEBUG_GJK);
+            line_debugger.line(vec![b, d], DEBUG_GJK);
+            line_debugger.line(vec![c, d], DEBUG_GJK);
         } else {
             self.cube.color = mesh::DEFAULT_COLOR;
         }
+    }
 
+    pub fn entities(&mut self) -> Vec<(frame::Frame, &mesh::Mesh)> {
         vec![
             (self.rigid.frame, &self.cube),
             (self.rigid2.frame, &self.cube),

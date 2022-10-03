@@ -194,7 +194,7 @@ impl LineDebugger {
     }
 
     #[allow(dead_code)]
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.vertices.clear();
     }
 }
