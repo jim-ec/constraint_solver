@@ -85,11 +85,15 @@ impl Rigid {
         let mut min_normal = Vector3::zero();
         let mut min_distance = f64::MAX;
 
-        while min_distance == f64::MAX {
+        // TODO: In deep penetration scenarios, EPA seems to never terminate.
+        let mut iterations = 0;
+
+        while min_distance == f64::MAX && iterations < 10 {
             min_normal = normals[min_face].0;
             min_distance = normals[min_face].1;
 
             let support = self.minkowski_support(other, min_normal);
+
             let signed_distance = min_normal.dot(support);
 
             if (signed_distance - min_distance).abs() > 0.001 {
@@ -146,6 +150,8 @@ impl Rigid {
                 faces.append(&mut new_faces);
                 normals.append(&mut new_normals);
             }
+
+            iterations += 1;
         }
 
         Some(Collision {
