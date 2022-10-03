@@ -38,7 +38,6 @@ impl World {
 
     pub fn integrate(
         &mut self,
-        #[allow(unused_variables)] t: f64,
         #[allow(unused_variables)] dt: f64,
         #[allow(unused_variables)] line_debugger: &mut line_debugger::LineDebugger,
     ) {

@@ -31,7 +31,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
 
-    let mut time = 0.0;
+    let mut paused = false;
 
     event_loop.run(move |event, _, control_flow| match event {
         Event::NewEvents(winit::event::StartCause::Init) => {
@@ -64,6 +64,30 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 } else {
                     window.set_fullscreen(None)
                 }
+            }
+
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Space),
+                        ..
+                    },
+                ..
+            } => {
+                paused = !paused;
+            }
+
+            WindowEvent::KeyboardInput {
+                input:
+                    KeyboardInput {
+                        state: ElementState::Pressed,
+                        virtual_keycode: Some(VirtualKeyCode::Tab),
+                        ..
+                    },
+                ..
+            } => {
+                world.integrate(FRAME_TIME, &mut line_debugger);
             }
 
             WindowEvent::Resized(size)
@@ -118,8 +142,9 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         Event::RedrawRequested(..) => {
             last_render_time = Instant::now();
 
-            world.integrate(time, FRAME_TIME, &mut line_debugger);
-            time += FRAME_TIME;
+            if !paused {
+                world.integrate(FRAME_TIME, &mut line_debugger);
+            }
 
             camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
             camera.tilt = camera.tilt.lerp(camera_target.tilt, CAMERA_RESPONSIVNESS);
