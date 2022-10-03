@@ -312,7 +312,7 @@ fn get_face_normals(
     let mut min_triangle = 0;
     let mut min_distance = f64::MAX;
 
-    for i in (0..1).step_by(3) {
+    for i in (0..faces.len()).step_by(3) {
         let a = polytope[faces[i]];
         let b = polytope[faces[i + 1]];
         let c = polytope[faces[i + 2]];
