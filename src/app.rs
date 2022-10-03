@@ -86,7 +86,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                         ..
                     },
                 ..
-            } => {
+            } if paused => {
                 world.integrate(FRAME_TIME, &mut line_debugger);
             }
 
