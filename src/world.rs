@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
+use cgmath::{num_traits::Zero, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
 use crate::{frame, line_debugger, mesh, renderer, rigid, solver};
 
@@ -51,14 +51,12 @@ impl World {
             z: 1.0,
         };
 
-        if let Some((a, b, c, d)) = self.rigid.gjk(&self.rigid2) {
+        if let Some(collision) = self.rigid.epa(&self.rigid2) {
             self.cube.color = [1.0, 0.0, 0.0];
-            line_debugger.line(vec![a, b], DEBUG_GJK);
-            line_debugger.line(vec![a, c], DEBUG_GJK);
-            line_debugger.line(vec![a, d], DEBUG_GJK);
-            line_debugger.line(vec![b, c], DEBUG_GJK);
-            line_debugger.line(vec![b, d], DEBUG_GJK);
-            line_debugger.line(vec![c, d], DEBUG_GJK);
+            line_debugger.line(
+                vec![Vector3::zero(), collision.depth * collision.normal],
+                DEBUG_GJK,
+            );
         } else {
             self.cube.color = mesh::DEFAULT_COLOR;
         }
