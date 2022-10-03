@@ -77,7 +77,7 @@ impl Rigid {
         let simplex = self.gjk(other)?;
 
         let mut polytope = vec![simplex.0, simplex.1, simplex.2, simplex.3];
-        let mut faces = vec![0, 1, 2, 0, 3, 1, 0, 2, 3, 1, 3, 2];
+        let mut faces = vec![(0, 1, 2), (0, 3, 1), (0, 2, 3), (1, 3, 2)];
 
         // list: vector4(normal, distance), index: min distance
         let (mut normals, mut min_face) = get_face_normals(&polytope, &faces);
@@ -103,17 +103,12 @@ impl Rigid {
                 let mut i = 0;
                 while i < normals.len() {
                     if same_direction(normals[i].0, support) {
-                        let f = i * 3;
+                        add_if_unique_edge(&mut unique_edges, faces[i].0, faces[i].1);
+                        add_if_unique_edge(&mut unique_edges, faces[i].1, faces[i].2);
+                        add_if_unique_edge(&mut unique_edges, faces[i].2, faces[i].0);
 
-                        add_if_unique_edge(&mut unique_edges, &faces, f, f + 1);
-                        add_if_unique_edge(&mut unique_edges, &faces, f + 1, f + 2);
-                        add_if_unique_edge(&mut unique_edges, &faces, f + 2, f);
-
-                        faces[f + 2] = *faces.last().unwrap();
-                        faces.pop();
-                        faces[f + 1] = *faces.last().unwrap();
-                        faces.pop();
-                        faces[f] = *faces.last().unwrap();
+                        let last_face = *faces.last().unwrap();
+                        faces[i] = last_face;
                         faces.pop();
 
                         normals[i] = *normals.last().unwrap();
@@ -125,9 +120,7 @@ impl Rigid {
 
                 let mut new_faces = Vec::new();
                 for (i, j) in unique_edges {
-                    new_faces.push(i);
-                    new_faces.push(j);
-                    new_faces.push(polytope.len());
+                    new_faces.push((i, j, polytope.len()));
                 }
 
                 polytope.push(support);
@@ -297,31 +290,31 @@ fn same_direction(a: Vector3<f64>, b: Vector3<f64>) -> bool {
 //     }
 // }
 
-fn add_if_unique_edge(edges: &mut Vec<(usize, usize)>, faces: &[usize], a: usize, b: usize) {
+fn add_if_unique_edge(edges: &mut Vec<(usize, usize)>, i: usize, j: usize) {
     //      0--<--3
     //     / \ B /   A: 2-0
     //    / A \ /    B: 0-2
     //   1-->--2
 
-    if let Some(reverse) = edges.iter().position(|&e| e == (faces[b], faces[a])) {
+    if let Some(reverse) = edges.iter().position(|&e| e == (j, i)) {
         edges.remove(reverse);
     } else {
-        edges.push((faces[a], faces[b]));
+        edges.push((i, j));
     }
 }
 
 fn get_face_normals(
     polytope: &[Vector3<f64>],
-    faces: &[usize],
+    faces: &[(usize, usize, usize)],
 ) -> (Vec<(Vector3<f64>, f64)>, usize) {
     let mut normals = Vec::new();
     let mut min_triangle = 0;
     let mut min_distance = f64::MAX;
 
-    for i in (0..faces.len()).step_by(3) {
-        let a = polytope[faces[i]];
-        let b = polytope[faces[i + 1]];
-        let c = polytope[faces[i + 2]];
+    for (i, face) in faces.iter().enumerate() {
+        let a = polytope[face.0];
+        let b = polytope[face.1];
+        let c = polytope[face.2];
         let mut normal = (b - a).cross(c - a).normalize();
         let mut distance = normal.dot(a);
 
@@ -333,7 +326,7 @@ fn get_face_normals(
         normals.push((normal, distance));
 
         if distance < min_distance {
-            min_triangle = i / 3;
+            min_triangle = i;
             min_distance = distance;
         }
     }
