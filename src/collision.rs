@@ -160,16 +160,22 @@ impl Rigid {
             iterations += 1;
         }
 
-        for (i, f) in faces.iter().enumerate() {
+        for &f in &faces {
             debug_lines.line(
                 vec![polytope[f.0], polytope[f.1], polytope[f.2], polytope[f.0]],
-                if i == min_face {
-                    [1.0, 1.0, 0.0]
-                } else {
-                    [0.0, 0.0, 1.0]
-                },
+                [0.0, 0.0, 1.0],
             );
         }
+
+        debug_lines.line(
+            vec![
+                polytope[faces[min_face].0],
+                polytope[faces[min_face].1],
+                polytope[faces[min_face].2],
+                polytope[faces[min_face].0],
+            ],
+            [1.0, 1.0, 0.0],
+        );
 
         Some(Collision {
             normal: min_normal,
