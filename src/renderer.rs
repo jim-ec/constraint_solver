@@ -1,7 +1,7 @@
 use cgmath::Vector3;
 use winit::window::Window;
 
-use crate::{camera, frame, debug, mesh};
+use crate::{camera, debug, frame, mesh};
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 pub const SAMPLES: u32 = 4;
@@ -23,6 +23,7 @@ pub struct Renderer {
     pub depth_texture: wgpu::Texture,
     pub depth_texture_view: wgpu::TextureView,
     camera_uniform_buffer: wgpu::Buffer,
+    line_debugger: debug::LineDebugger,
 }
 
 impl Renderer {
@@ -274,6 +275,9 @@ impl Renderer {
             multiview: None,
         });
 
+        let line_debugger =
+            debug::LineDebugger::new(&device, swapchain_format, &camera_uniform_bind_group_layout);
+
         Ok(Self {
             surface,
             swapchain_format,
@@ -293,6 +297,7 @@ impl Renderer {
             depth_texture_view: depth_texture.create_view(&Default::default()),
             depth_texture,
             camera_uniform_buffer,
+            line_debugger,
         })
     }
 
@@ -342,10 +347,10 @@ impl Renderer {
     }
 
     pub fn render(
-        &mut self,
+        &self,
         camera: &camera::Camera,
         geometry: &[(frame::Frame, &mesh::Mesh)],
-        line_debugger: &mut debug::LineDebugger,
+        debug_lines: &debug::DebugLines,
     ) -> Result<(), wgpu::SurfaceError> {
         let surface_texture = self.surface.get_current_texture()?;
         let view = surface_texture
@@ -368,14 +373,14 @@ impl Renderer {
 
         self.render_grid(&view);
 
-        line_debugger.render(self, &view);
+        self.line_debugger.render(debug_lines, self, &view);
 
         surface_texture.present();
 
         Ok(())
     }
 
-    fn clear_surface(&mut self, view: &wgpu::TextureView) {
+    fn clear_surface(&self, view: &wgpu::TextureView) {
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });

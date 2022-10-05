@@ -1,11 +1,10 @@
 use cgmath::{num_traits::Zero, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
-use crate::{frame, debug, mesh, renderer, rigid, solver};
+use crate::{debug, frame, mesh, renderer, rigid, solver};
 
 pub struct World {
     cube: mesh::Mesh,
     rigid: rigid::Rigid,
-
     rigid2: rigid::Rigid,
 }
 
@@ -33,7 +32,7 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, dt: f64, line_debugger: &mut debug::LineDebugger) {
+    pub fn integrate(&mut self, dt: f64, debug_lines: &mut debug::DebugLines) {
         solver::step(&mut self.rigid, dt, 25);
 
         const DEBUG_GJK: Vector3<f32> = Vector3 {
@@ -44,7 +43,7 @@ impl World {
 
         if let Some(collision) = self.rigid.epa(&self.rigid2) {
             self.cube.color = [1.0, 0.0, 0.0];
-            line_debugger.line(
+            debug_lines.line(
                 vec![Vector3::zero(), collision.depth * collision.normal],
                 DEBUG_GJK,
             );

@@ -25,7 +25,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
-    let mut line_debugger = debug::LineDebugger::new(&renderer);
+    let mut debug_lines = debug::DebugLines::default();
 
     let mut world = world::World::new(&renderer);
     let mut camera = camera::Camera::initial();
@@ -87,7 +87,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     },
                 ..
             } if paused => {
-                world.integrate(FRAME_TIME, &mut line_debugger);
+                world.integrate(FRAME_TIME, &mut debug_lines);
             }
 
             WindowEvent::Resized(size)
@@ -143,7 +143,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             last_render_time = Instant::now();
 
             if !paused {
-                world.integrate(FRAME_TIME, &mut line_debugger);
+                world.integrate(FRAME_TIME, &mut debug_lines);
             }
 
             camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
@@ -152,14 +152,14 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 .distance
                 .lerp(camera_target.distance, CAMERA_RESPONSIVNESS);
 
-            match renderer.render(&camera, &world.entities(), &mut line_debugger) {
+            match renderer.render(&camera, &world.entities(), &debug_lines) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => renderer.resize(renderer.size),
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                 Err(wgpu::SurfaceError::Timeout) | Err(wgpu::SurfaceError::Outdated) => (),
             }
 
-            line_debugger.clear();
+            debug_lines.clear();
         }
 
         Event::MainEventsCleared => {
