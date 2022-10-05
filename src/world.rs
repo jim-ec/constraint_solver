@@ -2,6 +2,7 @@ use cgmath::{num_traits::Zero, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
 use crate::{debug, rigid, solver};
 
+#[derive(Clone, Copy)]
 pub struct World {
     rigid: rigid::Rigid,
     rigid2: rigid::Rigid,
@@ -47,7 +48,7 @@ impl World {
         }
     }
 
-    pub fn rigids(&mut self) -> Vec<&rigid::Rigid> {
+    pub fn rigids(&self) -> Vec<&rigid::Rigid> {
         vec![&self.rigid, &self.rigid2]
     }
 }

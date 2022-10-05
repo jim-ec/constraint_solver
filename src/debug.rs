@@ -71,11 +71,6 @@ impl DebugLines {
             },
         ]);
     }
-
-    #[deprecated]
-    pub fn clear(&mut self) {
-        self.vertices.clear();
-    }
 }
 
 impl LineDebugger {
