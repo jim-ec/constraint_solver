@@ -10,10 +10,7 @@ pub struct World {
 }
 
 impl World {
-    pub fn new(
-        renderer: &renderer::Renderer,
-        #[allow(unused_variables)] line_debugger: &mut line_debugger::LineDebugger,
-    ) -> World {
+    pub fn new(renderer: &renderer::Renderer) -> World {
         let cube = mesh::Mesh::new_cube(renderer);
 
         let mut rigid = rigid::Rigid::new(1.0);
@@ -36,13 +33,7 @@ impl World {
         }
     }
 
-    pub fn integrate(
-        &mut self,
-        #[allow(unused_variables)] dt: f64,
-        #[allow(unused_variables)] line_debugger: &mut line_debugger::LineDebugger,
-    ) {
-        line_debugger.clear();
-
+    pub fn integrate(&mut self, dt: f64, line_debugger: &mut line_debugger::LineDebugger) {
         solver::step(&mut self.rigid, dt, 25);
 
         const DEBUG_GJK: Vector3<f32> = Vector3 {
