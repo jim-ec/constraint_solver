@@ -32,22 +32,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut camera_target = camera;
 
     let mut paused = false;
+    let mut manual_forward_step = false;
 
-    let initial_state = world::World::new();
-    let mut states: Vec<(world::World, debug::DebugLines)> = Vec::new();
+    let mut states = vec![(world::World::new(), debug::DebugLines::default())];
+    let mut current_state: usize = 0;
 
     event_loop.run(move |event, _, control_flow| {
-        let mut integrate = || {
-            let mut world = states
-                .last()
-                .map(|(world, _)| *world)
-                .unwrap_or(initial_state);
-
-            let mut debug_lines = debug::DebugLines::default();
-            world.integrate(FRAME_TIME, &mut debug_lines);
-            states.push((world, debug_lines))
-        };
-
         match event {
             Event::NewEvents(winit::event::StartCause::Init) => {
                 window.set_visible(true);
@@ -97,12 +87,24 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     input:
                         KeyboardInput {
                             state: ElementState::Pressed,
-                            virtual_keycode: Some(VirtualKeyCode::Tab),
+                            virtual_keycode: Some(VirtualKeyCode::Up),
                             ..
                         },
                     ..
                 } if paused => {
-                    integrate();
+                    manual_forward_step = true;
+                }
+
+                WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            state: ElementState::Pressed,
+                            virtual_keycode: Some(VirtualKeyCode::Down),
+                            ..
+                        },
+                    ..
+                } if paused => {
+                    current_state = current_state.saturating_sub(1);
                 }
 
                 WindowEvent::Resized(size)
@@ -157,8 +159,15 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             Event::RedrawRequested(..) => {
                 last_render_time = Instant::now();
 
-                if !paused {
-                    integrate();
+                if !paused || manual_forward_step {
+                    if current_state + 1 >= states.len() {
+                        let mut world = states[current_state].0;
+                        let mut debug_lines = debug::DebugLines::default();
+                        world.integrate(FRAME_TIME, &mut debug_lines);
+                        states.push((world, debug_lines));
+                    }
+                    current_state += 1;
+                    manual_forward_step = false;
                 }
 
                 camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
@@ -167,9 +176,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     .distance
                     .lerp(camera_target.distance, CAMERA_RESPONSIVNESS);
 
-                let default_state = (initial_state, debug::DebugLines::default());
-
-                let (world, debug_lines) = states.last().unwrap_or(&default_state);
+                let (world, debug_lines) = &states[current_state];
 
                 let geometry = world
                     .rigids()
