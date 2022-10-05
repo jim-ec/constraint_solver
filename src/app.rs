@@ -33,6 +33,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut paused = false;
     let mut manual_forward_step = false;
+    let mut speed_up = false;
+    let speed_up_multiplier = 5;
 
     let mut states = vec![(world::World::new(), debug::DebugLines::default())];
     let mut current_state: usize = 0;
@@ -104,7 +106,11 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                         },
                     ..
                 } if paused => {
-                    current_state = current_state.saturating_sub(1);
+                    current_state = current_state.saturating_sub(speed_up_multiplier);
+                }
+
+                WindowEvent::ModifiersChanged(state) => {
+                    speed_up = state.shift();
                 }
 
                 WindowEvent::Resized(size)
@@ -160,13 +166,15 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 last_render_time = Instant::now();
 
                 if !paused || manual_forward_step {
-                    if current_state + 1 >= states.len() {
-                        let mut world = states[current_state].0;
-                        let mut debug_lines = debug::DebugLines::default();
-                        world.integrate(FRAME_TIME, &mut debug_lines);
-                        states.push((world, debug_lines));
+                    for _ in 0..if speed_up { speed_up_multiplier } else { 1 } {
+                        if current_state + 1 >= states.len() {
+                            let mut world = states[current_state].0;
+                            let mut debug_lines = debug::DebugLines::default();
+                            world.integrate(FRAME_TIME, &mut debug_lines);
+                            states.push((world, debug_lines));
+                        }
+                        current_state += 1;
                     }
-                    current_state += 1;
                     manual_forward_step = false;
                 }
 
