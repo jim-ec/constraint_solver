@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use lerp::Lerp;
 use std::{
     f32::consts::TAU,
@@ -9,7 +10,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::{camera, debug, renderer, world};
+use crate::{camera, debug, mesh, renderer, world};
 
 pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 pub const FRAME_TIME: f64 = 1.0 / 60.0;
@@ -26,8 +27,9 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut renderer = renderer::Renderer::new(&window).await?;
     let mut debug_lines = debug::DebugLines::default();
+    let cube_mesh = mesh::Mesh::new_cube(&renderer);
 
-    let mut world = world::World::new(&renderer);
+    let mut world = world::World::new();
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
 
@@ -152,7 +154,13 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 .distance
                 .lerp(camera_target.distance, CAMERA_RESPONSIVNESS);
 
-            match renderer.render(&camera, &world.entities(), &debug_lines) {
+            let geometry = world
+                .rigids()
+                .into_iter()
+                .map(|rigid| (&cube_mesh, rigid.frame, rigid.color))
+                .collect_vec();
+
+            match renderer.render(&camera, &geometry, &debug_lines) {
                 Ok(_) => {}
                 Err(wgpu::SurfaceError::Lost) => renderer.resize(renderer.size),
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,

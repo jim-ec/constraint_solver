@@ -349,7 +349,7 @@ impl Renderer {
     pub fn render(
         &self,
         camera: &camera::Camera,
-        geometry: &[(frame::Frame, &mesh::Mesh)],
+        geometry: &[(&mesh::Mesh, frame::Frame, [f32; 3])],
         debug_lines: &debug::DebugLines,
     ) -> Result<(), wgpu::SurfaceError> {
         let surface_texture = self.surface.get_current_texture()?;
@@ -367,8 +367,8 @@ impl Renderer {
             ]),
         );
 
-        for &(frame, mesh) in geometry {
-            self.render_entity(&view, frame, mesh);
+        for &(mesh, frame, color) in geometry {
+            self.render_entity(&view, mesh, frame, color);
         }
 
         self.render_grid(&view);
@@ -413,7 +413,13 @@ impl Renderer {
         self.queue.submit(std::iter::once(encoder.finish()));
     }
 
-    fn render_entity(&self, view: &wgpu::TextureView, frame: frame::Frame, mesh: &mesh::Mesh) {
+    fn render_entity(
+        &self,
+        view: &wgpu::TextureView,
+        mesh: &mesh::Mesh,
+        frame: frame::Frame,
+        color: [f32; 3],
+    ) {
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -439,7 +445,7 @@ impl Renderer {
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_bind_group(0, &self.camera_uniform_bind_group, &[]);
 
-        mesh.upload_uniforms(&self.queue, frame);
+        mesh.upload_uniforms(&self.queue, frame, color);
         render_pass.set_bind_group(1, &mesh.bind_group, &[]);
         render_pass.set_vertex_buffer(0, mesh.vertex_position_buffer.slice(..));
         render_pass.draw(0..mesh.vertex_count as u32, 0..1);

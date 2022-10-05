@@ -35,7 +35,11 @@ pub struct Rigid {
 
     pub frame: Frame,
     pub past_frame: Frame,
+
+    pub color: [f32; 3],
 }
+
+pub const DEFAULT_COLOR: [f32; 3] = [0.4; 3];
 
 impl Rigid {
     pub fn new(mass: f64) -> Rigid {
@@ -59,6 +63,7 @@ impl Rigid {
             angular_velocity: Vector3::zero(),
             frame: Frame::default(),
             past_frame: Frame::default(),
+            color: DEFAULT_COLOR,
         }
     }
 

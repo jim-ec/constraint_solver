@@ -5,7 +5,6 @@ use wgpu::util::DeviceExt;
 
 #[derive(Debug, Setters)]
 pub struct Mesh {
-    pub color: [f32; 3],
     pub vertex_position_buffer: wgpu::Buffer,
     pub bind_group: wgpu::BindGroup,
     pub uniform_buffer: wgpu::Buffer,
@@ -22,16 +21,14 @@ struct MeshUniforms {
 unsafe impl bytemuck::Pod for MeshUniforms {}
 unsafe impl bytemuck::Zeroable for MeshUniforms {}
 
-pub const DEFAULT_COLOR: [f32; 3] = [0.4; 3];
-
 impl Mesh {
-    pub fn upload_uniforms(&self, queue: &wgpu::Queue, frame: Frame) {
+    pub fn upload_uniforms(&self, queue: &wgpu::Queue, frame: Frame, color: [f32; 3]) {
         queue.write_buffer(
             &self.uniform_buffer,
             0,
             bytemuck::cast_slice(&[MeshUniforms {
                 transform: frame.matrix(),
-                color: self.color,
+                color,
             }]),
         );
     }
@@ -81,7 +78,6 @@ impl Mesh {
             });
 
         Self {
-            color: DEFAULT_COLOR,
             vertex_position_buffer,
             bind_group,
             uniform_buffer,

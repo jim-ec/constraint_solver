@@ -1,17 +1,14 @@
 use cgmath::{num_traits::Zero, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
-use crate::{debug, frame, mesh, renderer, rigid, solver};
+use crate::{debug, rigid, solver};
 
 pub struct World {
-    cube: mesh::Mesh,
     rigid: rigid::Rigid,
     rigid2: rigid::Rigid,
 }
 
 impl World {
-    pub fn new(renderer: &renderer::Renderer) -> World {
-        let cube = mesh::Mesh::new_cube(renderer);
-
+    pub fn new() -> World {
         let mut rigid = rigid::Rigid::new(1.0);
         rigid.external_force.z = -5.0;
         rigid.velocity.z = -0.2;
@@ -25,11 +22,7 @@ impl World {
         rigid2.frame.position.z = 2.1;
         rigid2 = rigid2.forget_past();
 
-        World {
-            cube,
-            rigid,
-            rigid2,
-        }
+        World { rigid, rigid2 }
     }
 
     pub fn integrate(&mut self, dt: f64, debug_lines: &mut debug::DebugLines) {
@@ -42,20 +35,19 @@ impl World {
         };
 
         if let Some(collision) = self.rigid.epa(&self.rigid2) {
-            self.cube.color = [1.0, 0.0, 0.0];
+            self.rigid.color = [1.0, 0.0, 0.0];
+            self.rigid2.color = [1.0, 0.0, 0.0];
             debug_lines.line(
                 vec![Vector3::zero(), collision.depth * collision.normal],
                 DEBUG_GJK,
             );
         } else {
-            self.cube.color = mesh::DEFAULT_COLOR;
+            self.rigid.color = rigid::DEFAULT_COLOR;
+            self.rigid2.color = rigid::DEFAULT_COLOR;
         }
     }
 
-    pub fn entities(&mut self) -> Vec<(frame::Frame, &mesh::Mesh)> {
-        vec![
-            (self.rigid.frame, &self.cube),
-            (self.rigid2.frame, &self.cube),
-        ]
+    pub fn rigids(&mut self) -> Vec<&rigid::Rigid> {
+        vec![&self.rigid, &self.rigid2]
     }
 }
