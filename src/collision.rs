@@ -4,7 +4,7 @@ use cgmath::{InnerSpace, Vector3, Zero};
 
 use crate::{constraint::Constraint, rigid::Rigid};
 
-const CUBE_VERTICES: [Vector3<f64>; 8] = [
+pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
     Vector3::new(-0.5, -0.5, -0.5),
     Vector3::new(0.5, -0.5, -0.5),
     Vector3::new(-0.5, 0.5, -0.5),

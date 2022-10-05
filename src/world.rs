@@ -1,6 +1,6 @@
 use cgmath::{num_traits::Zero, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
-use crate::{debug, rigid, solver};
+use crate::{collision, debug, rigid, solver};
 
 #[derive(Clone, Copy)]
 pub struct World {
@@ -29,11 +29,16 @@ impl World {
     pub fn integrate(&mut self, dt: f64, debug_lines: &mut debug::DebugLines) {
         solver::step(&mut self.a, dt, 25);
 
-        const DEBUG_GJK: Vector3<f32> = Vector3 {
-            x: 1.0,
-            y: 0.0,
-            z: 1.0,
-        };
+        const DEBUG_GJK: [f32; 3] = [1.0, 0.0, 1.0];
+
+        for point_a in collision::CUBE_VERTICES {
+            let point_a = self.a.frame.act(point_a);
+            debug_lines.point(point_a, [0.0, 1.0, 0.0]);
+
+            for point_b in collision::CUBE_VERTICES {
+                let point_b = self.b.frame.act(point_b);
+            }
+        }
 
         if let Some(collision) = self.a.epa(&self.b) {
             self.a.color = [1.0, 0.0, 0.0];

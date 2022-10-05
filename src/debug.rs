@@ -19,7 +19,7 @@ pub struct LineDebugger {
 #[derive(Debug, Clone, Copy)]
 struct DebugLineVertex {
     position: Vector3<f32>,
-    color: Vector3<f32>,
+    color: [f32; 3],
 }
 
 unsafe impl bytemuck::Pod for DebugLineVertex {}
@@ -27,7 +27,7 @@ unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 impl DebugLines {
     #[allow(dead_code)]
-    pub fn line(&mut self, line: Vec<Vector3<f64>>, color: Vector3<f32>) {
+    pub fn line(&mut self, line: Vec<Vector3<f64>>, color: [f32; 3]) {
         for (p1, p2) in line.into_iter().map(|p| p.cast().unwrap()).tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
@@ -41,7 +41,7 @@ impl DebugLines {
     }
 
     #[allow(dead_code)]
-    pub fn point(&mut self, point: Vector3<f64>, color: Vector3<f32>) {
+    pub fn point(&mut self, point: Vector3<f64>, color: [f32; 3]) {
         const D: f32 = 0.5;
         let point: Vector3<f32> = point.cast().unwrap();
         self.vertices.extend([
