@@ -94,12 +94,12 @@ impl World {
             debug_lines.line(vec![tetra.2, tetra.3], DEBUG_GJK);
         }
 
-        if let Some(collision) = self.a.epa(&self.b) {
+        if let Some(collision) = self.a.epa(&self.b, debug_lines) {
             self.a.color = [1.0, 0.0, 0.0];
             self.b.color = [1.0, 0.0, 0.0];
             debug_lines.line(
                 vec![Vector3::zero(), collision.depth * collision.normal],
-                [1.0, 0.0, 0.0],
+                [1.0, 1.0, 0.0],
             );
         } else {
             self.a.color = rigid::DEFAULT_COLOR;

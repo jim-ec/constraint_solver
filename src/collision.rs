@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 
-use cgmath::{InnerSpace, Vector3, Zero};
+use cgmath::{InnerSpace, Vector3};
 
-use crate::{constraint::Constraint, rigid::Rigid};
+use crate::{constraint::Constraint, debug, rigid::Rigid};
 
 pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
     Vector3::new(-0.5, -0.5, -0.5),
@@ -73,7 +73,7 @@ impl Rigid {
         }
     }
 
-    pub fn epa(&self, other: &Rigid) -> Option<Collision> {
+    pub fn epa(&self, other: &Rigid, debug_lines: &mut debug::DebugLines) -> Option<Collision> {
         let simplex = self.gjk(other)?;
 
         let mut polytope = vec![simplex.0, simplex.1, simplex.2, simplex.3];
@@ -82,17 +82,30 @@ impl Rigid {
         // list: vector4(normal, distance), index: min distance
         let (mut normals, mut min_face) = get_face_normals(&polytope, &faces);
 
-        let mut min_normal = Vector3::zero();
+        let mut min_normal = Vector3::unit_x();
         let mut min_distance = f64::MAX;
 
         // TODO: In deep penetration scenarios, EPA seems to never terminate.
         let mut iterations = 0;
 
-        while min_distance == f64::MAX && iterations < 10 {
+        while min_distance == f64::MAX && iterations < 50 {
             min_normal = normals[min_face].0;
             min_distance = normals[min_face].1;
 
             let support = self.minkowski_support(other, min_normal);
+            if polytope.contains(&support)
+                && support != simplex.0
+                && support != simplex.1
+                && support != simplex.2
+                && support != simplex.3
+            {
+                break;
+            }
+
+            debug_lines.point(
+                support + 0.04 * Vector3::new(rand::random(), rand::random(), rand::random()),
+                [0.0, 0.0, 1.0],
+            );
 
             let signed_distance = min_normal.dot(support);
 
@@ -145,6 +158,17 @@ impl Rigid {
             }
 
             iterations += 1;
+        }
+
+        for (i, f) in faces.iter().enumerate() {
+            debug_lines.line(
+                vec![polytope[f.0], polytope[f.1], polytope[f.2], polytope[f.0]],
+                if i == min_face {
+                    [1.0, 1.0, 0.0]
+                } else {
+                    [0.0, 0.0, 1.0]
+                },
+            );
         }
 
         Some(Collision {
