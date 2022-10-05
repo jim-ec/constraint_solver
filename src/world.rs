@@ -33,11 +33,24 @@ impl World {
 
         for point_a in collision::CUBE_VERTICES {
             let point_a = self.a.frame.act(point_a);
-            debug_lines.point(point_a, [0.0, 1.0, 0.0]);
-
             for point_b in collision::CUBE_VERTICES {
                 let point_b = self.b.frame.act(point_b);
+                let minkowski_difference = point_a - point_b;
+                debug_lines.point(minkowski_difference, [0.0, 1.0, 0.0]);
             }
+        }
+
+        if let Some(tetra) = self.a.gjk(&self.b) {
+            debug_lines.point(tetra.0, DEBUG_GJK);
+            debug_lines.point(tetra.1, DEBUG_GJK);
+            debug_lines.point(tetra.2, DEBUG_GJK);
+            debug_lines.point(tetra.3, DEBUG_GJK);
+            debug_lines.line(vec![tetra.0, tetra.1], DEBUG_GJK);
+            debug_lines.line(vec![tetra.0, tetra.2], DEBUG_GJK);
+            debug_lines.line(vec![tetra.0, tetra.3], DEBUG_GJK);
+            debug_lines.line(vec![tetra.1, tetra.2], DEBUG_GJK);
+            debug_lines.line(vec![tetra.1, tetra.3], DEBUG_GJK);
+            debug_lines.line(vec![tetra.2, tetra.3], DEBUG_GJK);
         }
 
         if let Some(collision) = self.a.epa(&self.b) {

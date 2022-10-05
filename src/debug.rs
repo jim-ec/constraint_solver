@@ -42,7 +42,7 @@ impl DebugLines {
 
     #[allow(dead_code)]
     pub fn point(&mut self, point: Vector3<f64>, color: [f32; 3]) {
-        const D: f32 = 0.5;
+        const D: f32 = 0.1;
         let point: Vector3<f32> = point.cast().unwrap();
         self.vertices.extend([
             DebugLineVertex {
