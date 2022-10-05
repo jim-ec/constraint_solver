@@ -33,13 +33,14 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut paused = false;
     let mut manual_forward_step = false;
-    let mut speed_up = false;
-    let speed_up_multiplier = 5;
+    let mut time_speed_up = false;
 
     let mut states = vec![(world::World::new(), debug::DebugLines::default())];
     let mut current_state: usize = 0;
 
     event_loop.run(move |event, _, control_flow| {
+        let time_speed = || if time_speed_up { 5 } else { 1 };
+
         match event {
             Event::NewEvents(winit::event::StartCause::Init) => {
                 window.set_visible(true);
@@ -106,11 +107,11 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                         },
                     ..
                 } if paused => {
-                    current_state = current_state.saturating_sub(speed_up_multiplier);
+                    current_state = current_state.saturating_sub(time_speed());
                 }
 
                 WindowEvent::ModifiersChanged(state) => {
-                    speed_up = state.shift();
+                    time_speed_up = state.shift();
                 }
 
                 WindowEvent::Resized(size)
@@ -166,7 +167,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 last_render_time = Instant::now();
 
                 if !paused || manual_forward_step {
-                    for _ in 0..if speed_up { speed_up_multiplier } else { 1 } {
+                    for _ in 0..time_speed() {
                         if current_state + 1 >= states.len() {
                             let mut world = states[current_state].0;
                             let mut debug_lines = debug::DebugLines::default();
