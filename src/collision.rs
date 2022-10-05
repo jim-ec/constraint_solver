@@ -235,7 +235,7 @@ impl Simplex {
     }
 }
 
-fn same_direction(a: Vector3<f64>, b: Vector3<f64>) -> bool {
+pub fn same_direction(a: Vector3<f64>, b: Vector3<f64>) -> bool {
     a.dot(b) > 0.0
 }
 
