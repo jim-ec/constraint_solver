@@ -41,11 +41,48 @@ impl World {
                 points.push(minkowski_difference);
             }
         }
-        let convex_points = convex(&points);
-        for c in convex_points {
+        let convex_hull = convex(&points);
+        for c in &convex_hull {
             debug_lines.point(points[c.0], DEBUG_GJK);
             debug_lines.point(points[c.1], DEBUG_GJK);
             debug_lines.point(points[c.2], DEBUG_GJK);
+        }
+
+        if let Some((f, _)) = convex_hull
+            .iter()
+            .filter_map(|&f| {
+                let a = points[f.0];
+                let b = points[f.1];
+                let c = points[f.2];
+                let n = (b - a).cross(c - a);
+                let distance = n.normalize().dot(a);
+
+                let ab = b - a;
+                let bc = c - b;
+                let ca = a - c;
+
+                let ao = -a;
+                let bo = -b;
+                let co = -c;
+
+                let within_ab = ao.dot(ab) >= 0.0 && bo.dot(-ab) >= 0.0;
+                let within_bc = bo.dot(bc) >= 0.0 && co.dot(-bc) >= 0.0;
+                let within_ca = co.dot(ca) >= 0.0 && ao.dot(-ca) >= 0.0;
+
+                let within_abc = within_ab && within_bc && within_ca;
+
+                if within_abc {
+                    Some((f, distance.abs()))
+                } else {
+                    None
+                }
+            })
+            .min_by(|(_, d0), (_, d1)| d0.total_cmp(d1))
+        {
+            debug_lines.line(
+                vec![points[f.0], points[f.1], points[f.2], points[f.0]],
+                [1.0, 0.0, 0.0],
+            );
         }
 
         if let Some(tetra) = self.a.gjk(&self.b) {
@@ -62,7 +99,7 @@ impl World {
             self.b.color = [1.0, 0.0, 0.0];
             debug_lines.line(
                 vec![Vector3::zero(), collision.depth * collision.normal],
-                DEBUG_GJK,
+                [1.0, 0.0, 0.0],
             );
         } else {
             self.a.color = rigid::DEFAULT_COLOR;
