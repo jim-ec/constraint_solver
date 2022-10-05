@@ -3,7 +3,7 @@ mod camera;
 mod collision;
 mod constraint;
 mod frame;
-mod line_debugger;
+mod debug;
 mod mesh;
 mod renderer;
 mod rigid;

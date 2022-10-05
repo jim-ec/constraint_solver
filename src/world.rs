@@ -1,6 +1,6 @@
 use cgmath::{num_traits::Zero, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
-use crate::{frame, line_debugger, mesh, renderer, rigid, solver};
+use crate::{frame, debug, mesh, renderer, rigid, solver};
 
 pub struct World {
     cube: mesh::Mesh,
@@ -33,7 +33,7 @@ impl World {
         }
     }
 
-    pub fn integrate(&mut self, dt: f64, line_debugger: &mut line_debugger::LineDebugger) {
+    pub fn integrate(&mut self, dt: f64, line_debugger: &mut debug::LineDebugger) {
         solver::step(&mut self.rigid, dt, 25);
 
         const DEBUG_GJK: Vector3<f32> = Vector3 {

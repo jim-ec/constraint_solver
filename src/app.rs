@@ -9,7 +9,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::{camera, line_debugger, renderer, world};
+use crate::{camera, debug, renderer, world};
 
 pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 pub const FRAME_TIME: f64 = 1.0 / 60.0;
@@ -25,7 +25,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
-    let mut line_debugger = line_debugger::LineDebugger::new(&renderer);
+    let mut line_debugger = debug::LineDebugger::new(&renderer);
 
     let mut world = world::World::new(&renderer);
     let mut camera = camera::Camera::initial();

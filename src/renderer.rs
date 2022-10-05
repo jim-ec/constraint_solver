@@ -1,7 +1,7 @@
 use cgmath::Vector3;
 use winit::window::Window;
 
-use crate::{camera, frame, line_debugger, mesh};
+use crate::{camera, frame, debug, mesh};
 
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth24Plus;
 pub const SAMPLES: u32 = 4;
@@ -345,7 +345,7 @@ impl Renderer {
         &mut self,
         camera: &camera::Camera,
         geometry: &[(frame::Frame, &mesh::Mesh)],
-        line_debugger: &mut line_debugger::LineDebugger,
+        line_debugger: &mut debug::LineDebugger,
     ) -> Result<(), wgpu::SurfaceError> {
         let surface_texture = self.surface.get_current_texture()?;
         let view = surface_texture
