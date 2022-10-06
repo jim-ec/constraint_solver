@@ -1,8 +1,9 @@
 use std::cell::RefCell;
 
 use cgmath::{InnerSpace, Vector3};
+use itertools::Itertools;
 
-use crate::{constraint::Constraint, debug, rigid::Rigid};
+use crate::{constraint::Constraint, rigid::Rigid};
 
 pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
     Vector3::new(-0.5, -0.5, -0.5),
@@ -73,114 +74,28 @@ impl Rigid {
         }
     }
 
-    pub fn epa(&self, other: &Rigid, debug_lines: &mut debug::DebugLines) -> Option<Collision> {
+    pub fn epa(&self, other: &Rigid) -> Option<Collision> {
         let simplex = self.gjk(other)?;
 
-        let mut polytope = vec![simplex.0, simplex.1, simplex.2, simplex.3];
-        let mut faces = vec![(0, 1, 2), (0, 3, 1), (0, 2, 3), (1, 3, 2)];
+        let mut polytope = Polytope::new(simplex);
 
-        // list: vector4(normal, distance), index: min distance
-        let (mut normals, mut min_face) = get_face_normals(&polytope, &faces);
+        loop {
+            let minimal_face = polytope.face_vertices(polytope.minimal_face());
+            let normal = plane::normal(minimal_face);
+            let support = self.minkowski_support(other, normal);
 
-        let mut min_normal = Vector3::unit_x();
-        let mut min_distance = f64::MAX;
-
-        // TODO: In deep penetration scenarios, EPA seems to never terminate.
-        let mut iterations = 0;
-
-        while min_distance == f64::MAX && iterations < 50 {
-            min_normal = normals[min_face].0;
-            min_distance = normals[min_face].1;
-
-            let support = self.minkowski_support(other, min_normal);
-            if polytope.contains(&support)
-                && support != simplex.0
-                && support != simplex.1
-                && support != simplex.2
-                && support != simplex.3
-            {
+            if polytope.vertices.contains(&support) {
                 break;
             }
 
-            debug_lines.point(
-                support + 0.04 * Vector3::new(rand::random(), rand::random(), rand::random()),
-                [0.0, 0.0, 1.0],
-            );
-
-            let signed_distance = min_normal.dot(support);
-
-            if (signed_distance - min_distance).abs() > 0.001 {
-                min_distance = f64::MAX;
-                let mut unique_edges = Vec::new();
-
-                let mut i = 0;
-                while i < normals.len() {
-                    if same_direction(normals[i].0, support) {
-                        add_if_unique_edge(&mut unique_edges, faces[i].0, faces[i].1);
-                        add_if_unique_edge(&mut unique_edges, faces[i].1, faces[i].2);
-                        add_if_unique_edge(&mut unique_edges, faces[i].2, faces[i].0);
-
-                        let last_face = *faces.last().unwrap();
-                        faces[i] = last_face;
-                        faces.pop();
-
-                        normals[i] = *normals.last().unwrap();
-                        normals.pop();
-                    } else {
-                        i += 1;
-                    }
-                }
-
-                let mut new_faces = Vec::new();
-                for (i, j) in unique_edges {
-                    new_faces.push((i, j, polytope.len()));
-                }
-
-                polytope.push(support);
-
-                let (mut new_normals, new_min_face) = get_face_normals(&polytope, &new_faces);
-                let mut old_min_distance = f64::MAX;
-
-                #[allow(clippy::needless_range_loop)]
-                for i in 0..normals.len() {
-                    if normals[i].1 < old_min_distance {
-                        old_min_distance = normals[i].1;
-                        min_face = i;
-                    }
-                }
-
-                if new_normals[new_min_face].1 < old_min_distance {
-                    min_face = new_min_face + normals.len();
-                }
-
-                faces.append(&mut new_faces);
-                normals.append(&mut new_normals);
-            }
-
-            iterations += 1;
+            polytope.expand(support);
         }
 
-        for &f in &faces {
-            debug_lines.line(
-                [polytope[f.0], polytope[f.1], polytope[f.2], polytope[f.0]],
-                [0.0, 0.0, 1.0],
-            );
-        }
+        let minimal_face = polytope.face_vertices(polytope.minimal_face());
+        let normal = plane::normal(minimal_face);
+        let depth = plane::distance(minimal_face);
 
-        debug_lines.line(
-            [
-                polytope[faces[min_face].0],
-                polytope[faces[min_face].1],
-                polytope[faces[min_face].2],
-                polytope[faces[min_face].0],
-            ],
-            [1.0, 1.0, 0.0],
-        );
-
-        Some(Collision {
-            normal: min_normal,
-            depth: min_distance + 0.001,
-        })
+        Some(Collision { normal, depth })
     }
 }
 
@@ -269,102 +184,98 @@ pub fn same_direction(a: Vector3<f64>, b: Vector3<f64>) -> bool {
     a.dot(b) > 0.0
 }
 
-// #[derive(Debug, Clone, Default)]
-// struct Polytope {
-//     vertices: Vec<Vector3<f64>>,
-//     faces: Vec<usize>, // TODO: Make 3-tuple of usize
-// }
-
-// impl Polytope {
-//     fn face_normals(&self) -> (Vec<Vector3<f64>>, f64) {
-//         self.faces
-//             .iter()
-//             .tuples()
-//             .map(|(&a, &b, &c)| {
-//                 let a = self.vertices[a];
-//                 let b = self.vertices[b];
-//                 let c = self.vertices[c];
-
-//                 let normal = (b - a).cross(c - a).normalize();
-//                 let distance = normal.dot(a);
-
-//                 if distance >= 0.0 {
-//                     (normal, distance)
-//                 } else {
-//                     (-normal, -distance)
-//                 }
-//             })
-//             .fold(
-//                 (Vec::with_capacity(self.faces.len()), f64::INFINITY),
-//                 |(mut normals, minimal_distance), (normal, distance)| {
-//                     normals.push(normal);
-//                     (normals, minimal_distance.min(distance))
-//                 },
-//             )
-//     }
-
-//     fn push_if_unique(&mut self, edges: &mut Vec<(usize, usize)>, i: usize, j: usize) {
-//         //      0--<--3
-//         //     / \ B /   A: 2-0
-//         //    / A \ /    B: 0-2
-//         //   1-->--2
-
-//         if let Some((index, _)) = edges
-//             .iter()
-//             .find_position(|&&edge| edge == (self.faces[j], self.faces[i]))
-//         {
-//             edges.remove(index);
-//         } else {
-//             edges.push((self.faces[i], self.faces[j]));
-//         }
-//     }
-// }
-
-fn add_if_unique_edge(edges: &mut Vec<(usize, usize)>, i: usize, j: usize) {
-    //      0--<--3
-    //     / \ B /   A: 2-0
-    //    / A \ /    B: 0-2
-    //   1-->--2
-
-    if let Some(reverse) = edges.iter().position(|&e| e == (j, i)) {
-        edges.remove(reverse);
-    } else {
-        edges.push((i, j));
-    }
-}
-
-fn get_face_normals(
-    polytope: &[Vector3<f64>],
-    faces: &[(usize, usize, usize)],
-) -> (Vec<(Vector3<f64>, f64)>, usize) {
-    let mut normals = Vec::new();
-    let mut min_triangle = 0;
-    let mut min_distance = f64::MAX;
-
-    for (i, face) in faces.iter().enumerate() {
-        let a = polytope[face.0];
-        let b = polytope[face.1];
-        let c = polytope[face.2];
-        let mut normal = (b - a).cross(c - a).normalize();
-        let mut distance = normal.dot(a);
-
-        if distance < 0.0 {
-            normal *= -1.0;
-            distance *= -1.0;
-        }
-
-        normals.push((normal, distance));
-
-        if distance < min_distance {
-            min_triangle = i;
-            min_distance = distance;
-        }
-    }
-
-    (normals, min_triangle)
-}
-
 pub struct Collision {
     pub normal: Vector3<f64>,
     pub depth: f64,
+}
+
+#[derive(Debug, Clone)]
+struct Polytope {
+    vertices: Vec<Vector3<f64>>,
+    faces: Vec<[usize; 3]>,
+}
+
+impl Polytope {
+    fn new(simplex: Tetrahedron) -> Self {
+        Self {
+            vertices: vec![simplex.0, simplex.1, simplex.2, simplex.3],
+            faces: vec![[0, 1, 2], [0, 3, 1], [0, 2, 3], [1, 3, 2]],
+        }
+    }
+
+    fn face_vertices(&self, face: &[usize; 3]) -> [Vector3<f64>; 3] {
+        face.map(|i| self.vertices[i])
+    }
+
+    fn minimal_face(&self) -> &[usize; 3] {
+        self.faces
+            .iter()
+            .min_by(|f0, f1| {
+                let d0 = plane::distance(self.face_vertices(f0));
+                let d1 = plane::distance(self.face_vertices(f1));
+                d0.total_cmp(&d1)
+            })
+            .unwrap()
+    }
+
+    fn expand(&mut self, p: Vector3<f64>) {
+        self.vertices.push(p);
+
+        let mut edges: Vec<[usize; 2]> = vec![];
+        let mut faces = vec![];
+
+        for &face in &self.faces {
+            let n = plane::normal(self.face_vertices(&face));
+            let d = plane::distance(self.face_vertices(&face));
+            if n.dot(p - d * n) <= 0.0 {
+                faces.push(face);
+            } else {
+                for (&e0, &e1) in face.iter().circular_tuple_windows() {
+                    // TODO: Are both tests needed?
+                    if let Some(index) = edges
+                        .iter()
+                        .position(|&edge| edge == [e0, e1] || edge == [e1, e0])
+                    {
+                        edges.remove(index);
+                    } else {
+                        edges.push([e0, e1])
+                    }
+                }
+            }
+        }
+
+        for edge in edges {
+            faces.push([edge[0], edge[1], self.vertices.len() - 1]);
+        }
+
+        self.faces = faces;
+    }
+}
+
+mod plane {
+    #![allow(dead_code)]
+
+    use cgmath::{InnerSpace, Vector3};
+
+    /// Compute the normal of a plane.
+    pub fn normal(vertices: [Vector3<f64>; 3]) -> Vector3<f64> {
+        (vertices[1] - vertices[0])
+            .cross(vertices[2] - vertices[0])
+            .normalize()
+    }
+
+    /// Compute the distance of the plane to the origin.
+    pub fn distance(vertices: [Vector3<f64>; 3]) -> f64 {
+        normal(vertices).dot(vertices[0])
+    }
+
+    /// Compute the distance of the plane to an arbitrary vector.
+    pub fn distance_to(n: Vector3<f64>, d: f64, p: Vector3<f64>) -> f64 {
+        n.dot(p) - d
+    }
+
+    /// Project a vector onto the plane.
+    pub fn project(n: Vector3<f64>, d: f64, p: Vector3<f64>) -> Vector3<f64> {
+        p - distance_to(n, d, p) * n
+    }
 }
