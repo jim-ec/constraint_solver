@@ -162,13 +162,13 @@ impl Rigid {
 
         for &f in &faces {
             debug_lines.line(
-                vec![polytope[f.0], polytope[f.1], polytope[f.2], polytope[f.0]],
+                [polytope[f.0], polytope[f.1], polytope[f.2], polytope[f.0]],
                 [0.0, 0.0, 1.0],
             );
         }
 
         debug_lines.line(
-            vec![
+            [
                 polytope[faces[min_face].0],
                 polytope[faces[min_face].1],
                 polytope[faces[min_face].2],

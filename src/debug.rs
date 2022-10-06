@@ -27,7 +27,7 @@ unsafe impl bytemuck::Zeroable for DebugLineVertex {}
 
 impl DebugLines {
     #[allow(dead_code)]
-    pub fn line(&mut self, line: Vec<Vector3<f64>>, color: [f32; 3]) {
+    pub fn line(&mut self, line: impl IntoIterator<Item = Vector3<f64>>, color: [f32; 3]) {
         for (p1, p2) in line.into_iter().map(|p| p.cast().unwrap()).tuple_windows() {
             self.vertices.push(DebugLineVertex {
                 position: p1,
@@ -38,6 +38,16 @@ impl DebugLines {
                 color,
             });
         }
+    }
+
+    #[allow(dead_code)]
+    pub fn line_loop<T, I>(&mut self, line: T, color: [f32; 3])
+    where
+        T: IntoIterator<Item = Vector3<f64>, IntoIter = I>,
+        I: Iterator<Item = Vector3<f64>> + Clone,
+    {
+        let iter = line.into_iter();
+        self.line(iter.clone().chain(iter.take(1)), color)
     }
 
     #[allow(dead_code)]
