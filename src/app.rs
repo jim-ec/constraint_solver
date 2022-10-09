@@ -14,6 +14,7 @@ use crate::{camera, debug, mesh, renderer, world};
 
 pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 pub const FRAME_TIME: f64 = 1.0 / 60.0;
+pub const DEFAULT_COLOR: [f32; 3] = [0.4; 3];
 
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
@@ -190,7 +191,13 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 let geometry = world
                     .rigids()
                     .into_iter()
-                    .map(|rigid| (&cube_mesh, rigid.frame, rigid.color))
+                    .map(|rigid| {
+                        (
+                            &cube_mesh,
+                            rigid.frame,
+                            rigid.color.unwrap_or(DEFAULT_COLOR),
+                        )
+                    })
                     .collect_vec();
 
                 match renderer.render(&camera, &geometry, debug_lines) {

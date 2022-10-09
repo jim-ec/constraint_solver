@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3, Zero};
+use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
 use crate::{debug, rigid, solver};
 
@@ -41,15 +41,18 @@ impl World {
         }
 
         if let Some(collision) = self.a.epa(&self.b) {
-            self.a.color = [1.0, 0.0, 0.0];
-            self.b.color = [1.0, 0.0, 0.0];
+            self.a.color = Some([1.0, 0.0, 0.0]);
+            self.b.color = Some([1.0, 0.0, 0.0]);
             debug_lines.line(
-                vec![Vector3::zero(), collision.depth * collision.normal],
+                vec![
+                    Vector3::new(0.0, 0.0, 0.0),
+                    collision.depth * collision.normal,
+                ],
                 [1.0, 1.0, 0.0],
             );
         } else {
-            self.a.color = rigid::DEFAULT_COLOR;
-            self.b.color = rigid::DEFAULT_COLOR;
+            self.a.color = None;
+            self.b.color = None;
         }
     }
 
