@@ -308,32 +308,30 @@ mod plane {
 
 impl Rigid {
     fn is_seperating_axis(&self, other: &Rigid, axis: Vector3<f64>) -> bool {
-        let mut self_max = f64::MIN;
-        let mut self_min = f64::MAX;
-        let mut other_max = f64::MIN;
-        let mut other_min = f64::MAX;
+        let mut self_interval = (f64::MAX, f64::MIN);
+        let mut other_interval = (f64::MAX, f64::MIN);
 
+        // Compute the shadow self's vertices cast onto the axis.
         for vertex in CUBE_VERTICES {
             let vertex = self.frame.act(vertex);
             let projection = vertex.dot(axis);
-            self_max = self_max.max(projection);
-            self_min = self_min.min(projection);
+            self_interval.0 = self_interval.0.min(projection);
+            self_interval.1 = self_interval.1.max(projection);
         }
 
+        // Compute the shadow other's vertices cast onto the axis.
         for vertex in CUBE_VERTICES {
             let vertex = other.frame.act(vertex);
             let projection = vertex.dot(axis);
-            other_max = other_max.max(projection);
-            other_min = other_min.min(projection);
+            other_interval.0 = other_interval.0.min(projection);
+            other_interval.1 = other_interval.1.max(projection);
         }
 
-        self_min >= other_max || self_max <= other_min
+        // If the two shadows are disjoint, the axis is a seperating one.
+        self_interval.0 >= other_interval.1 || self_interval.1 <= other_interval.0
     }
 
     pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
-        // Move other into self's rest space
-        // let frame = self.frame.compose(&other.frame.inverse());
-
         for normal in CUBE_FACE_NORMALS {
             if self.is_seperating_axis(other, self.frame.quaternion * normal)
                 || self.is_seperating_axis(other, other.frame.quaternion * normal)
@@ -350,9 +348,7 @@ impl Rigid {
                 let other_edge =
                     other.frame.act(CUBE_VERTICES[edge.0]) - other.frame.act(CUBE_VERTICES[edge.1]);
 
-                let normal = self_edge.cross(other_edge);
-
-                if self.is_seperating_axis(other, normal) {
+                if self.is_seperating_axis(other, self_edge.cross(other_edge)) {
                     return false;
                 }
             }
