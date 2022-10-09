@@ -1,6 +1,6 @@
-use cgmath::{Deg, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
+use cgmath::{vec3, Deg, Quaternion, Rotation3};
 
-use crate::{debug, rigid, solver};
+use crate::{debug, geometry::Plane, rigid, solver};
 
 #[derive(Clone, Copy)]
 pub struct World {
@@ -22,18 +22,27 @@ impl World {
         World { a, b }
     }
 
-    pub fn integrate(&mut self, dt: f64, debug_lines: &mut debug::DebugLines) {
-        solver::step(&mut self.a, dt, 25);
+    pub fn integrate(&mut self, dt: f64, debug: &mut debug::DebugLines) {
+        // solver::step(&mut self.a, dt, 25);
 
-        let test = self.a.sat(&self.b, debug_lines);
+        // let test = self.a.sat(&self.b, debug);
 
-        if test {
-            self.a.color = Some([1.0, 0.0, 0.0]);
-            self.b.color = Some([1.0, 0.0, 0.0]);
-        } else {
-            self.a.color = None;
-            self.b.color = None;
-        }
+        // if test {
+        //     self.a.color = Some([1.0, 0.0, 0.0]);
+        //     self.b.color = Some([1.0, 0.0, 0.0]);
+        // } else {
+        //     self.a.color = None;
+        //     self.b.color = None;
+        // }
+
+        debug.plane(
+            Plane::from_points([
+                vec3(1.0, 0.0, 0.0),
+                vec3(0.0, 1.0, 0.0),
+                vec3(0.0, 0.0, 1.0),
+            ]),
+            [0.0, 1.0, 1.0],
+        );
     }
 
     pub fn rigids(&self) -> Vec<&rigid::Rigid> {

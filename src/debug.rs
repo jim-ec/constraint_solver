@@ -1,7 +1,7 @@
-use cgmath::Vector3;
+use cgmath::{vec3, Quaternion, Vector3};
 use itertools::Itertools;
 
-use crate::renderer;
+use crate::{geometry, renderer};
 
 const MAX_VERTEX_COUNT: usize = 4096;
 
@@ -80,6 +80,32 @@ impl DebugLines {
                 color,
             },
         ]);
+    }
+
+    #[allow(dead_code)]
+    pub fn plane(&mut self, plane: geometry::Plane, color: [f32; 3]) {
+        const D: f64 = 0.5;
+        let vertices = [
+            vec3(D, D, 0.0),
+            vec3(D, -D, 0.0),
+            vec3(-D, -D, 0.0),
+            vec3(-D, D, 0.0),
+        ];
+        let q = Quaternion::from_arc(vec3(0.0, 0.0, 1.0), plane.normal, None);
+
+        self.line_loop(
+            vertices
+                .into_iter()
+                .map(|v| q * v + plane.displacement * plane.normal),
+            color,
+        );
+        self.line(
+            [
+                plane.displacement * plane.normal,
+                (0.5 * D + plane.displacement) * plane.normal,
+            ],
+            color,
+        );
     }
 }
 
