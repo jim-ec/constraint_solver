@@ -6,14 +6,14 @@ use itertools::Itertools;
 use crate::{constraint::Constraint, debug, rigid::Rigid};
 
 pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
-    Vector3::new(-0.5, -0.5, -0.5),
-    Vector3::new(0.5, -0.5, -0.5),
-    Vector3::new(-0.5, 0.5, -0.5),
-    Vector3::new(0.5, 0.5, -0.5),
-    Vector3::new(-0.5, -0.5, 0.5),
-    Vector3::new(0.5, -0.5, 0.5),
-    Vector3::new(-0.5, 0.5, 0.5),
-    Vector3::new(0.5, 0.5, 0.5),
+    vec3(-0.5, -0.5, -0.5),
+    vec3(0.5, -0.5, -0.5),
+    vec3(-0.5, 0.5, -0.5),
+    vec3(0.5, 0.5, -0.5),
+    vec3(-0.5, -0.5, 0.5),
+    vec3(0.5, -0.5, 0.5),
+    vec3(-0.5, 0.5, 0.5),
+    vec3(0.5, 0.5, 0.5),
 ];
 
 const CUBE_FACE_NORMALS: [Vector3<f64>; 6] = [
@@ -23,6 +23,21 @@ const CUBE_FACE_NORMALS: [Vector3<f64>; 6] = [
     vec3(0.0, -1.0, 0.0),
     vec3(0.0, 0.0, 1.0),
     vec3(0.0, 0.0, -1.0),
+];
+
+const CUBE_EDGES: [(usize, usize); 12] = [
+    (0, 1),
+    (1, 3),
+    (3, 2),
+    (2, 0),
+    (4, 5),
+    (5, 7),
+    (7, 6),
+    (6, 4),
+    (0, 4),
+    (1, 5),
+    (3, 7),
+    (2, 6),
 ];
 
 pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
@@ -312,7 +327,7 @@ impl Rigid {
             other_min = other_min.min(projection);
         }
 
-        !(self_min <= other_max && self_max >= other_min)
+        self_min >= other_max || self_max <= other_min
     }
 
     pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
@@ -324,6 +339,22 @@ impl Rigid {
                 || self.is_seperating_axis(other, other.frame.quaternion * normal)
             {
                 return false;
+            }
+        }
+
+        for edge in CUBE_EDGES {
+            let self_edge =
+                self.frame.act(CUBE_VERTICES[edge.0]) - self.frame.act(CUBE_VERTICES[edge.1]);
+
+            for edge in CUBE_EDGES {
+                let other_edge =
+                    other.frame.act(CUBE_VERTICES[edge.0]) - other.frame.act(CUBE_VERTICES[edge.1]);
+
+                let normal = self_edge.cross(other_edge);
+
+                if self.is_seperating_axis(other, normal) {
+                    return false;
+                }
             }
         }
 
