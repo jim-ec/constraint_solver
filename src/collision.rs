@@ -307,50 +307,57 @@ mod plane {
 }
 
 impl Rigid {
-    fn is_seperating_axis(&self, other: &Rigid, axis: Vector3<f64>) -> bool {
-        let mut self_interval = (f64::MAX, f64::MIN);
-        let mut other_interval = (f64::MAX, f64::MIN);
+    fn axis_seperation(&self, other: &Rigid, axis: Vector3<f64>) -> f64 {
+        let mut self_max = f64::MIN;
+        let mut other_min = f64::MAX;
 
         // Compute the shadow self's vertices cast onto the axis.
         for vertex in CUBE_VERTICES {
             let vertex = self.frame.act(vertex);
             let projection = vertex.dot(axis);
-            self_interval.0 = self_interval.0.min(projection);
-            self_interval.1 = self_interval.1.max(projection);
+            self_max = self_max.max(projection);
         }
 
         // Compute the shadow other's vertices cast onto the axis.
         for vertex in CUBE_VERTICES {
             let vertex = other.frame.act(vertex);
             let projection = vertex.dot(axis);
-            other_interval.0 = other_interval.0.min(projection);
-            other_interval.1 = other_interval.1.max(projection);
+            other_min = other_min.min(projection);
         }
 
-        // If the two shadows are disjoint, the axis is a seperating one.
-        self_interval.0 >= other_interval.1 || self_interval.1 <= other_interval.0
+        other_min - self_max
+    }
+
+    fn is_seperating_axis(&self, other: &Rigid, axis: Vector3<f64>) -> bool {
+        self.axis_seperation(other, axis) >= 0.0
+    }
+
+    fn axes<'a>(&'a self, other: &'a Rigid) -> impl Iterator<Item = Vector3<f64>> + 'a {
+        let self_faces = CUBE_FACE_NORMALS
+            .iter()
+            .map(|&normal| self.frame.quaternion * normal);
+
+        let other_faces = CUBE_FACE_NORMALS
+            .iter()
+            .map(|&normal| other.frame.quaternion * normal);
+
+        let edges = CUBE_EDGES
+            .iter()
+            .map(|edge| {
+                self.frame.act(CUBE_VERTICES[edge.0]) - self.frame.act(CUBE_VERTICES[edge.1])
+            })
+            .cartesian_product(CUBE_EDGES.iter().map(|edge| {
+                other.frame.act(CUBE_VERTICES[edge.0]) - other.frame.act(CUBE_VERTICES[edge.1])
+            }))
+            .map(|(self_edge, other_edge)| self_edge.cross(other_edge).normalize());
+
+        self_faces.chain(other_faces).chain(edges)
     }
 
     pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
-        for normal in CUBE_FACE_NORMALS {
-            if self.is_seperating_axis(other, self.frame.quaternion * normal)
-                || self.is_seperating_axis(other, other.frame.quaternion * normal)
-            {
+        for axis in self.axes(other) {
+            if self.is_seperating_axis(other, axis) {
                 return false;
-            }
-        }
-
-        for edge in CUBE_EDGES {
-            let self_edge =
-                self.frame.act(CUBE_VERTICES[edge.0]) - self.frame.act(CUBE_VERTICES[edge.1]);
-
-            for edge in CUBE_EDGES {
-                let other_edge =
-                    other.frame.act(CUBE_VERTICES[edge.0]) - other.frame.act(CUBE_VERTICES[edge.1]);
-
-                if self.is_seperating_axis(other, self_edge.cross(other_edge)) {
-                    return false;
-                }
             }
         }
 
