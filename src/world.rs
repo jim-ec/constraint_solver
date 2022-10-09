@@ -29,27 +29,11 @@ impl World {
     pub fn integrate(&mut self, dt: f64, debug_lines: &mut debug::DebugLines) {
         solver::step(&mut self.a, dt, 25);
 
-        const DEBUG_GJK: [f32; 3] = [1.0, 0.0, 1.0];
+        let test = self.a.sat(&self.b, debug_lines);
 
-        if let Some(tetra) = self.a.gjk(&self.b) {
-            debug_lines.line([tetra.0, tetra.1], DEBUG_GJK);
-            debug_lines.line([tetra.0, tetra.2], DEBUG_GJK);
-            debug_lines.line([tetra.0, tetra.3], DEBUG_GJK);
-            debug_lines.line([tetra.1, tetra.2], DEBUG_GJK);
-            debug_lines.line([tetra.1, tetra.3], DEBUG_GJK);
-            debug_lines.line([tetra.2, tetra.3], DEBUG_GJK);
-        }
-
-        if let Some(collision) = self.a.epa(&self.b) {
+        if test {
             self.a.color = Some([1.0, 0.0, 0.0]);
             self.b.color = Some([1.0, 0.0, 0.0]);
-            debug_lines.line(
-                vec![
-                    Vector3::new(0.0, 0.0, 0.0),
-                    collision.depth * collision.normal,
-                ],
-                [1.0, 1.0, 0.0],
-            );
         } else {
             self.a.color = None;
             self.b.color = None;
