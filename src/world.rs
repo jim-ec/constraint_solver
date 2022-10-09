@@ -12,7 +12,7 @@ impl World {
     pub fn new() -> World {
         let mut a = rigid::Rigid::new(1.0);
         a.frame.position.z = 2.0;
-        a.frame.position.y = -0.9;
+        a.frame.position.y = -1.1;
         a.frame.quaternion =
             Quaternion::from_angle_x(Deg(45.0)) * Quaternion::from_angle_y(Deg(45.0));
 
