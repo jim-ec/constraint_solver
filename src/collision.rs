@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 
-use cgmath::{vec3, InnerSpace, Vector3};
+use cgmath::{vec3, InnerSpace, Vector3, Zero};
 use itertools::Itertools;
 
 use crate::{constraint::Constraint, debug, rigid::Rigid};
@@ -307,58 +307,79 @@ mod plane {
 }
 
 impl Rigid {
-    fn axis_seperation(&self, other: &Rigid, axis: Vector3<f64>) -> f64 {
-        let mut self_max = f64::MIN;
-        let mut other_min = f64::MAX;
+    fn face_axes_separation(&self, other: &Rigid) -> (f64, usize) {
+        let mut max_distance = f64::MIN;
+        let mut face_index = usize::MAX;
 
-        // Compute the shadow self's vertices cast onto the axis.
-        for vertex in CUBE_VERTICES {
-            let vertex = self.frame.act(vertex);
-            let projection = vertex.dot(axis);
-            self_max = self_max.max(projection);
+        for (i, normal) in CUBE_FACE_NORMALS.into_iter().enumerate() {
+            let support = CUBE_VERTICES
+                .into_iter()
+                .map(|p| other.frame.act(p))
+                .map(|p| self.frame.inverse().act(p))
+                .max_by(|a, b| a.dot(-normal).total_cmp(&b.dot(-normal)))
+                .unwrap();
+            let distance = plane::distance_to(normal, 0.5, support);
+            if distance > max_distance {
+                max_distance = distance;
+                face_index = i;
+            }
         }
 
-        // Compute the shadow other's vertices cast onto the axis.
-        for vertex in CUBE_VERTICES {
-            let vertex = other.frame.act(vertex);
-            let projection = vertex.dot(axis);
-            other_min = other_min.min(projection);
+        (max_distance, face_index)
+    }
+
+    fn edge_axes_separation(&self, other: &Rigid) -> (f64, usize, usize) {
+        let mut max_distance = f64::MIN;
+        let mut edge_index = (usize::MAX, usize::MAX);
+
+        for (i, self_edge_index) in CUBE_EDGES.into_iter().enumerate() {
+            let self_edge = self.frame.act(CUBE_VERTICES[self_edge_index.0])
+                - self.frame.act(CUBE_VERTICES[self_edge_index.1]);
+
+            for (j, other_edge_index) in CUBE_EDGES.into_iter().enumerate() {
+                let other_edge = other.frame.act(CUBE_VERTICES[other_edge_index.0])
+                    - other.frame.act(CUBE_VERTICES[other_edge_index.1]);
+
+                let mut axis = self_edge.cross(other_edge).normalize();
+
+                // Keep normal pointing from `self` to `other`.
+                if axis.dot(CUBE_VERTICES[self_edge_index.0] - self.frame.act(Vector3::zero()))
+                    < 0.0
+                {
+                    axis = -axis;
+                }
+
+                let support = CUBE_VERTICES
+                    .into_iter()
+                    .map(|p| other.frame.act(p))
+                    .map(|p| self.frame.inverse().act(p))
+                    .max_by(|a, b| a.dot(-axis).total_cmp(&b.dot(-axis)))
+                    .unwrap();
+                let distance = plane::distance_to(axis, 0.5, support);
+                if distance > max_distance {
+                    max_distance = distance;
+                    edge_index = (i, j);
+                }
+            }
         }
 
-        other_min - self_max
-    }
-
-    fn is_seperating_axis(&self, other: &Rigid, axis: Vector3<f64>) -> bool {
-        self.axis_seperation(other, axis) >= 0.0
-    }
-
-    fn axes<'a>(&'a self, other: &'a Rigid) -> impl Iterator<Item = Vector3<f64>> + 'a {
-        let self_faces = CUBE_FACE_NORMALS
-            .iter()
-            .map(|&normal| self.frame.quaternion * normal);
-
-        let other_faces = CUBE_FACE_NORMALS
-            .iter()
-            .map(|&normal| other.frame.quaternion * normal);
-
-        let edges = CUBE_EDGES
-            .iter()
-            .map(|edge| {
-                self.frame.act(CUBE_VERTICES[edge.0]) - self.frame.act(CUBE_VERTICES[edge.1])
-            })
-            .cartesian_product(CUBE_EDGES.iter().map(|edge| {
-                other.frame.act(CUBE_VERTICES[edge.0]) - other.frame.act(CUBE_VERTICES[edge.1])
-            }))
-            .map(|(self_edge, other_edge)| self_edge.cross(other_edge).normalize());
-
-        self_faces.chain(other_faces).chain(edges)
+        (max_distance, edge_index.0, edge_index.1)
     }
 
     pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
-        for axis in self.axes(other) {
-            if self.is_seperating_axis(other, axis) {
-                return false;
-            }
+        let self_face_query = self.face_axes_separation(other);
+        if self_face_query.0 >= 0.0 {
+            return false;
+        }
+
+        let other_face_query = other.face_axes_separation(self);
+        if other_face_query.0 >= 0.0 {
+            return false;
+        }
+
+        let edge_query = self.edge_axes_separation(other);
+        if edge_query.0 >= 0.0 {
+            return false;
         }
 
         true
