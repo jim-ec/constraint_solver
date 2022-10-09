@@ -17,11 +17,9 @@ impl World {
         a.frame.position.z = 5.0;
         a.frame.quaternion =
             Quaternion::from_axis_angle(Vector3::new(1.0, 0.5, 0.2).normalize(), Rad(1.0));
-        a = a.forget_past();
 
         let mut b = rigid::Rigid::new(1.0);
         b.frame.position.z = 2.1;
-        b = b.forget_past();
 
         World { a, b }
     }

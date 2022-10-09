@@ -34,7 +34,7 @@ pub struct Rigid {
     pub angular_velocity: Vector3<f64>,
 
     pub frame: Frame,
-    pub past_frame: Frame,
+    pub past_frame: Option<Frame>,
 
     pub color: Option<[f32; 3]>,
 }
@@ -60,14 +60,9 @@ impl Rigid {
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
             frame: Frame::default(),
-            past_frame: Frame::default(),
+            past_frame: None,
             color: None,
         }
-    }
-
-    #[must_use]
-    pub fn forget_past(self) -> Self {
-        self.past_frame(self.frame)
     }
 
     pub fn integrate(&mut self, dt: f64) {
@@ -77,14 +72,19 @@ impl Rigid {
         let torque = self.external_torque + self.frame.quaternion * self.internal_torque;
         self.angular_velocity += dt * torque.div_element_wise(self.rotational_inertia);
 
-        self.past_frame = self.frame;
+        self.past_frame = Some(self.frame);
         self.frame = self
             .frame
             .integrate(dt, self.velocity, self.angular_velocity);
     }
 
     pub fn derive(&mut self, dt: f64) {
-        (self.velocity, self.angular_velocity) = self.frame.derive(dt, self.past_frame)
+        if let Some(past) = self.past_frame {
+            (self.velocity, self.angular_velocity) = self.frame.derive(dt, past)
+        } else {
+            self.velocity = Vector3::zero();
+            self.angular_velocity = Vector3::zero();
+        }
     }
 
     /// Applies a linear impulse in a given direction and magnitude at a given location.
@@ -101,8 +101,12 @@ impl Rigid {
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.
     pub fn delta(&self, global: Vector3<f64>) -> Vector3<f64> {
-        let local = self.frame.inverse().act(global);
-        let past_global = self.past_frame.act(local);
-        global - past_global
+        if let Some(past) = self.past_frame {
+            let local = self.frame.inverse().act(global);
+            let past_global = past.act(local);
+            global - past_global
+        } else {
+            Vector3::zero()
+        }
     }
 }
