@@ -37,6 +37,15 @@ impl Frame {
         self.quaternion * x + self.position
     }
 
+    // The resulting frame first applies `other` and then `self`.
+    #[allow(dead_code)]
+    pub fn compose(&self, other: &Frame) -> Frame {
+        Frame {
+            position: self.position + self.quaternion * other.position,
+            quaternion: self.quaternion * other.quaternion,
+        }
+    }
+
     pub fn integrate(
         &self,
         dt: f64,
