@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
+use cgmath::{Deg, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
 use crate::{debug, rigid, solver};
 
@@ -11,15 +11,13 @@ pub struct World {
 impl World {
     pub fn new() -> World {
         let mut a = rigid::Rigid::new(1.0);
-        a.external_force.z = -5.0;
-        a.velocity.z = -0.2;
-        a.angular_velocity.z = 1.0;
-        a.frame.position.z = 5.0;
+        a.frame.position.z = 2.0;
+        a.frame.position.y = -1.1;
         a.frame.quaternion =
-            Quaternion::from_axis_angle(Vector3::new(1.0, 0.5, 0.2).normalize(), Rad(1.0));
+            Quaternion::from_angle_x(Deg(45.0)) * Quaternion::from_angle_y(Deg(45.0));
 
         let mut b = rigid::Rigid::new(1.0);
-        b.frame.position.z = 2.1;
+        b.frame.position.z = 1.0;
 
         World { a, b }
     }
