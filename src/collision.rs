@@ -381,53 +381,15 @@ impl Rigid {
     pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
         let self_face_query = self.face_axes_separation(other);
         if self_face_query.0 >= 0.0 {
-            debug.plane(
-                Plane {
-                    normal: CUBE_FACE_NORMALS[self_face_query.1],
-                    displacement: 0.5,
-                },
-                [1.0, 0.0, 1.0],
-            );
             return false;
         }
 
         let other_face_query = other.face_axes_separation(self);
         if other_face_query.0 >= 0.0 {
-            debug.plane(
-                Plane {
-                    normal: CUBE_FACE_NORMALS[other_face_query.1],
-                    displacement: 0.5,
-                },
-                [0.0, 1.0, 1.0],
-            );
             return false;
         }
 
         let edge_query = self.edge_axes_separation(other, debug);
-        // dbg!(edge_query);
-
-        // debug.point(
-        //     self.frame.act(CUBE_VERTICES[edge_query.1[0]]),
-        //     [0.0, 0.0, 1.0],
-        // );
-        // debug.point(
-        //     self.frame.act(CUBE_VERTICES[edge_query.1[1]]),
-        //     [0.0, 0.0, 1.0],
-        // );
-        // debug.point(
-        //     other.frame.act(CUBE_VERTICES[edge_query.1[2]]),
-        //     [0.0, 1.0, 0.0],
-        // );
-        // debug.point(
-        //     other.frame.act(CUBE_VERTICES[edge_query.1[3]]),
-        //     [0.0, 1.0, 0.0],
-        // );
-
-        // debug.point(self.frame.act(CUBE_VERTICES[1]), [0.0, 0.0, 1.0]);
-        // debug.point(self.frame.act(CUBE_VERTICES[3]), [0.0, 0.0, 1.0]);
-        // debug.point(other.frame.act(CUBE_VERTICES[edge_query.1[1]]), [0.0, 1.0, 0.0]);
-        // debug.point(other.frame.act(CUBE_VERTICES[5]), [0.0, 1.0, 0.0]);
-
         if edge_query.0 >= 0.0 {
             return false;
         }
