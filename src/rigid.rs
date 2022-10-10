@@ -8,7 +8,10 @@ pub struct Rigid {
     /// Mass in `kg`
     pub mass: f64,
 
-    /// Rotational inertia in `kg m^2`
+    /// Rotational inertia tensor.
+    /// Since the geometry is assumed to be in rest space,
+    /// this tensor is sparse and just the diagonal entries are stored.
+    /// Measured in `kg m^2`.
     pub rotational_inertia: Vector3<f64>,
 
     /// Force acting on the rigid body outside its frame.
@@ -42,7 +45,7 @@ pub struct Rigid {
 impl Rigid {
     pub fn new(mass: f64) -> Rigid {
         let extent = Vector3::new(1.0, 1.0, 1.0);
-        let inertia = 1.0 / 12.0
+        let rotational_inertia = 1.0 / 12.0
             * mass
             * Vector3::new(
                 extent.y * extent.y + extent.z * extent.z,
@@ -52,7 +55,7 @@ impl Rigid {
 
         Rigid {
             mass,
-            rotational_inertia: inertia,
+            rotational_inertia,
             internal_force: Vector3::zero(),
             external_force: Vector3::zero(),
             internal_torque: Vector3::zero(),
