@@ -42,32 +42,14 @@ pub fn ground<'a>(
 }
 
 impl Rigid {
-    fn support(&self, polytope: &geometry::Polytope, dir: Vector3<f64>) -> Vector3<f64> {
-        polytope
-            .vertices
-            .iter()
-            .copied()
-            .map(|p| self.frame.act(p))
-            .max_by(|a, b| a.dot(dir).total_cmp(&b.dot(dir)))
-            .unwrap()
-    }
-
-    fn minkowski_support(
-        &self,
-        other: &Rigid,
-        polytope: &geometry::Polytope,
-        direction: Vector3<f64>,
-    ) -> Vector3<f64> {
-        self.support(polytope, direction) - other.support(polytope, -direction)
-    }
-
     #[allow(dead_code)]
     pub fn gjk(&self, other: &Rigid, polytope: &geometry::Polytope) -> Option<gjk::Tetrahedron> {
-        let mut direction = -self.minkowski_support(other, polytope, Vector3::unit_x());
+        let mut direction =
+            -polytope.minkowski_support((&self.frame, &other.frame), Vector3::unit_x());
         let mut simplex = gjk::Simplex::Point(-direction);
 
         loop {
-            let support = self.minkowski_support(other, polytope, direction);
+            let support = polytope.minkowski_support((&self.frame, &other.frame), direction);
 
             if direction.dot(support) <= 0.0 {
                 return None;
@@ -93,7 +75,8 @@ impl Rigid {
             let minimal_face = Plane::from_points(
                 expanding_polytope.face_vertices(expanding_polytope.minimal_face()),
             );
-            let support = self.minkowski_support(other, polytope, minimal_face.normal);
+            let support =
+                polytope.minkowski_support((&self.frame, &other.frame), minimal_face.normal);
 
             if polytope.vertices.contains(&support) {
                 break;

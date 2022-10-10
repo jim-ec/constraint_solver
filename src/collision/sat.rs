@@ -86,8 +86,8 @@ pub fn edge_axes_separation(
             axis = -axis;
         }
 
-        let plane = Plane::from_point_normal(rigids.0.support(polytope, axis), axis);
-        let distance = plane.distance(rigids.1.support(polytope, -axis));
+        let plane = Plane::from_point_normal(polytope.support(&rigids.0.frame, axis), axis);
+        let distance = plane.distance(polytope.support(&rigids.1.frame, -axis));
 
         if distance > max_distance {
             max_distance = distance;

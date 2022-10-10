@@ -1,6 +1,8 @@
 use cgmath::{vec3, InnerSpace, Vector3};
 use itertools::Itertools;
 
+use crate::frame::Frame;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Plane {
     pub normal: Vector3<f64>,
@@ -47,10 +49,11 @@ impl Plane {
 pub struct Polytope {
     pub vertices: Vec<Vector3<f64>>,
 
-    /// Edges indexing vertices
+    /// Edges indexing vertices.
     pub edges: Vec<(usize, usize)>,
 
-    /// Convex polygons indexing vertices
+    /// Convex polygons indexing vertices.
+    /// Vertices sharing a face are assumed to be co-planar.
     pub faces: Vec<Vec<usize>>,
 }
 
@@ -115,5 +118,51 @@ impl Polytope {
             .filter(|face| face.len() >= 3)
             .map(|face| [face[0], face[1], face[2]].map(|i| self.vertices[i]))
             .map(Plane::from_points)
+    }
+
+    // TODO: Remove `frame` parameter, `direction` has to be in local space?
+    pub fn support(&self, frame: &Frame, direction: Vector3<f64>) -> Vector3<f64> {
+        self.vertices
+            .iter()
+            .copied()
+            .map(|vertex| frame.act(vertex))
+            .total_max_by_key(|vertex| vertex.dot(direction))
+            .unwrap()
+    }
+
+    pub fn minkowski_support(
+        &self,
+        frames: (&Frame, &Frame),
+        direction: Vector3<f64>,
+    ) -> Vector3<f64> {
+        self.support(frames.0, direction) - self.support(frames.1, -direction)
+    }
+}
+
+trait CustomIterTools {
+    type Item;
+    fn total_max_by_key<T: TotalCmp, F: Fn(&Self::Item) -> T>(self, f: F) -> Option<Self::Item>;
+}
+
+impl<I: Iterator> CustomIterTools for I {
+    type Item = I::Item;
+    fn total_max_by_key<T: TotalCmp, F: Fn(&Self::Item) -> T>(self, f: F) -> Option<Self::Item> {
+        self.max_by(|a, b| f(a).total_cmp(&f(b)))
+    }
+}
+
+trait TotalCmp {
+    fn total_cmp(&self, other: &Self) -> std::cmp::Ordering;
+}
+
+impl TotalCmp for f32 {
+    fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.total_cmp(other)
+    }
+}
+
+impl TotalCmp for f64 {
+    fn total_cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.total_cmp(other)
     }
 }
