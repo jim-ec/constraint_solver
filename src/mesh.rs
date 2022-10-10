@@ -1,5 +1,5 @@
-use crate::{frame::Frame, renderer};
-use cgmath::{Matrix4, Vector3};
+use crate::{frame::Frame, geometry, renderer};
+use cgmath::{vec3, Matrix4, Vector3};
 use derive_setters::Setters;
 use wgpu::util::DeviceExt;
 
@@ -90,7 +90,6 @@ impl Mesh {
         vertices: &[Vector3<f32>],
         triangles: &[(usize, usize, usize)],
     ) -> Self {
-        let renderer = renderer;
         let mut positions = Vec::with_capacity(triangles.len() * 3);
         for triangle in triangles {
             positions.push(vertices[triangle.0]);
@@ -100,33 +99,13 @@ impl Mesh {
         Mesh::from_vertices(renderer, &positions)
     }
 
-    pub fn new_cube(renderer: &renderer::Renderer) -> Self {
-        Self::from_triangles(
-            renderer,
-            &[
-                Vector3::new(-0.5, -0.5, -0.5),
-                Vector3::new(-0.5, -0.5, 0.5),
-                Vector3::new(-0.5, 0.5, -0.5),
-                Vector3::new(-0.5, 0.5, 0.5),
-                Vector3::new(0.5, -0.5, -0.5),
-                Vector3::new(0.5, -0.5, 0.5),
-                Vector3::new(0.5, 0.5, -0.5),
-                Vector3::new(0.5, 0.5, 0.5),
-            ],
-            &[
-                (0, 1, 3),
-                (0, 3, 2),
-                (0, 4, 5),
-                (0, 5, 1),
-                (0, 6, 4),
-                (0, 2, 6),
-                (1, 5, 7),
-                (1, 7, 3),
-                (2, 7, 6),
-                (2, 3, 7),
-                (4, 7, 5),
-                (4, 6, 7),
-            ],
-        )
+    pub fn from_polytope(renderer: &renderer::Renderer, polytope: &geometry::Polytope) -> Self {
+        let mut positions = Vec::new();
+        for triangle in polytope.triangles() {
+            positions.push(polytope.vertices[triangle.0].cast().unwrap());
+            positions.push(polytope.vertices[triangle.1].cast().unwrap());
+            positions.push(polytope.vertices[triangle.2].cast().unwrap());
+        }
+        Mesh::from_vertices(renderer, &positions)
     }
 }

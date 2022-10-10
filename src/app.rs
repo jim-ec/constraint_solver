@@ -10,7 +10,7 @@ use winit::{
     window::WindowBuilder,
 };
 
-use crate::{camera, debug, mesh, renderer, world};
+use crate::{camera, debug, geometry, mesh, renderer, world};
 
 pub const CAMERA_RESPONSIVNESS: f32 = 0.5;
 pub const FRAME_TIME: f64 = 1.0 / 60.0;
@@ -27,7 +27,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
-    let cube_mesh = mesh::Mesh::new_cube(&renderer);
+    let polytope = geometry::Polytope::new_cube();
+    let cube_mesh = mesh::Mesh::from_polytope(&renderer, &polytope);
 
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
@@ -172,7 +173,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                         if current_state + 1 >= states.len() {
                             let mut world = states[current_state].0;
                             let mut debug_lines = debug::DebugLines::default();
-                            world.integrate(FRAME_TIME, &mut debug_lines);
+                            world.integrate(FRAME_TIME, &polytope, &mut debug_lines);
                             states.push((world, debug_lines));
                         }
                         current_state += 1;

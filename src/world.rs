@@ -1,8 +1,12 @@
 use cgmath::{InnerSpace, Quaternion, Rad, Rotation3, Vector3};
 
-use crate::{debug, geometry::Plane, rigid, solver};
+use crate::{
+    debug,
+    geometry::{self, Plane, Polytope},
+    rigid, solver,
+};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct World {
     a: rigid::Rigid,
     b: rigid::Rigid,
@@ -24,10 +28,15 @@ impl World {
         World { a, b }
     }
 
-    pub fn integrate(&mut self, dt: f64, debug: &mut debug::DebugLines) {
+    pub fn integrate(
+        &mut self,
+        dt: f64,
+        polytope: &geometry::Polytope,
+        debug: &mut debug::DebugLines,
+    ) {
         solver::step(&mut self.a, dt, 25);
 
-        let test = self.a.sat(&self.b, debug);
+        let test = self.a.sat(&self.b, polytope, debug);
 
         if test {
             self.a.color = Some([1.0, 0.0, 0.0]);

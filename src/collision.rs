@@ -7,7 +7,12 @@ use std::cell::RefCell;
 use cgmath::{vec3, InnerSpace, Vector3, Zero};
 use itertools::Itertools;
 
-use crate::{constraint::Constraint, debug, geometry::Plane, rigid::Rigid};
+use crate::{
+    constraint::Constraint,
+    debug,
+    geometry::{self, Plane},
+    rigid::Rigid,
+};
 
 pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
     vec3(-0.5, -0.5, -0.5),
@@ -127,7 +132,12 @@ impl Rigid {
         })
     }
 
-    pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
+    pub fn sat(
+        &self,
+        other: &Rigid,
+        polytope: &geometry::Polytope,
+        #[allow(unused)] debug: &mut debug::DebugLines,
+    ) -> bool {
         let self_face_query = sat::face_axes_separation((self, other));
         if self_face_query.0 >= 0.0 {
             return false;
