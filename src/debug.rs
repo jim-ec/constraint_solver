@@ -1,4 +1,4 @@
-use cgmath::{vec3, Quaternion, Vector3};
+use cgmath::{vec3, Quaternion, Vector3, Zero};
 use itertools::Itertools;
 
 use crate::{geometry, renderer};
@@ -48,6 +48,11 @@ impl DebugLines {
     {
         let iter = line.into_iter();
         self.line(iter.clone().chain(iter.take(1)), color)
+    }
+
+    #[allow(dead_code)]
+    pub fn normal(&mut self, normal: Vector3<f64>, color: [f32; 3]) {
+        self.line([Vector3::zero(), normal], color);
     }
 
     #[allow(dead_code)]
