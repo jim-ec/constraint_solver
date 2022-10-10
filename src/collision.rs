@@ -14,45 +14,13 @@ use crate::{
     rigid::Rigid,
 };
 
-pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
-    vec3(-0.5, -0.5, -0.5),
-    vec3(0.5, -0.5, -0.5),
-    vec3(-0.5, 0.5, -0.5),
-    vec3(0.5, 0.5, -0.5),
-    vec3(-0.5, -0.5, 0.5),
-    vec3(0.5, -0.5, 0.5),
-    vec3(-0.5, 0.5, 0.5),
-    vec3(0.5, 0.5, 0.5),
-];
-
-const CUBE_FACE_NORMALS: [Vector3<f64>; 6] = [
-    vec3(1.0, 0.0, 0.0),
-    vec3(-1.0, 0.0, 0.0),
-    vec3(0.0, 1.0, 0.0),
-    vec3(0.0, -1.0, 0.0),
-    vec3(0.0, 0.0, 1.0),
-    vec3(0.0, 0.0, -1.0),
-];
-
-const CUBE_EDGES: [(usize, usize); 12] = [
-    (0, 1),
-    (1, 3),
-    (3, 2),
-    (2, 0),
-    (4, 5),
-    (5, 7),
-    (7, 6),
-    (6, 4),
-    (0, 4),
-    (1, 5),
-    (3, 7),
-    (2, 6),
-];
-
-pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
+pub fn ground<'a>(
+    rigid: &'a RefCell<&'a mut Rigid>,
+    polytope: &geometry::Polytope,
+) -> Vec<Constraint<'a>> {
     let mut constraints = Vec::new();
 
-    for vertex in CUBE_VERTICES {
+    for &vertex in &polytope.vertices {
         let position = rigid.borrow().frame.act(vertex);
         if position.z >= 0.0 {
             continue;
@@ -74,25 +42,32 @@ pub fn ground<'a>(rigid: &'a RefCell<&'a mut Rigid>) -> Vec<Constraint> {
 }
 
 impl Rigid {
-    fn support(&self, dir: Vector3<f64>) -> Vector3<f64> {
-        CUBE_VERTICES
-            .into_iter()
+    fn support(&self, polytope: &geometry::Polytope, dir: Vector3<f64>) -> Vector3<f64> {
+        polytope
+            .vertices
+            .iter()
+            .copied()
             .map(|p| self.frame.act(p))
             .max_by(|a, b| a.dot(dir).total_cmp(&b.dot(dir)))
             .unwrap()
     }
 
-    fn minkowski_support(&self, other: &Rigid, direction: Vector3<f64>) -> Vector3<f64> {
-        self.support(direction) - other.support(-direction)
+    fn minkowski_support(
+        &self,
+        other: &Rigid,
+        polytope: &geometry::Polytope,
+        direction: Vector3<f64>,
+    ) -> Vector3<f64> {
+        self.support(polytope, direction) - other.support(polytope, -direction)
     }
 
     #[allow(dead_code)]
-    pub fn gjk(&self, other: &Rigid) -> Option<gjk::Tetrahedron> {
-        let mut direction = -self.minkowski_support(other, Vector3::unit_x());
+    pub fn gjk(&self, other: &Rigid, polytope: &geometry::Polytope) -> Option<gjk::Tetrahedron> {
+        let mut direction = -self.minkowski_support(other, polytope, Vector3::unit_x());
         let mut simplex = gjk::Simplex::Point(-direction);
 
         loop {
-            let support = self.minkowski_support(other, direction);
+            let support = self.minkowski_support(other, polytope, direction);
 
             if direction.dot(support) <= 0.0 {
                 return None;
@@ -109,23 +84,26 @@ impl Rigid {
     }
 
     #[allow(dead_code)]
-    pub fn epa(&self, other: &Rigid) -> Option<epa::Collision> {
-        let simplex = self.gjk(other)?;
+    pub fn epa(&self, other: &Rigid, polytope: &geometry::Polytope) -> Option<epa::Collision> {
+        let simplex = self.gjk(other, polytope)?;
 
-        let mut polytope = epa::Polytope::new(simplex);
+        let mut expanding_polytope = epa::Polytope::new(simplex);
 
         loop {
-            let minimal_face = Plane::from_points(polytope.face_vertices(polytope.minimal_face()));
-            let support = self.minkowski_support(other, minimal_face.normal);
+            let minimal_face = Plane::from_points(
+                expanding_polytope.face_vertices(expanding_polytope.minimal_face()),
+            );
+            let support = self.minkowski_support(other, polytope, minimal_face.normal);
 
             if polytope.vertices.contains(&support) {
                 break;
             }
 
-            polytope.expand(support);
+            expanding_polytope.expand(support);
         }
 
-        let minimal_face = Plane::from_points(polytope.face_vertices(polytope.minimal_face()));
+        let minimal_face =
+            Plane::from_points(expanding_polytope.face_vertices(expanding_polytope.minimal_face()));
         Some(epa::Collision {
             normal: minimal_face.normal,
             depth: minimal_face.displacement,
@@ -138,17 +116,17 @@ impl Rigid {
         polytope: &geometry::Polytope,
         #[allow(unused)] debug: &mut debug::DebugLines,
     ) -> bool {
-        let self_face_query = sat::face_axes_separation((self, other));
+        let self_face_query = sat::face_axes_separation((self, other), polytope);
         if self_face_query.0 >= 0.0 {
             return false;
         }
 
-        let other_face_query = sat::face_axes_separation((other, self));
+        let other_face_query = sat::face_axes_separation((other, self), polytope);
         if other_face_query.0 >= 0.0 {
             return false;
         }
 
-        let edge_query = sat::edge_axes_separation((self, other), debug);
+        let edge_query = sat::edge_axes_separation((self, other), polytope, debug);
         if edge_query.0 >= 0.0 {
             return false;
         }

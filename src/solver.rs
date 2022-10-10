@@ -1,15 +1,15 @@
 use std::cell::RefCell;
 
-use crate::{collision::ground, constraint::Constraint, rigid::Rigid};
+use crate::{collision::ground, constraint::Constraint, geometry::Polytope, rigid::Rigid};
 
-pub fn step(rigid: &mut Rigid, dt: f64, substep_count: usize) {
+pub fn step(rigid: &mut Rigid, polytope: &Polytope, dt: f64, substep_count: usize) {
     let rigid = RefCell::new(rigid);
     let dt = dt / substep_count as f64;
 
     for _ in 0..substep_count {
         rigid.borrow_mut().integrate(dt);
 
-        let constraints = ground(&rigid);
+        let constraints = ground(&rigid, polytope);
         solve(constraints, dt);
 
         rigid.borrow_mut().derive(dt);

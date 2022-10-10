@@ -108,4 +108,12 @@ impl Polytope {
             })
             .flatten()
     }
+
+    pub fn planes(&self) -> impl Iterator<Item = Plane> + '_ {
+        self.faces
+            .iter()
+            .filter(|face| face.len() >= 3)
+            .map(|face| [face[0], face[1], face[2]].map(|i| self.vertices[i]))
+            .map(Plane::from_points)
+    }
 }

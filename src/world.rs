@@ -34,7 +34,7 @@ impl World {
         polytope: &geometry::Polytope,
         debug: &mut debug::DebugLines,
     ) {
-        solver::step(&mut self.a, dt, 25);
+        solver::step(&mut self.a, polytope, dt, 25);
 
         let test = self.a.sat(&self.b, polytope, debug);
 
