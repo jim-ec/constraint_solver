@@ -394,8 +394,18 @@ impl Rigid {
             return false;
         }
 
+        if self_face_query.0 > edge_query.0 && other_face_query.0 > edge_query.0 {
+            self.face_contact(other, [self_face_query, other_face_query]);
+        } else {
+            self.edge_contact(other, edge_query);
+        }
+
         true
     }
+
+    pub fn face_contact(&self, other: &Rigid, queries: [(f64, usize); 2]) {}
+
+    pub fn edge_contact(&self, other: &Rigid, query: (f64, [usize; 2])) {}
 
     #[allow(dead_code)]
     fn brute_force_axis_separation(&self, other: &Rigid, axis: Vector3<f64>) -> f64 {
