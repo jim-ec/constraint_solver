@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use cgmath::{vec3, InnerSpace, Vector3, Zero};
 use itertools::Itertools;
 
-use crate::{constraint::Constraint, debug, rigid::Rigid};
+use crate::{constraint::Constraint, debug, geometry::Plane, rigid::Rigid};
 
 pub const CUBE_VERTICES: [Vector3<f64>; 8] = [
     vec3(-0.5, -0.5, -0.5),
@@ -342,51 +342,36 @@ impl Rigid {
         &self,
         other: &Rigid,
         debug: &mut debug::DebugLines,
-    ) -> (f64, [usize; 4]) {
+    ) -> (f64, [usize; 2]) {
+        #![allow(clippy::never_loop)]
+
         let mut max_distance = f64::MIN;
-        let mut edge_indices = [usize::MAX; 4];
+        let mut edge_indices = [usize::MAX; 2];
 
-        for self_edge_index in CUBE_EDGES {
-            let self_edge = self.frame.act(CUBE_VERTICES[self_edge_index.0])
-                - self.frame.act(CUBE_VERTICES[self_edge_index.1]);
+        for ((i_edge, i), (j_edge, j)) in CUBE_EDGES
+            .into_iter()
+            .enumerate()
+            .cartesian_product(CUBE_EDGES.into_iter().enumerate())
+        {
+            let foot = self.frame.act(CUBE_VERTICES[i.0]);
+            let self_edge = self.frame.act(CUBE_VERTICES[i.1]) - foot;
 
-            for other_edge_index in CUBE_EDGES {
-                let other_edge = other.frame.act(CUBE_VERTICES[other_edge_index.0])
-                    - other.frame.act(CUBE_VERTICES[other_edge_index.1]);
+            let other_edge =
+                other.frame.act(CUBE_VERTICES[j.1]) - other.frame.act(CUBE_VERTICES[j.0]);
 
-                let mut axis = self_edge.cross(other_edge).normalize();
+            let mut axis = self_edge.cross(other_edge).normalize();
 
-                // Keep normal pointing from `self` to `other`.
-                if axis.dot(CUBE_VERTICES[self_edge_index.0] - self.frame.act(Vector3::zero()))
-                    < 0.0
-                {
-                    axis = -axis;
-                }
+            // Keep normal pointing from `self` to `other`.
+            if axis.dot(foot - self.frame.act(Vector3::zero())) < 0.0 {
+                axis = -axis;
+            }
 
-                let support = CUBE_VERTICES
-                    .into_iter()
-                    .map(|p| other.frame.act(p))
-                    .max_by(|a, b| a.dot(-axis).total_cmp(&b.dot(-axis)))
-                    .unwrap();
+            let plane = Plane::from_point_normal(self.support(axis), axis);
+            let distance = plane.distance(other.support(-axis));
 
-                // We build a plane through the edge on Hull A with the normal of the cross product
-                let plane_distance = plane::plane_distance_from_point(
-                    axis,
-                    self.frame.act(CUBE_VERTICES[self_edge_index.0]),
-                );
-
-                let distance = plane::distance_to(axis, plane_distance, support);
-                // dbg!(distance);
-
-                if distance > max_distance {
-                    max_distance = distance;
-                    edge_indices = [
-                        self_edge_index.0,
-                        self_edge_index.1,
-                        other_edge_index.0,
-                        other_edge_index.1,
-                    ];
-                }
+            if distance > max_distance {
+                max_distance = distance;
+                edge_indices = [i_edge, j_edge];
             }
         }
 
@@ -394,127 +379,81 @@ impl Rigid {
     }
 
     pub fn sat(&self, other: &Rigid, #[allow(unused)] debug: &mut debug::DebugLines) -> bool {
-        println!("SAT:");
-
         let self_face_query = self.face_axes_separation(other);
         if self_face_query.0 >= 0.0 {
+            debug.plane(
+                Plane {
+                    normal: CUBE_FACE_NORMALS[self_face_query.1],
+                    displacement: 0.5,
+                },
+                [1.0, 0.0, 1.0],
+            );
             return false;
         }
 
         let other_face_query = other.face_axes_separation(self);
         if other_face_query.0 >= 0.0 {
+            debug.plane(
+                Plane {
+                    normal: CUBE_FACE_NORMALS[other_face_query.1],
+                    displacement: 0.5,
+                },
+                [0.0, 1.0, 1.0],
+            );
             return false;
         }
 
         let edge_query = self.edge_axes_separation(other, debug);
+        // dbg!(edge_query);
 
-        dbg!(edge_query);
-
-        debug.point(
-            self.frame.act(CUBE_VERTICES[edge_query.1[0]]),
-            [0.0, 0.0, 1.0],
-        );
-        debug.point(
-            self.frame.act(CUBE_VERTICES[edge_query.1[1]]),
-            [0.0, 0.0, 1.0],
-        );
-        debug.point(
-            other.frame.act(CUBE_VERTICES[edge_query.1[2]]),
-            [0.0, 1.0, 0.0],
-        );
-        debug.point(
-            other.frame.act(CUBE_VERTICES[edge_query.1[3]]),
-            [0.0, 1.0, 0.0],
-        );
+        // debug.point(
+        //     self.frame.act(CUBE_VERTICES[edge_query.1[0]]),
+        //     [0.0, 0.0, 1.0],
+        // );
+        // debug.point(
+        //     self.frame.act(CUBE_VERTICES[edge_query.1[1]]),
+        //     [0.0, 0.0, 1.0],
+        // );
+        // debug.point(
+        //     other.frame.act(CUBE_VERTICES[edge_query.1[2]]),
+        //     [0.0, 1.0, 0.0],
+        // );
+        // debug.point(
+        //     other.frame.act(CUBE_VERTICES[edge_query.1[3]]),
+        //     [0.0, 1.0, 0.0],
+        // );
 
         // debug.point(self.frame.act(CUBE_VERTICES[1]), [0.0, 0.0, 1.0]);
         // debug.point(self.frame.act(CUBE_VERTICES[3]), [0.0, 0.0, 1.0]);
         // debug.point(other.frame.act(CUBE_VERTICES[edge_query.1[1]]), [0.0, 1.0, 0.0]);
         // debug.point(other.frame.act(CUBE_VERTICES[5]), [0.0, 1.0, 0.0]);
 
-        // {
-        //     let self_edge = self.frame.act(CUBE_VERTICES[1]) - self.frame.act(CUBE_VERTICES[3]);
-
-        //     let other_edge = other.frame.act(CUBE_VERTICES[edge_query.1[1]]) - other.frame.act(CUBE_VERTICES[5]);
-
-        //     let mut axis = self_edge.cross(other_edge).normalize();
-
-        //     // Keep normal pointing from `self` to `other`.
-        //     if axis.dot(CUBE_VERTICES[1] - self.frame.act(Vector3::zero())) < 0.0 {
-        //         axis = -axis;
-        //     }
-
-        //     let support = CUBE_VERTICES
-        //         .into_iter()
-        //         .map(|p| other.frame.act(p))
-        //         .max_by(|a, b| a.dot(-axis).total_cmp(&b.dot(-axis)))
-        //         .unwrap();
-
-        //     // We build a plane through the edge on Hull A with the normal of the cross product
-        //     let plane_distance =
-        //         plane::plane_distance_from_point(axis, self.frame.act(CUBE_VERTICES[1]));
-
-        //     debug.point(self.frame.act(CUBE_VERTICES[1]), [1.0, 1.0, 0.0]);
-        //     debug.line([Vector3::zero(), plane_distance * axis], [1.0, 1.0, 0.0]);
-
-        //     let distance = plane::distance_to(axis, plane_distance, support);
-
-        //     dbg!(distance);
-        // }
-
-        {
-            let self_edge = self.frame.act(CUBE_VERTICES[edge_query.1[1]])
-                - self.frame.act(CUBE_VERTICES[edge_query.1[0]]);
-
-            let other_edge = other.frame.act(CUBE_VERTICES[edge_query.1[3]])
-                - other.frame.act(CUBE_VERTICES[edge_query.1[2]]);
-
-            let mut axis = self_edge.cross(other_edge).normalize();
-            dbg!(axis);
-
-            // Keep normal pointing from `self` to `other`.
-            if axis.dot(CUBE_VERTICES[edge_query.1[1]] - self.frame.act(Vector3::zero())) < 0.0 {
-                axis = -axis;
-            }
-
-            let support = CUBE_VERTICES
-                .into_iter()
-                .map(|p| other.frame.act(p))
-                .max_by(|a, b| a.dot(-axis).total_cmp(&b.dot(-axis)))
-                .unwrap();
-
-            // We build a plane through the edge on Hull A with the normal of the cross product
-            let plane_distance = plane::plane_distance_from_point(
-                axis,
-                self.frame.act(CUBE_VERTICES[edge_query.1[1]]),
-            );
-
-            dbg!(plane_distance);
-
-            debug.point(
-                self.frame.act(CUBE_VERTICES[edge_query.1[1]]),
-                [1.0, 1.0, 0.0],
-            );
-            debug.line([Vector3::zero(), plane_distance * axis], [1.0, 1.0, 0.0]);
-
-            let distance = plane::distance_to(axis, plane_distance, support);
-
-            dbg!(distance);
-        }
-
-        // let axis = (self.frame.act(CUBE_VERTICES[edge_query.1[1]])
-        //     - self.frame.act(CUBE_VERTICES[edge_query.1[0]]))
-        // .cross(
-        //     self.frame.act(CUBE_VERTICES[edge_query.1[3]])
-        //         - self.frame.act(CUBE_VERTICES[edge_query.1[2]]),
-        // )
-        // .normalize();
-        // debug.point(axis, [1.0, 1.0, 0.0]);
-
         if edge_query.0 >= 0.0 {
             return false;
         }
 
         true
+    }
+
+    #[allow(dead_code)]
+    fn brute_force_axis_separation(&self, other: &Rigid, axis: Vector3<f64>) -> f64 {
+        let mut self_max = f64::MIN;
+        let mut other_min = f64::MAX;
+
+        // Compute the shadow self's vertices cast onto the axis.
+        for vertex in CUBE_VERTICES {
+            let vertex = self.frame.act(vertex);
+            let projection = vertex.dot(axis);
+            self_max = self_max.max(projection);
+        }
+
+        // Compute the shadow other's vertices cast onto the axis.
+        for vertex in CUBE_VERTICES {
+            let vertex = other.frame.act(vertex);
+            let projection = vertex.dot(axis);
+            other_min = other_min.min(projection);
+        }
+
+        other_min - self_max
     }
 }

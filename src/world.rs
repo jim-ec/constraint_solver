@@ -23,26 +23,17 @@ impl World {
     }
 
     pub fn integrate(&mut self, dt: f64, debug: &mut debug::DebugLines) {
-        // solver::step(&mut self.a, dt, 25);
+        solver::step(&mut self.a, dt, 25);
 
-        // let test = self.a.sat(&self.b, debug);
+        let test = self.a.sat(&self.b, debug);
 
-        // if test {
-        //     self.a.color = Some([1.0, 0.0, 0.0]);
-        //     self.b.color = Some([1.0, 0.0, 0.0]);
-        // } else {
-        //     self.a.color = None;
-        //     self.b.color = None;
-        // }
-
-        debug.plane(
-            Plane::from_points([
-                vec3(1.0, 0.0, 0.0),
-                vec3(0.0, 1.0, 0.0),
-                vec3(0.0, 0.0, 1.0),
-            ]),
-            [0.0, 1.0, 1.0],
-        );
+        if test {
+            self.a.color = Some([1.0, 0.0, 0.0]);
+            self.b.color = Some([1.0, 0.0, 0.0]);
+        } else {
+            self.a.color = None;
+            self.b.color = None;
+        }
     }
 
     pub fn rigids(&self) -> Vec<&rigid::Rigid> {
