@@ -15,6 +15,7 @@ pub struct World {
 impl World {
     pub fn new() -> World {
         let mut a = rigid::Rigid::new(1.0);
+
         a.external_force.z = -5.0;
         a.velocity.z = -0.2;
         a.angular_velocity.z = 1.0;

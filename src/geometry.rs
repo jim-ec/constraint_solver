@@ -1,3 +1,5 @@
+pub mod integrate;
+
 use cgmath::{vec3, InnerSpace, Vector3};
 use itertools::Itertools;
 
@@ -42,6 +44,11 @@ impl Plane {
     pub fn project(self, point: Vector3<f64>) -> Vector3<f64> {
         point - self.distance(point) * self.normal
     }
+
+    /// The constant part of this plane's equation.
+    pub fn constant(self) -> f64 {
+        -self.displacement
+    }
 }
 
 /// A convex polytope. The surface is assumed to form a manifold.
@@ -59,7 +66,7 @@ pub struct Polytope {
 
 impl Polytope {
     pub fn new_cube() -> Self {
-        Self {
+        let tmp = Self {
             vertices: vec![
                 vec3(-0.5, -0.5, -0.5),
                 vec3(0.5, -0.5, -0.5),
@@ -92,10 +99,13 @@ impl Polytope {
                 vec![7, 3, 2, 6],
                 vec![6, 2, 0, 4],
             ],
-        }
+        };
+
+        integrate::rigid_metrics(&tmp, 1.0);
+        tmp
     }
 
-    /// An iterator over the polytopes faces, tessellated into triangles.
+    /// An iterator over the polytope's faces, tessellated into triangles.
     /// Co-linear vertices result in degenerate triangles.
     pub fn triangles(&self) -> impl Iterator<Item = (usize, usize, usize)> + '_ {
         self.faces
