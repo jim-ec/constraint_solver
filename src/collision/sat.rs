@@ -37,7 +37,7 @@ pub fn face_axes_separation(rigids: (&Rigid, &Rigid), polytope: &Polytope) -> (f
     let mut max_distance = f64::MIN;
     let mut face_index = usize::MAX;
 
-    for (i, plane) in polytope.planes().enumerate() {
+    for (i, plane) in polytope.planes() {
         let support = polytope
             .vertices
             .iter()
