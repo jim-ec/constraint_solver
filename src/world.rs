@@ -34,6 +34,8 @@ impl World {
         debug: &mut debug::DebugLines,
     ) {
         solver::step(&mut self.a, polytope, dt, 25);
+
+        debug.point(self.a.frame.act(self.a.center_of_mass), [1.0, 1.0, 0.0]);
     }
 
     pub fn rigids(&self) -> Vec<&rigid::Rigid> {
