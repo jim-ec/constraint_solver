@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use crate::{collision::ground, constraint::Constraint, geometry::Polytope, rigid::Rigid};
 
 pub fn step(rigid: &mut Rigid, polytope: &Polytope, dt: f64, substep_count: usize) {
@@ -22,6 +20,6 @@ pub fn solve(rigid: &mut Rigid, constraints: Vec<Constraint>, dt: f64) {
     for mut constraint in constraints {
         let difference = constraint.current_distance() - constraint.distance;
         let lagrange_factor = difference / (constraint.inverse_resitance(&[rigid]) + compliance);
-        constraint.act(&mut [rigid], lagrange_factor)
+        constraint.act(&mut [rigid], lagrange_factor);
     }
 }

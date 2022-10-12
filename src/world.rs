@@ -14,7 +14,7 @@ pub struct World {
 impl World {
     pub fn new(polytope: &geometry::Polytope) -> World {
         let rigid_metrics = polytope.rigid_metrics(1.0);
-        dbg!(rigid_metrics);
+        // dbg!(rigid_metrics);
 
         let mut a = rigid::Rigid::new(rigid_metrics);
 
@@ -22,6 +22,7 @@ impl World {
         a.velocity.z = -0.2;
         a.angular_velocity.x = 1.0;
         a.frame.position = vec3(0.5, 0.5, 0.5);
+        a.frame.position.z += 1.0;
 
         World { a }
     }
