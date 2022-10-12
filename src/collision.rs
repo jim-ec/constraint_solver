@@ -15,26 +15,22 @@ use crate::{
     rigid::Rigid,
 };
 
-pub fn ground<'a>(
-    rigid: &'a RefCell<&'a mut Rigid>,
-    past: Frame,
-    polytope: &geometry::Polytope,
-) -> Vec<Constraint<'a>> {
+pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<Constraint> {
     let mut constraints = Vec::new();
 
     for &vertex in &polytope.vertices {
-        let position = rigid.borrow().frame.act(vertex);
+        let position = rigid.frame.act(vertex);
         if position.z >= 0.0 {
             continue;
         }
 
         let target_position = Vector3::new(position.x, position.y, 0.0);
         let correction = target_position - position;
-        let delta_position = position - past.act(rigid.borrow().frame.inverse().act(position));
+        let delta_position = position - past.act(rigid.frame.inverse().act(position));
         let delta_tangential_position = delta_position - delta_position.project_on(correction);
 
         constraints.push(Constraint {
-            rigid,
+            rigid: 0,
             contacts: (position, target_position - 1.0 * delta_tangential_position),
             distance: 0.0,
         })

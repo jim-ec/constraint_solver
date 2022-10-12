@@ -5,13 +5,13 @@ use cgmath::{ElementWise, InnerSpace, Vector3};
 use crate::rigid::Rigid;
 
 #[derive(Debug)]
-pub struct Constraint<'a> {
-    pub rigid: &'a RefCell<&'a mut Rigid>,
+pub struct Constraint {
+    pub rigid: usize,
     pub contacts: (Vector3<f64>, Vector3<f64>),
     pub distance: f64,
 }
 
-impl Constraint<'_> {
+impl Constraint {
     fn difference(&self) -> Vector3<f64> {
         self.contacts.1 - self.contacts.0
     }
@@ -24,8 +24,8 @@ impl Constraint<'_> {
         self.difference().magnitude()
     }
 
-    pub fn inverse_resitance(&self) -> f64 {
-        let rigid = self.rigid.borrow();
+    pub fn inverse_resitance(&self, rigids: &[&Rigid]) -> f64 {
+        let rigid = &rigids[self.rigid];
 
         let angular_impulse = rigid.frame.rotation.conjugate()
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
@@ -33,9 +33,8 @@ impl Constraint<'_> {
         rigid.inverse_mass + (rigid.inverse_inertia * angular_impulse).dot(angular_impulse)
     }
 
-    pub fn act(&mut self, factor: f64) {
+    pub fn act(&mut self, rigids: &mut [&mut Rigid], factor: f64) {
         let impulse = factor * self.direction();
-        let mut rigid = self.rigid.borrow_mut();
-        rigid.apply_impulse(impulse, self.contacts.0);
+        rigids[self.rigid].apply_impulse(impulse, self.contacts.0);
     }
 }
