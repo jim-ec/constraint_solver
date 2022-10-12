@@ -70,13 +70,30 @@ impl Rigid {
         let torque = self.external_torque + self.frame.rotation * self.internal_torque;
         self.angular_velocity += dt * self.inverse_inertia * torque;
 
-        self.frame = self
-            .frame
-            .integrate(dt, self.velocity, self.angular_velocity);
+        let linear_velocity = self.velocity;
+        let angular_velocity = self.angular_velocity;
+        self.frame.position += dt * linear_velocity;
+
+        let delta_rotation = dt
+            * 0.5
+            * Quaternion::new(
+                0.0,
+                angular_velocity.x,
+                angular_velocity.y,
+                angular_velocity.z,
+            )
+            * self.frame.rotation;
+        self.frame.rotation = (self.frame.rotation + delta_rotation).normalize();
     }
 
     pub fn derive(&mut self, past: Frame, dt: f64) {
-        (self.velocity, self.angular_velocity) = self.frame.derive(dt, past)
+        self.velocity = (self.frame.position - past.position) / dt;
+
+        let mut delta = self.frame.rotation * past.rotation.conjugate();
+        if delta.s < 0.0 {
+            delta = -delta;
+        }
+        self.angular_velocity = 2.0 * delta.v / dt;
     }
 
     /// Applies a linear impulse in a given direction and magnitude at a given location.

@@ -45,41 +45,4 @@ impl Frame {
             rotation: self.rotation * other.rotation,
         }
     }
-
-    pub fn integrate(
-        &self,
-        dt: f64,
-        linear_velocity: Vector3<f64>,
-        angular_velocity: Vector3<f64>,
-    ) -> Frame {
-        let position = self.position + dt * linear_velocity;
-
-        let delta_rotation = dt
-            * 0.5
-            * Quaternion::new(
-                0.0,
-                angular_velocity.x,
-                angular_velocity.y,
-                angular_velocity.z,
-            )
-            * self.rotation;
-        let rotation = (self.rotation + delta_rotation).normalize();
-
-        Frame { position, rotation }
-    }
-
-    pub fn derive(&self, dt: f64, past: Frame) -> (Vector3<f64>, Vector3<f64>) {
-        let derived_position = (self.position - past.position) / dt;
-
-        let derived_rotation = {
-            let delta = self.rotation * past.rotation.conjugate() / dt;
-            let mut velocity = 2.0 * delta.v;
-            if delta.s < 0.0 {
-                velocity = -velocity;
-            }
-            velocity
-        };
-
-        (derived_position, derived_rotation)
-    }
 }
