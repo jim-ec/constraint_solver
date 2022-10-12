@@ -70,17 +70,15 @@ impl Rigid {
         let torque = self.external_torque + self.frame.rotation * self.internal_torque;
         self.angular_velocity += dt * self.inverse_inertia * torque;
 
-        let linear_velocity = self.velocity;
-        let angular_velocity = self.angular_velocity;
-        self.frame.position += dt * linear_velocity;
+        self.frame.position += dt * self.velocity;
 
         let delta_rotation = dt
             * 0.5
             * Quaternion::new(
                 0.0,
-                angular_velocity.x,
-                angular_velocity.y,
-                angular_velocity.z,
+                self.angular_velocity.x,
+                self.angular_velocity.y,
+                self.angular_velocity.z,
             )
             * self.frame.rotation;
         self.frame.rotation = (self.frame.rotation + delta_rotation).normalize();
