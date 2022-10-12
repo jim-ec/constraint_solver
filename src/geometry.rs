@@ -66,7 +66,7 @@ pub struct Polytope {
 
 impl Polytope {
     pub fn new_cube() -> Self {
-        let tmp = Self {
+        Self {
             vertices: vec![
                 vec3(-0.5, -0.5, -0.5),
                 vec3(0.5, -0.5, -0.5),
@@ -99,10 +99,44 @@ impl Polytope {
                 vec![7, 3, 2, 6],
                 vec![6, 2, 0, 4],
             ],
-        };
+        }
+    }
 
-        integrate::rigid_metrics(&tmp, 1.0);
-        tmp
+    pub fn new_unit_cube() -> Self {
+        Self {
+            vertices: vec![
+                vec3(0.0, 0.0, 0.0),
+                vec3(1.0, 0.0, 0.0),
+                vec3(0.0, 1.0, 0.0),
+                vec3(1.0, 1.0, 0.0),
+                vec3(0.0, 0.0, 1.0),
+                vec3(1.0, 0.0, 1.0),
+                vec3(0.0, 1.0, 1.0),
+                vec3(1.0, 1.0, 1.0),
+            ],
+            edges: vec![
+                (0, 1),
+                (1, 3),
+                (3, 2),
+                (2, 0),
+                (4, 5),
+                (5, 7),
+                (7, 6),
+                (6, 4),
+                (0, 4),
+                (1, 5),
+                (3, 7),
+                (2, 6),
+            ],
+            faces: vec![
+                vec![0, 2, 3, 1],
+                vec![4, 5, 7, 6],
+                vec![4, 0, 1, 5],
+                vec![5, 1, 3, 7],
+                vec![7, 3, 2, 6],
+                vec![6, 2, 0, 4],
+            ],
+        }
     }
 
     /// An iterator over the polytope's faces, tessellated into triangles.
@@ -152,6 +186,10 @@ impl Polytope {
         direction: Vector3<f64>,
     ) -> Vector3<f64> {
         self.support(frames.0, direction) - self.support(frames.1, -direction)
+    }
+
+    pub fn rigid_metrics(&self, density: f64) -> integrate::RigidMetrics {
+        integrate::rigid_metrics(self, density)
     }
 }
 

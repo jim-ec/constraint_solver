@@ -15,6 +15,7 @@ struct Face {
     vertices: Vec<usize>,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct RigidMetrics {
     pub mass: f64,
     pub volume: f64,

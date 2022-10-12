@@ -1,7 +1,7 @@
-use cgmath::{ElementWise, InnerSpace, Quaternion, Vector3, Zero};
+use cgmath::{vec3, ElementWise, InnerSpace, Quaternion, Vector3, Zero};
 use derive_setters::Setters;
 
-use crate::frame::Frame;
+use crate::{frame::Frame, geometry::integrate::RigidMetrics};
 
 #[derive(Debug, Clone, Copy, Setters)]
 pub struct Rigid {
@@ -36,6 +36,8 @@ pub struct Rigid {
     /// Current angular velocity of the rigid body in `s^-1`
     pub angular_velocity: Vector3<f64>,
 
+    pub center_of_mass: Vector3<f64>,
+
     pub frame: Frame,
     pub past_frame: Option<Frame>,
 
@@ -43,10 +45,10 @@ pub struct Rigid {
 }
 
 impl Rigid {
-    pub fn new(mass: f64) -> Rigid {
+    pub fn new(metrics: RigidMetrics) -> Rigid {
         let extent = Vector3::new(1.0, 1.0, 1.0);
         let rotational_inertia = 1.0 / 12.0
-            * mass
+            * metrics.mass
             * Vector3::new(
                 extent.y * extent.y + extent.z * extent.z,
                 extent.x * extent.x + extent.z * extent.z,
@@ -54,7 +56,8 @@ impl Rigid {
             );
 
         Rigid {
-            mass,
+            mass: metrics.mass,
+            center_of_mass: metrics.center_of_mass,
             rotational_inertia,
             internal_force: Vector3::zero(),
             external_force: Vector3::zero(),

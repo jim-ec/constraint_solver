@@ -37,7 +37,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut manual_forward_step = false;
     let mut time_speed_up = false;
 
-    let mut states = vec![(world::World::new(), debug::DebugLines::default())];
+    let mut states = vec![(world::World::new(&polytope), debug::DebugLines::default())];
     let mut current_state: usize = 0;
 
     event_loop.run(move |event, _, control_flow| {
