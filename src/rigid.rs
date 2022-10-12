@@ -1,4 +1,4 @@
-use cgmath::{vec3, ElementWise, InnerSpace, Quaternion, Vector3, Zero};
+use cgmath::{vec3, ElementWise, InnerSpace, Matrix3, Quaternion, SquareMatrix, Vector3, Zero};
 use derive_setters::Setters;
 
 use crate::{frame::Frame, geometry::integrate::RigidMetrics};
@@ -12,7 +12,7 @@ pub struct Rigid {
     /// Since the geometry is assumed to be in rest space,
     /// this tensor is sparse and just the diagonal entries are stored.
     /// Measured in `kg^-1 m^-2`.
-    pub inverse_inertia: Vector3<f64>,
+    pub inverse_inertia: Matrix3<f64>,
 
     /// Force acting on the rigid body outside its frame.
     /// Measured in `N`.
@@ -46,19 +46,13 @@ pub struct Rigid {
 
 impl Rigid {
     pub fn new(metrics: RigidMetrics) -> Rigid {
-        let extent = Vector3::new(1.0, 1.0, 1.0);
-        let rotational_inertia = 1.0 / 12.0
-            * metrics.mass
-            * Vector3::new(
-                extent.y * extent.y + extent.z * extent.z,
-                extent.x * extent.x + extent.z * extent.z,
-                extent.x * extent.x + extent.y * extent.y,
-            );
-
         Rigid {
             inverse_mass: 1.0 / metrics.mass,
             center_of_mass: metrics.center_of_mass,
-            inverse_inertia: 1.0 / rotational_inertia,
+            inverse_inertia: metrics
+                .inertia_tensor
+                .invert()
+                .expect("Inertia tensor is not invertible"),
             internal_force: Vector3::zero(),
             external_force: Vector3::zero(),
             internal_torque: Vector3::zero(),
@@ -76,7 +70,7 @@ impl Rigid {
         self.velocity += dt * force * self.inverse_mass;
 
         let torque = self.external_torque + self.frame.quaternion * self.internal_torque;
-        self.angular_velocity += dt * torque.mul_element_wise(self.inverse_inertia);
+        self.angular_velocity += dt * self.inverse_inertia * torque;
 
         self.past_frame = Some(self.frame);
         self.frame = self
@@ -101,8 +95,7 @@ impl Rigid {
         self.frame.quaternion +=
             0.5 * Quaternion::from_sv(
                 0.0,
-                (point - self.frame.position)
-                    .mul_element_wise(self.inverse_inertia)
+                (self.inverse_inertia * (point - self.frame.position))
                     .cross(impulse),
             ) * self.frame.quaternion;
         self.frame.quaternion = self.frame.quaternion.normalize();

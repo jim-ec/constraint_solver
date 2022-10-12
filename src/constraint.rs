@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, ops::Mul};
 
 use cgmath::{ElementWise, InnerSpace, Vector3};
 
@@ -30,8 +30,7 @@ impl Constraint<'_> {
         let angular_impulse = rigid.frame.quaternion.conjugate()
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
-        rigid.inverse_mass
-            + (angular_impulse.mul_element_wise(rigid.inverse_inertia)).dot(angular_impulse)
+        rigid.inverse_mass + (rigid.inverse_inertia * angular_impulse).dot(angular_impulse)
     }
 
     pub fn act(&mut self, factor: f64) {
