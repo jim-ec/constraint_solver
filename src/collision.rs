@@ -10,12 +10,14 @@ use itertools::Itertools;
 use crate::{
     constraint::Constraint,
     debug,
+    frame::Frame,
     geometry::{self, Plane},
     rigid::Rigid,
 };
 
 pub fn ground<'a>(
     rigid: &'a RefCell<&'a mut Rigid>,
+    past: Frame,
     polytope: &geometry::Polytope,
 ) -> Vec<Constraint<'a>> {
     let mut constraints = Vec::new();
@@ -28,7 +30,7 @@ pub fn ground<'a>(
 
         let target_position = Vector3::new(position.x, position.y, 0.0);
         let correction = target_position - position;
-        let delta_position = rigid.borrow().delta(position);
+        let delta_position = position - past.act(rigid.borrow().frame.inverse().act(position));
         let delta_tangential_position = delta_position - delta_position.project_on(correction);
 
         constraints.push(Constraint {

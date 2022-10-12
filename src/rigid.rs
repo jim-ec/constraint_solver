@@ -39,7 +39,6 @@ pub struct Rigid {
     pub center_of_mass: Vector3<f64>,
 
     pub frame: Frame,
-    pub past_frame: Option<Frame>,
 
     pub color: Option<[f32; 3]>,
 }
@@ -60,7 +59,6 @@ impl Rigid {
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
             frame: Frame::default(),
-            past_frame: None,
             color: None,
         }
     }
@@ -72,19 +70,13 @@ impl Rigid {
         let torque = self.external_torque + self.frame.rotation * self.internal_torque;
         self.angular_velocity += dt * self.inverse_inertia * torque;
 
-        self.past_frame = Some(self.frame);
         self.frame = self
             .frame
             .integrate(dt, self.velocity, self.angular_velocity);
     }
 
-    pub fn derive(&mut self, dt: f64) {
-        if let Some(past) = self.past_frame {
-            (self.velocity, self.angular_velocity) = self.frame.derive(dt, past)
-        } else {
-            self.velocity = Vector3::zero();
-            self.angular_velocity = Vector3::zero();
-        }
+    pub fn derive(&mut self, past: Frame, dt: f64) {
+        (self.velocity, self.angular_velocity) = self.frame.derive(dt, past)
     }
 
     /// Applies a linear impulse in a given direction and magnitude at a given location.
@@ -101,13 +93,10 @@ impl Rigid {
     }
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.
-    pub fn delta(&self, global: Vector3<f64>) -> Vector3<f64> {
-        if let Some(past) = self.past_frame {
-            let local = self.frame.inverse().act(global);
-            let past_global = past.act(local);
-            global - past_global
-        } else {
-            Vector3::zero()
-        }
+    // TODO: Move to frame module
+    pub fn delta(&self, past: Frame, global: Vector3<f64>) -> Vector3<f64> {
+        let local = self.frame.inverse().act(global);
+        let past_global = past.act(local);
+        global - past_global
     }
 }

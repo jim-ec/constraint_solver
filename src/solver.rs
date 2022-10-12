@@ -7,12 +7,13 @@ pub fn step(rigid: &mut Rigid, polytope: &Polytope, dt: f64, substep_count: usiz
     let dt = dt / substep_count as f64;
 
     for _ in 0..substep_count {
+        let past = rigid.borrow().frame;
         rigid.borrow_mut().integrate(dt);
 
-        let constraints = ground(&rigid, polytope);
+        let constraints = ground(&rigid, past, polytope);
         solve(constraints, dt);
 
-        rigid.borrow_mut().derive(dt);
+        rigid.borrow_mut().derive(past, dt);
     }
 }
 
