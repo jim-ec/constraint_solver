@@ -114,8 +114,7 @@ impl Rigid {
         self.frame.rotation +=
             0.5 * Quaternion::from_sv(
                 0.0,
-                (self.inverse_inertia * (point - self.frame.act(self.center_of_mass)))
-                    .cross(impulse),
+                (self.inverse_inertia * (point - self.frame.position)).cross(impulse),
             ) * self.frame.rotation;
         self.frame.rotation = self.frame.rotation.normalize();
     }
