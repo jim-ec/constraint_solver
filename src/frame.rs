@@ -52,7 +52,6 @@ impl Frame {
         linear_velocity: Vector3<f64>,
         angular_velocity: Vector3<f64>,
     ) -> Frame {
-        // TODO: Do we essentially exponentiate a branch and an ideal line?
         let position = self.position + dt * linear_velocity;
 
         let delta_quaternion = dt
@@ -73,7 +72,6 @@ impl Frame {
     }
 
     pub fn derive(&self, dt: f64, past: Frame) -> (Vector3<f64>, Vector3<f64>) {
-        // TODO: Are we essentially taking the logarithm of a translator and a rotor?
         let derived_position = (self.position - past.position) / dt;
 
         let derived_rotation = {

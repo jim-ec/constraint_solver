@@ -98,11 +98,14 @@ impl Rigid {
     pub fn apply_impulse(&mut self, impulse: Vector3<f64>, point: Vector3<f64>) {
         self.frame.position += impulse / self.mass;
 
-        let log = (point - self.frame.position)
-            .div_element_wise(self.rotational_inertia)
-            .cross(impulse);
-        let rotation = 0.5 * Quaternion::new(0.0, log.x, log.y, log.z) * self.frame.quaternion;
-        self.frame.quaternion = (self.frame.quaternion + rotation).normalize();
+        self.frame.quaternion +=
+            0.5 * Quaternion::from_sv(
+                0.0,
+                (point - self.frame.position)
+                    .div_element_wise(self.rotational_inertia)
+                    .cross(impulse),
+            ) * self.frame.quaternion;
+        self.frame.quaternion = self.frame.quaternion.normalize();
     }
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.
