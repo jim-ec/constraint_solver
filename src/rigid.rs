@@ -72,12 +72,6 @@ impl Rigid {
 
         self.frame.position += dt * self.velocity;
 
-        let prev_rotation = self.frame.rotation;
-
-        let rotation = (self.frame.rotation
-            + dt * 0.5 * Quaternion::from_sv(0.0, self.angular_velocity) * self.frame.rotation)
-            .normalize();
-
         let delta_rotation = dt
             * 0.5
             * Quaternion::new(
@@ -88,16 +82,10 @@ impl Rigid {
             )
             * self.frame.rotation;
         self.frame.rotation = (self.frame.rotation + delta_rotation).normalize();
-
-        // Translate position to compensate for offset center of mass.
-        let delta_rotation = self.frame.rotation * prev_rotation.conjugate();
-        let p = prev_rotation * self.center_of_mass;
-        let q = delta_rotation * p;
-        self.frame.position += p - q;
     }
 
     pub fn derive(&mut self, past: Frame, dt: f64) {
-        self.velocity = (self.frame.act(self.center_of_mass) - past.act(self.center_of_mass)) / dt;
+        self.velocity = (self.frame.position - past.position) / dt;
 
         let mut delta = self.frame.rotation * past.rotation.conjugate();
         if delta.s < 0.0 {
