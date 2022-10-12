@@ -28,7 +28,7 @@ impl Constraint {
         let rigid = &rigids[self.rigid];
 
         let angular_impulse = rigid.frame.rotation.conjugate()
-            * (self.contacts.0 - rigid.frame.position).cross(self.direction());
+            * (self.contacts.0 - rigid.frame.act(rigid.center_of_mass)).cross(self.direction());
 
         rigid.inverse_mass + (rigid.inverse_inertia * angular_impulse).dot(angular_impulse)
     }
