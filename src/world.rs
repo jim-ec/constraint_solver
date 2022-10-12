@@ -18,11 +18,12 @@ impl World {
 
         let mut a = rigid::Rigid::new(rigid_metrics);
 
-        a.external_force.z = -5.0;
-        a.velocity.z = -0.2;
+        // a.external_force.z = -5.0;
+        // a.velocity.z = -0.2;
         a.angular_velocity.x = 1.0;
-        a.angular_velocity.y = 0.5;
+        // a.angular_velocity.y = 0.5;
         a.frame.position.z = 2.0;
+        a.center_of_mass.y = 0.5;
 
         World { a }
     }
