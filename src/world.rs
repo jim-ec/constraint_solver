@@ -35,6 +35,7 @@ impl World {
     ) {
         solver::step(&mut self.a, polytope, dt, 25);
 
+        debug.point(self.a.frame.position, [0.0, 1.0, 0.0]);
         debug.point(self.a.frame.act(self.a.center_of_mass), [1.0, 1.0, 0.0]);
     }
 
