@@ -66,10 +66,10 @@ impl Rigid {
     }
 
     pub fn integrate(&mut self, dt: f64) {
-        let force = self.external_force + self.frame.quaternion * self.internal_force;
+        let force = self.external_force + self.frame.rotation * self.internal_force;
         self.velocity += dt * force * self.inverse_mass;
 
-        let torque = self.external_torque + self.frame.quaternion * self.internal_torque;
+        let torque = self.external_torque + self.frame.rotation * self.internal_torque;
         self.angular_velocity += dt * self.inverse_inertia * torque;
 
         self.past_frame = Some(self.frame);
@@ -88,17 +88,16 @@ impl Rigid {
     }
 
     /// Applies a linear impulse in a given direction and magnitude at a given location.
-    /// Results in changes in both position and quaternion.
+    /// Results in changes in both position and rotation.
     pub fn apply_impulse(&mut self, impulse: Vector3<f64>, point: Vector3<f64>) {
         self.frame.position += impulse * self.inverse_mass;
 
-        self.frame.quaternion +=
+        self.frame.rotation +=
             0.5 * Quaternion::from_sv(
                 0.0,
-                (self.inverse_inertia * (point - self.frame.position))
-                    .cross(impulse),
-            ) * self.frame.quaternion;
-        self.frame.quaternion = self.frame.quaternion.normalize();
+                (self.inverse_inertia * (point - self.frame.position)).cross(impulse),
+            ) * self.frame.rotation;
+        self.frame.rotation = self.frame.rotation.normalize();
     }
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.

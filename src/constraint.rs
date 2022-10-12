@@ -27,7 +27,7 @@ impl Constraint<'_> {
     pub fn inverse_resitance(&self) -> f64 {
         let rigid = self.rigid.borrow();
 
-        let angular_impulse = rigid.frame.quaternion.conjugate()
+        let angular_impulse = rigid.frame.rotation.conjugate()
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
         rigid.inverse_mass + (rigid.inverse_inertia * angular_impulse).dot(angular_impulse)
