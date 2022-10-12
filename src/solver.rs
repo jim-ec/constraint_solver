@@ -21,7 +21,7 @@ pub fn solve(constraints: Vec<Constraint>, dt: f64) {
 
     for mut constraint in constraints {
         let difference = constraint.current_distance() - constraint.distance;
-        let lagrange_factor = difference / (constraint.resistance().recip() + compliance);
+        let lagrange_factor = difference / (constraint.inverse_resitance() + compliance);
         constraint.act(lagrange_factor)
     }
 }

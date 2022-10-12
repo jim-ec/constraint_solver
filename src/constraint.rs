@@ -24,14 +24,14 @@ impl Constraint<'_> {
         self.difference().magnitude()
     }
 
-    pub fn resistance(&self) -> f64 {
+    pub fn inverse_resitance(&self) -> f64 {
         let rigid = self.rigid.borrow();
 
         let angular_impulse = rigid.frame.quaternion.conjugate()
             * (self.contacts.0 - rigid.frame.position).cross(self.direction());
 
-        1.0 / (1.0 / rigid.mass
-            + (angular_impulse.div_element_wise(rigid.rotational_inertia)).dot(angular_impulse))
+        rigid.inverse_mass
+            + (angular_impulse.mul_element_wise(rigid.inverse_inertia)).dot(angular_impulse)
     }
 
     pub fn act(&mut self, factor: f64) {

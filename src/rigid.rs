@@ -6,13 +6,13 @@ use crate::{frame::Frame, geometry::integrate::RigidMetrics};
 #[derive(Debug, Clone, Copy, Setters)]
 pub struct Rigid {
     /// Mass in `kg`
-    pub mass: f64,
+    pub inverse_mass: f64,
 
-    /// Rotational inertia tensor.
+    /// Inverse rotational inertia tensor.
     /// Since the geometry is assumed to be in rest space,
     /// this tensor is sparse and just the diagonal entries are stored.
-    /// Measured in `kg m^2`.
-    pub rotational_inertia: Vector3<f64>,
+    /// Measured in `kg^-1 m^-2`.
+    pub inverse_inertia: Vector3<f64>,
 
     /// Force acting on the rigid body outside its frame.
     /// Measured in `N`.
@@ -56,9 +56,9 @@ impl Rigid {
             );
 
         Rigid {
-            mass: metrics.mass,
+            inverse_mass: 1.0 / metrics.mass,
             center_of_mass: metrics.center_of_mass,
-            rotational_inertia,
+            inverse_inertia: 1.0 / rotational_inertia,
             internal_force: Vector3::zero(),
             external_force: Vector3::zero(),
             internal_torque: Vector3::zero(),
@@ -73,10 +73,10 @@ impl Rigid {
 
     pub fn integrate(&mut self, dt: f64) {
         let force = self.external_force + self.frame.quaternion * self.internal_force;
-        self.velocity += dt * force / self.mass;
+        self.velocity += dt * force * self.inverse_mass;
 
         let torque = self.external_torque + self.frame.quaternion * self.internal_torque;
-        self.angular_velocity += dt * torque.div_element_wise(self.rotational_inertia);
+        self.angular_velocity += dt * torque.mul_element_wise(self.inverse_inertia);
 
         self.past_frame = Some(self.frame);
         self.frame = self
@@ -96,13 +96,13 @@ impl Rigid {
     /// Applies a linear impulse in a given direction and magnitude at a given location.
     /// Results in changes in both position and quaternion.
     pub fn apply_impulse(&mut self, impulse: Vector3<f64>, point: Vector3<f64>) {
-        self.frame.position += impulse / self.mass;
+        self.frame.position += impulse * self.inverse_mass;
 
         self.frame.quaternion +=
             0.5 * Quaternion::from_sv(
                 0.0,
                 (point - self.frame.position)
-                    .div_element_wise(self.rotational_inertia)
+                    .mul_element_wise(self.inverse_inertia)
                     .cross(impulse),
             ) * self.frame.quaternion;
         self.frame.quaternion = self.frame.quaternion.normalize();
