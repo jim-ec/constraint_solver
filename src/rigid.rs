@@ -121,12 +121,4 @@ impl Rigid {
             ) * self.rotation;
         self.rotation = self.rotation.normalize();
     }
-
-    /// Computes the position difference of a global point in the current frame from the same point in the past frame.
-    // TODO: Move to frame module
-    pub fn delta(&self, past: Frame, global: Vector3<f64>) -> Vector3<f64> {
-        let local = self.frame().inverse().act(global);
-        let past_global = past.act(local);
-        global - past_global
-    }
 }
