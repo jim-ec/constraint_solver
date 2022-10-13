@@ -21,8 +21,8 @@ impl World {
         a.external_force.z = -5.0;
         a.velocity.z = -0.2;
         a.angular_velocity.x = 1.0;
-        a.frame.position = vec3(0.5, 0.5, 0.5);
-        a.frame.position.z += 1.0;
+        a.position = vec3(0.5, 0.5, 0.5);
+        a.position.z += 2.0;
 
         World { a }
     }
@@ -35,8 +35,8 @@ impl World {
     ) {
         solver::step(&mut self.a, polytope, dt, 25);
 
-        debug.point(self.a.frame.position, [0.0, 0.0, 1.0]);
-        debug.point(self.a.frame.act(self.a.center_of_mass), [1.0, 1.0, 0.0]);
+        debug.point(self.a.position, [0.0, 0.0, 1.0]);
+        debug.point(self.a.frame().act(self.a.center_of_mass), [1.0, 1.0, 0.0]);
     }
 
     pub fn rigids(&self) -> Vec<&rigid::Rigid> {

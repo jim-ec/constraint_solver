@@ -27,7 +27,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
-    let polytope = geometry::Polytope::new_cube();
+    let polytope = geometry::Polytope::new_unit_cube();
     let cube_mesh = mesh::Mesh::from_polytope(&renderer, &polytope);
 
     let mut camera = camera::Camera::initial();
@@ -195,7 +195,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     .map(|rigid| {
                         (
                             &cube_mesh,
-                            rigid.frame,
+                            rigid.frame(),
                             rigid.color.unwrap_or(DEFAULT_COLOR),
                         )
                     })

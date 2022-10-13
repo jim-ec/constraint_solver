@@ -37,8 +37,8 @@ pub struct Rigid {
     pub angular_velocity: Vector3<f64>,
 
     pub center_of_mass: Vector3<f64>,
-
-    pub frame: Frame,
+    pub position: Vector3<f64>,
+    pub rotation: Quaternion<f64>,
 
     pub color: Option<[f32; 3]>,
 }
@@ -47,7 +47,6 @@ impl Rigid {
     pub fn new(metrics: RigidMetrics) -> Rigid {
         Rigid {
             inverse_mass: 1.0 / metrics.mass,
-            center_of_mass: metrics.center_of_mass,
             inverse_inertia: metrics
                 .inertia_tensor
                 .invert()
@@ -58,20 +57,30 @@ impl Rigid {
             external_torque: Vector3::zero(),
             velocity: Vector3::zero(),
             angular_velocity: Vector3::zero(),
-            frame: Frame::default(),
+            center_of_mass: metrics.center_of_mass,
+            position: Vector3::zero(),
+            rotation: Quaternion::from_sv(1.0, Vector3::zero()),
             color: None,
         }
     }
 
+    // TODO: Inline
+
+    pub fn frame(&self) -> Frame {
+        // TODO: Simplify
+        let a = Frame::default().position(-self.center_of_mass);
+        let b = Frame::default().rotation(self.rotation);
+        let c = Frame::default().position(self.position + self.center_of_mass);
+        c.compose(&b.compose(&a))
+    }
+
     pub fn integrate(&mut self, dt: f64) {
-        let force = self.external_force + self.frame.rotation * self.internal_force;
+        let force = self.external_force + self.rotation * self.internal_force;
         self.velocity += dt * force * self.inverse_mass;
+        self.position += dt * self.velocity;
 
-        let torque = self.external_torque + self.frame.rotation * self.internal_torque;
+        let torque = self.external_torque + self.rotation * self.internal_torque;
         self.angular_velocity += dt * self.inverse_inertia * torque;
-
-        self.frame.position += dt * self.velocity;
-
         let delta_rotation = dt
             * 0.5
             * Quaternion::new(
@@ -80,37 +89,38 @@ impl Rigid {
                 self.angular_velocity.y,
                 self.angular_velocity.z,
             )
-            * self.frame.rotation;
-        self.frame.rotation = (self.frame.rotation + delta_rotation).normalize();
+            * self.rotation;
+        self.rotation = (self.rotation + delta_rotation).normalize();
     }
 
-    pub fn derive(&mut self, past: Frame, dt: f64) {
-        self.velocity = (self.frame.position - past.position) / dt;
+    pub fn derive(&mut self, position: Vector3<f64>, rotation: Quaternion<f64>, dt: f64) {
+        self.velocity = (self.position - position) / dt;
 
-        let mut delta = self.frame.rotation * past.rotation.conjugate();
+        let mut delta = self.rotation * rotation.conjugate();
         if delta.s < 0.0 {
             delta = -delta;
         }
         self.angular_velocity = 2.0 * delta.v / dt;
     }
 
-    /// Applies a linear impulse in a given direction and magnitude at a given location.
+    /// Applies a linear impulse in a given direction and magnitude at a given
     /// Results in changes in both position and rotation.
     pub fn apply_impulse(&mut self, impulse: Vector3<f64>, point: Vector3<f64>) {
-        self.frame.position += impulse * self.inverse_mass;
+        self.position += impulse * self.inverse_mass;
 
-        self.frame.rotation +=
+        self.rotation +=
             0.5 * Quaternion::from_sv(
                 0.0,
-                (self.inverse_inertia * (point - self.frame.position)).cross(impulse),
-            ) * self.frame.rotation;
-        self.frame.rotation = self.frame.rotation.normalize();
+                (self.inverse_inertia * (point - (self.position + self.center_of_mass)))
+                    .cross(impulse),
+            ) * self.rotation;
+        self.rotation = self.rotation.normalize();
     }
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.
     // TODO: Move to frame module
     pub fn delta(&self, past: Frame, global: Vector3<f64>) -> Vector3<f64> {
-        let local = self.frame.inverse().act(global);
+        let local = self.frame().inverse().act(global);
         let past_global = past.act(local);
         global - past_global
     }

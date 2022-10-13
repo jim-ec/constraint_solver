@@ -18,14 +18,14 @@ pub fn brute_force_axis_separation(
 
     // Compute the shadow self's vertices cast onto the axis.
     for &vertex in &polytope.vertices {
-        let vertex = rigids.0.frame.act(vertex);
+        let vertex = rigids.0.frame().act(vertex);
         let projection = vertex.dot(axis);
         self_max = self_max.max(projection);
     }
 
     // Compute the shadow other's vertices cast onto the axis.
     for &vertex in &polytope.vertices {
-        let vertex = rigids.1.frame.act(vertex);
+        let vertex = rigids.1.frame().act(vertex);
         let projection = vertex.dot(axis);
         other_min = other_min.min(projection);
     }
@@ -42,8 +42,8 @@ pub fn face_axes_separation(rigids: (&Rigid, &Rigid), polytope: &Polytope) -> (f
             .vertices
             .iter()
             .copied()
-            .map(|p| rigids.1.frame.act(p))
-            .map(|p| rigids.0.frame.inverse().act(p))
+            .map(|p| rigids.1.frame().act(p))
+            .map(|p| rigids.0.frame().inverse().act(p))
             .max_by(|a, b| a.dot(-plane.normal).total_cmp(&b.dot(-plane.normal)))
             .unwrap();
 
@@ -72,22 +72,23 @@ pub fn edge_axes_separation(
         .enumerate()
         .cartesian_product(polytope.edges.iter().copied().enumerate())
     {
-        let foot = rigids.0.frame.act(polytope.vertices[i.0]);
+        let foot = rigids.0.frame().act(polytope.vertices[i.0]);
 
         let edges = (
-            rigids.0.frame.act(polytope.vertices[i.1]) - foot,
-            rigids.1.frame.act(polytope.vertices[j.1]) - rigids.1.frame.act(polytope.vertices[j.0]),
+            rigids.0.frame().act(polytope.vertices[i.1]) - foot,
+            rigids.1.frame().act(polytope.vertices[j.1])
+                - rigids.1.frame().act(polytope.vertices[j.0]),
         );
 
         let mut axis = edges.0.cross(edges.1).normalize();
 
         // Keep normal pointing from `self` to `other`.
-        if axis.dot(foot - rigids.0.frame.act(Vector3::zero())) < 0.0 {
+        if axis.dot(foot - rigids.0.frame().act(Vector3::zero())) < 0.0 {
             axis = -axis;
         }
 
-        let plane = Plane::from_point_normal(polytope.support(&rigids.0.frame, axis), axis);
-        let distance = plane.distance(polytope.support(&rigids.1.frame, -axis));
+        let plane = Plane::from_point_normal(polytope.support(&rigids.0.frame(), axis), axis);
+        let distance = plane.distance(polytope.support(&rigids.1.frame(), -axis));
 
         if distance > max_distance {
             max_distance = distance;

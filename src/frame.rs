@@ -1,6 +1,7 @@
 use cgmath::{InnerSpace, Matrix4, Quaternion, Vector3, Zero};
+use derive_setters::Setters;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Setters)]
 pub struct Frame {
     pub position: Vector3<f64>,
     pub rotation: Quaternion<f64>,

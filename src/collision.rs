@@ -19,14 +19,14 @@ pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<
     let mut constraints = Vec::new();
 
     for &vertex in &polytope.vertices {
-        let position = rigid.frame.act(vertex);
+        let position = rigid.frame().act(vertex);
         if position.z >= 0.0 {
             continue;
         }
 
         let target_position = Vector3::new(position.x, position.y, 0.0);
         let correction = target_position - position;
-        let delta_position = position - past.act(rigid.frame.inverse().act(position));
+        let delta_position = position - past.act(rigid.frame().inverse().act(position));
         let delta_tangential_position = delta_position - delta_position.project_on(correction);
 
         constraints.push(Constraint {
@@ -43,11 +43,11 @@ impl Rigid {
     #[allow(dead_code)]
     pub fn gjk(&self, other: &Rigid, polytope: &geometry::Polytope) -> Option<gjk::Tetrahedron> {
         let mut direction =
-            -polytope.minkowski_support((&self.frame, &other.frame), Vector3::unit_x());
+            -polytope.minkowski_support((&self.frame(), &other.frame()), Vector3::unit_x());
         let mut simplex = gjk::Simplex::Point(-direction);
 
         loop {
-            let support = polytope.minkowski_support((&self.frame, &other.frame), direction);
+            let support = polytope.minkowski_support((&self.frame(), &other.frame()), direction);
 
             if direction.dot(support) <= 0.0 {
                 return None;
@@ -74,7 +74,7 @@ impl Rigid {
                 expanding_polytope.face_vertices(expanding_polytope.minimal_face()),
             );
             let support =
-                polytope.minkowski_support((&self.frame, &other.frame), minimal_face.normal);
+                polytope.minkowski_support((&self.frame(), &other.frame()), minimal_face.normal);
 
             if polytope.vertices.contains(&support) {
                 break;

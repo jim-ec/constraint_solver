@@ -4,13 +4,15 @@ pub fn step(rigid: &mut Rigid, polytope: &Polytope, dt: f64, substep_count: usiz
     let dt = dt / substep_count as f64;
 
     for _ in 0..substep_count {
-        let past = rigid.frame;
+        let past_position = rigid.position;
+        let past_rotation = rigid.rotation;
+        let past_frame = rigid.frame();
         rigid.integrate(dt);
 
-        let constraints = ground(rigid, past, polytope);
+        let constraints = ground(rigid, past_frame, polytope);
         solve(rigid, constraints, dt);
 
-        rigid.derive(past, dt);
+        rigid.derive(past_position, past_rotation, dt);
     }
 }
 
