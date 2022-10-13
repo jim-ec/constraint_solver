@@ -1,4 +1,4 @@
-use cgmath::{vec3, ElementWise, InnerSpace, Matrix3, Quaternion, SquareMatrix, Vector3, Zero};
+use cgmath::{InnerSpace, Matrix3, Quaternion, SquareMatrix, Vector3, Zero};
 use derive_setters::Setters;
 
 use crate::{frame::Frame, geometry::integrate::RigidMetrics};

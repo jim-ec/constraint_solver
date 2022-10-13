@@ -1,11 +1,6 @@
-use cgmath::{vec3, InnerSpace, Quaternion, Rad, Rotation3, Vector3};
-use palette::white_point::B;
+use cgmath::vec3;
 
-use crate::{
-    debug,
-    geometry::{self, Plane, Polytope},
-    rigid, solver,
-};
+use crate::{debug, geometry, rigid, solver};
 
 #[derive(Debug, Clone, Copy)]
 pub struct World {
@@ -52,9 +47,5 @@ impl World {
 
         debug.point(self.b.position, [0.0, 0.0, 1.0]);
         debug.point(self.b.position + self.b.center_of_mass, [1.0, 1.0, 0.0]);
-    }
-
-    pub fn rigids(&self) -> Vec<&rigid::Rigid> {
-        vec![&self.a]
     }
 }

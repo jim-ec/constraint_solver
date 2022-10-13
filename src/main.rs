@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 mod app;
 mod camera;
 mod collision;

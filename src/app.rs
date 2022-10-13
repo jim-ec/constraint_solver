@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use lerp::Lerp;
 use std::{
     f32::consts::TAU,

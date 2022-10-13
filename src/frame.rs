@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Matrix4, Quaternion, Vector3, Zero};
+use cgmath::{Matrix4, Quaternion, Vector3, Zero};
 use derive_setters::Setters;
 
 #[derive(Debug, Clone, Copy, Setters)]

@@ -60,7 +60,7 @@ pub fn face_axes_separation(rigids: (&Rigid, &Rigid), polytope: &Polytope) -> (f
 pub fn edge_axes_separation(
     rigids: (&Rigid, &Rigid),
     polytope: &Polytope,
-    debug: &mut debug::DebugLines,
+    _debug: &mut debug::DebugLines,
 ) -> (f64, (usize, usize)) {
     let mut max_distance = f64::MIN;
     let mut edge_indices = (usize::MAX, usize::MAX);
@@ -99,6 +99,6 @@ pub fn edge_axes_separation(
     (max_distance, edge_indices)
 }
 
-pub fn face_contact(rigids: (&Rigid, &Rigid), queries: ((f64, usize), (f64, usize))) {}
+pub fn face_contact(_rigids: (&Rigid, &Rigid), _queries: ((f64, usize), (f64, usize))) {}
 
-pub fn edge_contact(rigids: (&Rigid, &Rigid), query: (f64, (usize, usize))) {}
+pub fn edge_contact(_rigids: (&Rigid, &Rigid), _query: (f64, (usize, usize))) {}

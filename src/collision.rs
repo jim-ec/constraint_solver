@@ -2,10 +2,7 @@ mod epa;
 mod gjk;
 mod sat;
 
-use std::cell::RefCell;
-
-use cgmath::{vec3, InnerSpace, Vector3, Zero};
-use itertools::Itertools;
+use cgmath::{InnerSpace, Vector3};
 
 use crate::{
     constraint::Constraint,
@@ -91,11 +88,12 @@ impl Rigid {
         })
     }
 
+    #[allow(dead_code)]
     pub fn sat(
         &self,
         other: &Rigid,
         polytope: &geometry::Polytope,
-        #[allow(unused)] debug: &mut debug::DebugLines,
+        debug: &mut debug::DebugLines,
     ) -> bool {
         let self_face_query = sat::face_axes_separation((self, other), polytope);
         if self_face_query.0 >= 0.0 {

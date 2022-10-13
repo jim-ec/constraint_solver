@@ -1,6 +1,4 @@
-use std::{cell::RefCell, ops::Mul};
-
-use cgmath::{ElementWise, InnerSpace, Vector3};
+use cgmath::{InnerSpace, Vector3};
 
 use crate::rigid::Rigid;
 

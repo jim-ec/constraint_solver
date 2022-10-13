@@ -1,5 +1,5 @@
 use crate::{frame::Frame, geometry, renderer};
-use cgmath::{vec3, Matrix4, Vector3};
+use cgmath::{Matrix4, Vector3};
 use derive_setters::Setters;
 use wgpu::util::DeviceExt;
 
@@ -83,20 +83,6 @@ impl Mesh {
             uniform_buffer,
             vertex_count,
         }
-    }
-
-    pub fn from_triangles(
-        renderer: &renderer::Renderer,
-        vertices: &[Vector3<f32>],
-        triangles: &[(usize, usize, usize)],
-    ) -> Self {
-        let mut positions = Vec::with_capacity(triangles.len() * 3);
-        for triangle in triangles {
-            positions.push(vertices[triangle.0]);
-            positions.push(vertices[triangle.1]);
-            positions.push(vertices[triangle.2]);
-        }
-        Mesh::from_vertices(renderer, &positions)
     }
 
     pub fn from_polytope(renderer: &renderer::Renderer, polytope: &geometry::Polytope) -> Self {

@@ -1,4 +1,4 @@
-use cgmath::{vec3, InnerSpace, Matrix3, Matrix4, Vector3, Zero};
+use cgmath::{Matrix3, Vector3, Zero};
 
 use super::Polytope;
 
