@@ -41,6 +41,7 @@ impl Plane {
     }
 
     /// Project a vector onto the plane.
+    #[allow(dead_code)]
     pub fn project(self, point: Vector3<f64>) -> Vector3<f64> {
         point - self.distance(point) * self.normal
     }
