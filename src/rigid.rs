@@ -36,8 +36,14 @@ pub struct Rigid {
     /// Current angular velocity of the rigid body in `s^-1`
     pub angular_velocity: Vector3<f64>,
 
+    /// The center of mass in object space.
     pub center_of_mass: Vector3<f64>,
+
+    /// The translation relative to the world origin.
     pub position: Vector3<f64>,
+
+    /// The rotation around the center of mass, i.e. in rest space.
+    /// One transforms from rest space to object space by translating the origin to the center of mass.
     pub rotation: Quaternion<f64>,
 
     pub color: Option<[f32; 3]>,
@@ -64,14 +70,13 @@ impl Rigid {
         }
     }
 
-    // TODO: Inline
-
+    /// A frame which transforms from object space to world space.
+    /// It incorporates both the world space translation and rest space rotation.
     pub fn frame(&self) -> Frame {
-        // TODO: Simplify
-        let a = Frame::default().position(-self.center_of_mass);
-        let b = Frame::default().rotation(self.rotation);
-        let c = Frame::default().position(self.position + self.center_of_mass);
-        c.compose(&b.compose(&a))
+        Frame {
+            position: self.position + self.center_of_mass + self.rotation * -self.center_of_mass,
+            rotation: self.rotation,
+        }
     }
 
     pub fn integrate(&mut self, dt: f64) {
