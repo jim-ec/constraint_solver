@@ -26,8 +26,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
-    let p1 = geometry::Polytope::new_cube();
-    let p2 = geometry::Polytope::new_unit_cube();
+    let p1 = geometry::Polytope::new_tetrahedron();
+    let p2 = geometry::Polytope::new_icosahedron();
     let m1 = mesh::Mesh::from_polytope(&renderer, &p1);
     let m2 = mesh::Mesh::from_polytope(&renderer, &p2);
 

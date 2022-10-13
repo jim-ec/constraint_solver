@@ -66,44 +66,21 @@ pub struct Polytope {
 }
 
 impl Polytope {
-    pub fn new_cube() -> Self {
+    pub fn new_tetrahedron() -> Self {
         Self {
             vertices: vec![
-                vec3(-0.5, -0.5, -0.5),
-                vec3(0.5, -0.5, -0.5),
-                vec3(-0.5, 0.5, -0.5),
-                vec3(0.5, 0.5, -0.5),
-                vec3(-0.5, -0.5, 0.5),
-                vec3(0.5, -0.5, 0.5),
-                vec3(-0.5, 0.5, 0.5),
-                vec3(0.5, 0.5, 0.5),
+                vec3(0.0, 0.0, 0.0),
+                vec3(1.0, 0.0, 0.0),
+                vec3(0.0, 1.0, 0.0),
+                vec3(0.0, 0.0, 1.0),
             ],
-            edges: vec![
-                (0, 1),
-                (1, 3),
-                (3, 2),
-                (2, 0),
-                (4, 5),
-                (5, 7),
-                (7, 6),
-                (6, 4),
-                (0, 4),
-                (1, 5),
-                (3, 7),
-                (2, 6),
-            ],
-            faces: vec![
-                vec![0, 2, 3, 1],
-                vec![4, 5, 7, 6],
-                vec![4, 0, 1, 5],
-                vec![5, 1, 3, 7],
-                vec![7, 3, 2, 6],
-                vec![6, 2, 0, 4],
-            ],
+            edges: vec![(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+            faces: vec![vec![0, 3, 2], vec![3, 0, 1], vec![2, 1, 0], vec![1, 2, 3]],
         }
     }
 
-    pub fn new_unit_cube() -> Self {
+    /// A cube spanning the unit volume.
+    pub fn new_cube() -> Self {
         Self {
             vertices: vec![
                 vec3(0.0, 0.0, 0.0),
@@ -136,6 +113,55 @@ impl Polytope {
                 vec![5, 1, 3, 7],
                 vec![7, 3, 2, 6],
                 vec![6, 2, 0, 4],
+            ],
+        }
+    }
+
+    /// An icosahedron with vertices lying on the unit sphere, centered at the origin.
+    // TODO: Define edges.
+    pub fn new_icosahedron() -> Self {
+        let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;
+        let mag = (phi * phi + 1.0).sqrt();
+        let a = phi / mag;
+        let b = 1.0 / mag;
+
+        Self {
+            vertices: vec![
+                vec3(a, b, 0.0),
+                vec3(a, -b, 0.0),
+                vec3(-a, b, 0.0),
+                vec3(-a, -b, 0.0),
+                vec3(0.0, a, b),
+                vec3(0.0, a, -b),
+                vec3(0.0, -a, b),
+                vec3(0.0, -a, -b),
+                vec3(b, 0.0, a),
+                vec3(-b, 0.0, a),
+                vec3(b, 0.0, -a),
+                vec3(-b, 0.0, -a),
+            ],
+            edges: vec![],
+            faces: vec![
+                vec![0, 5, 4],
+                vec![2, 4, 5],
+                vec![1, 6, 7],
+                vec![3, 7, 6],
+                vec![1, 0, 8],
+                vec![0, 1, 10],
+                vec![2, 3, 9],
+                vec![3, 2, 11],
+                vec![4, 9, 8],
+                vec![6, 8, 9],
+                vec![5, 10, 11],
+                vec![7, 11, 10],
+                vec![0, 4, 8],
+                vec![0, 10, 5],
+                vec![2, 9, 4],
+                vec![2, 5, 11],
+                vec![1, 8, 6],
+                vec![1, 7, 10],
+                vec![3, 6, 9],
+                vec![3, 11, 7],
             ],
         }
     }
