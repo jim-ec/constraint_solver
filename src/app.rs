@@ -27,8 +27,10 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     let mut renderer = renderer::Renderer::new(&window).await?;
-    let polytope = geometry::Polytope::new_unit_cube();
-    let cube_mesh = mesh::Mesh::from_polytope(&renderer, &polytope);
+    let p1 = geometry::Polytope::new_cube();
+    let p2 = geometry::Polytope::new_unit_cube();
+    let m1 = mesh::Mesh::from_polytope(&renderer, &p1);
+    let m2 = mesh::Mesh::from_polytope(&renderer, &p2);
 
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
@@ -37,7 +39,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut manual_forward_step = false;
     let mut time_speed_up = false;
 
-    let mut states = vec![(world::World::new(&polytope), debug::DebugLines::default())];
+    let mut states = vec![(world::World::new(&p1, &p2), debug::DebugLines::default())];
     let mut current_state: usize = 0;
 
     event_loop.run(move |event, _, control_flow| {
@@ -173,7 +175,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                         if current_state + 1 >= states.len() {
                             let mut world = states[current_state].0;
                             let mut debug_lines = debug::DebugLines::default();
-                            world.integrate(FRAME_TIME, &polytope, &mut debug_lines);
+                            world.integrate(FRAME_TIME, &p1, &p2, &mut debug_lines);
                             states.push((world, debug_lines));
                         }
                         current_state += 1;
@@ -189,17 +191,22 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
                 let (world, debug_lines) = &states[current_state];
 
-                let geometry = world
-                    .rigids()
-                    .into_iter()
-                    .map(|rigid| {
-                        (
-                            &cube_mesh,
-                            rigid.frame(),
-                            rigid.color.unwrap_or(DEFAULT_COLOR),
-                        )
-                    })
-                    .collect_vec();
+                // let geometry = world
+                //     .rigids()
+                //     .into_iter()
+                //     .map(|rigid| {
+                //         (
+                //             &cube_mesh,
+                //             rigid.frame(),
+                //             rigid.color.unwrap_or(DEFAULT_COLOR),
+                //         )
+                //     })
+                //     .collect_vec();
+
+                let geometry = [
+                    (&m1, world.a.frame(), world.a.color.unwrap_or(DEFAULT_COLOR)),
+                    (&m2, world.b.frame(), world.b.color.unwrap_or(DEFAULT_COLOR)),
+                ];
 
                 match renderer.render(&camera, &geometry, debug_lines) {
                     Ok(_) => {}
