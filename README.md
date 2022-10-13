@@ -2,13 +2,10 @@
 
 Hobby project which aims to implementing position based dynamics for rigid bodies based on various papers.
 
-## Building
-
-The nightly toolchain is required for building:
+## Running
 
 ```
-rustup toolchain install nightly
-rustup override set nightly
+cargo r
 ```
 ---
 
