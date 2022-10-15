@@ -10,8 +10,8 @@ pub struct World {
 
 impl World {
     pub fn new(p1: &geometry::Polytope, p2: &geometry::Polytope) -> World {
-        let mut a = rigid::Rigid::new(p1.rigid_metrics(1.0));
-        let mut b = rigid::Rigid::new(p2.rigid_metrics(0.25));
+        let mut a = rigid::Rigid::new(p1.rigid_metrics(2.5));
+        let mut b = rigid::Rigid::new(p2.rigid_metrics(0.1));
 
         a.external_force.z = -5.0;
         a.velocity.z = -0.2;
