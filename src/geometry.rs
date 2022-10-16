@@ -66,6 +66,7 @@ pub struct Polytope {
 }
 
 impl Polytope {
+    #[allow(dead_code)]
     pub fn new_tetrahedron() -> Self {
         Self {
             vertices: vec![
@@ -80,6 +81,7 @@ impl Polytope {
     }
 
     /// A cube spanning the unit volume.
+    #[allow(dead_code)]
     pub fn new_cube() -> Self {
         Self {
             vertices: vec![
@@ -119,6 +121,7 @@ impl Polytope {
 
     /// An icosahedron with vertices lying on the unit sphere, centered at the origin.
     // TODO: Define edges.
+    #[allow(dead_code)]
     pub fn new_icosahedron() -> Self {
         let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;
         let mag = (phi * phi + 1.0).sqrt();
