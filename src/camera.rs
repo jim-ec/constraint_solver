@@ -1,6 +1,6 @@
 use std::f32::consts::TAU;
 
-use cgmath::{Matrix4, Quaternion, Rotation3, Vector3, Vector4};
+use cgmath::{Matrix4, Quaternion, Rotation3, SquareMatrix, Vector3, Vector4};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Camera {
@@ -15,6 +15,7 @@ pub struct Camera {
 pub struct CameraUniforms {
     pub view: Matrix4<f32>,
     pub proj: Matrix4<f32>,
+    pub pos: Vector4<f32>,
 }
 
 unsafe impl bytemuck::Pod for CameraUniforms {}
@@ -50,9 +51,11 @@ impl Camera {
 
         let view = translation * Matrix4::from(tilt * orbit);
 
+        let pos = view.invert().unwrap() * Vector4::new(0.0, 0.0, 0.0, 1.0);
+
         let proj = perspective_matrix(f32::to_radians(60.0), aspect, 0.01, None) * Y_UP;
 
-        CameraUniforms { view, proj }
+        CameraUniforms { view, proj, pos }
     }
 }
 
