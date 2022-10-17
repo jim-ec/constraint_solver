@@ -293,6 +293,19 @@ impl Polytope {
     }
 }
 
+impl std::ops::Mul<Polytope> for f64 {
+    type Output = Polytope;
+
+    fn mul(self, rhs: Polytope) -> Self::Output {
+        Polytope {
+            vertices: rhs.vertices.into_iter().map(|v| self * v).collect(),
+            edges: rhs.edges,
+            faces: rhs.faces,
+            centroid: self * rhs.centroid,
+        }
+    }
+}
+
 trait CustomIterTools {
     type Item;
     fn total_max_by_key<T: TotalCmp, F: Fn(&Self::Item) -> T>(self, f: F) -> Option<Self::Item>;

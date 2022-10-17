@@ -15,7 +15,7 @@ impl World {
 
         b.position.x = 0.2;
         b.position.y = 0.2;
-        b.position.z = 0.9;
+        b.position.z = 1.0;
         b.rotation = Euler::new(Deg(10.0), Deg(15.0), Deg(5.0)).into();
 
         World { a, b }
