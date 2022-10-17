@@ -58,45 +58,33 @@ pub fn sat(
 
     // if a_face_query.0 == minimal_penetration {
     // Transport `b` out of `a`
-    let ref_face = polytopes
-        .0
-        .face(a_face_query.1)
-        .map(|v| frames.0 * v)
-        .collect_vec();
 
     // let mut reference_normal = (reference_face[1] - reference_face[0])
     //     .cross(reference_face[2] - reference_face[0])
     //     .normalize();
 
-    let mut ref_plane = frames.1 * polytopes.0.plane(0);
-
-    // let mut ref_plane = Plane::from_points([ref_face[0], ref_face[1], ref_face[2]]);
-    // if ref_plane.normal.dot(ref_face[0] - polytopes.0.centroid) < 0.0 {
-    //     ref_plane = ref_plane.flip();
-    // }
+    let ref_plane = frames.0 * polytopes.0.plane(a_face_query.1);
 
     // debug.line_loop(ref_face, [0.0, 1.0, 0.0]);
-    debug.plane(ref_plane, [1.0, 1.0, 0.0]);
+    debug.plane(ref_plane, [0.0, 1.0, 1.0]);
 
     // if reference_normal.dot(reference_face[0] - pol)
 
     // Find incident face:
-    let mut incident_face = usize::MAX;
+    let mut incident_plane = Plane::default();
     {
         let mut least_dot = f64::MAX;
 
-        for face in &polytopes.1.faces {
-            let face = face
-                .iter()
-                .map(|&i| polytopes.1.vertices[i])
-                .map(|v| frames.1 * v)
-                .collect_vec();
-
-            let mut plane = Plane::from_points([face[0], face[1], face[2]]);
-            if plane.normal.dot(face[0] - polytopes.1.centroid) < 0.0 {
-                plane = plane.flip();
+        for plane in polytopes.1.planes() {
+            let plane = frames.1 * plane;
+            let dot = plane.normal.dot(ref_plane.normal);
+            if dot < least_dot {
+                incident_plane = plane;
+                least_dot = dot;
             }
         }
+
+        debug.plane(incident_plane, [1.0, 0.0, 1.0]);
     }
     // } else if b_face_query.0 == minimal_penetration {
     //     // Move `a` out of `b`

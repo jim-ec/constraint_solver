@@ -58,6 +58,23 @@ impl Plane {
             displacement: -self.displacement,
         }
     }
+
+    pub fn support(self) -> Vector3<f64> {
+        self.displacement * self.normal
+    }
+
+    pub fn facing(self, p: Vector3<f64>) -> bool {
+        self.normal.dot(p - self.support()) >= 0.0
+    }
+}
+
+impl Default for Plane {
+    fn default() -> Self {
+        Self {
+            normal: Vector3::zero(),
+            displacement: 0.0,
+        }
+    }
 }
 
 /// A convex polytope. The surface is assumed to form a manifold.
@@ -237,16 +254,20 @@ impl Polytope {
     ///
     /// Panics if there are faces with less than three vertices.
     pub fn planes(&self) -> impl Iterator<Item = Plane> + '_ {
-        self.faces.iter().map(|face| {
-            let points = [face[0], face[1], face[2]].map(|i| self.vertices[i]);
-            Plane::from_points(points)
-        })
+        (0..self.faces.len()).map(|i| self.plane(i))
     }
 
+    /// Compute the i'th plane.
+    /// Ensures that the plane always points away from the centroid.
     pub fn plane(&self, i: usize) -> Plane {
         let face = &self.faces[i];
         let points = [face[0], face[1], face[2]].map(|i| self.vertices[i]);
-        Plane::from_points(points)
+        let plane = Plane::from_points(points);
+        if !plane.facing(self.centroid) {
+            plane
+        } else {
+            plane.flip()
+        }
     }
 
     // TODO: Remove `frame` parameter, `direction` has to be in local space?
