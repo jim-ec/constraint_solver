@@ -190,18 +190,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
                 let (world, debug_lines) = &states[current_state];
 
-                // let geometry = world
-                //     .rigids()
-                //     .into_iter()
-                //     .map(|rigid| {
-                //         (
-                //             &cube_mesh,
-                //             rigid.frame(),
-                //             rigid.color.unwrap_or(DEFAULT_COLOR),
-                //         )
-                //     })
-                //     .collect_vec();
-
                 let geometry = [
                     (&m1, world.a.frame(), world.a.color.unwrap_or(DEFAULT_COLOR)),
                     (&m2, world.b.frame(), world.b.color.unwrap_or(DEFAULT_COLOR)),
