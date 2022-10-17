@@ -34,6 +34,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
 
+    let mut dragging = false;
     let mut paused = false;
     let mut manual_forward_step = false;
     let mut time_speed_up = false;
@@ -48,6 +49,25 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
             Event::NewEvents(winit::event::StartCause::Init) => {
                 window.set_visible(true);
             }
+
+            Event::DeviceEvent { event, .. } => match event {
+                DeviceEvent::MouseMotion { delta } => {
+                    if dragging {
+                        camera_target.orbit += 0.01 * delta.0 as f32;
+                        camera_target.tilt += 0.01 * delta.1 as f32;
+                        camera_target.clamp_tilt();
+                    }
+                }
+                DeviceEvent::MouseWheel { delta } => {
+                    let sensitivity = match delta {
+                        MouseScrollDelta::PixelDelta(delta) => 0.001 * delta.y as f32,
+                        MouseScrollDelta::LineDelta(_, y) => 0.05 * y as f32,
+                    };
+                    camera_target.distance =
+                        (camera_target.distance * (1.0 - sensitivity)).clamp(2.0, 100.0);
+                }
+                _ => {}
+            },
 
             Event::WindowEvent { event, .. } => match event {
                 WindowEvent::CloseRequested
@@ -126,24 +146,6 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     window.request_redraw();
                 }
 
-                WindowEvent::MouseWheel { delta, .. } => {
-                    match delta {
-                        MouseScrollDelta::PixelDelta(delta) => {
-                            camera_target.orbit += 0.003 * delta.x as f32;
-                            camera_target.tilt += 0.003 * delta.y as f32;
-                        }
-                        MouseScrollDelta::LineDelta(x, y) => {
-                            camera_target.orbit += 0.3 * x as f32;
-                            camera_target.tilt += 0.3 * y as f32;
-                        }
-                    }
-                    camera_target.clamp_tilt();
-                }
-
-                WindowEvent::TouchpadMagnify { delta, .. } => {
-                    camera_target.distance *= 1.0 - delta as f32;
-                }
-
                 WindowEvent::KeyboardInput {
                     input:
                         KeyboardInput {
@@ -167,6 +169,12 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                         ..initial
                     };
                 }
+
+                WindowEvent::MouseInput { state, button, .. } => match (button, state) {
+                    (MouseButton::Left, ElementState::Pressed) => dragging = true,
+                    (MouseButton::Left, ElementState::Released) => dragging = false,
+                    _ => {}
+                },
 
                 _ => {}
             },
