@@ -120,7 +120,6 @@ impl Polytope {
     }
 
     /// An icosahedron with vertices lying on the unit sphere, centered at the origin.
-    // TODO: Define edges.
     #[allow(dead_code)]
     pub fn new_icosahedron() -> Self {
         let phi = (1.0 + 5.0_f64.sqrt()) / 2.0;
@@ -143,7 +142,38 @@ impl Polytope {
                 vec3(b, 0.0, -a),
                 vec3(-b, 0.0, -a),
             ],
-            edges: vec![],
+            edges: vec![
+                (8, 9),
+                (8, 0),
+                (8, 1),
+                (1, 0),
+                (9, 2),
+                (9, 3),
+                (2, 3),
+                (2, 5),
+                (2, 11),
+                (5, 11),
+                (3, 7),
+                (3, 11),
+                (7, 11),
+                (0, 5),
+                (1, 7),
+                (4, 5),
+                (4, 0),
+                (4, 8),
+                (4, 9),
+                (4, 2),
+                (6, 9),
+                (6, 8),
+                (6, 1),
+                (6, 7),
+                (6, 3),
+                (10, 1),
+                (10, 0),
+                (10, 5),
+                (10, 11),
+                (10, 7),
+            ],
             faces: vec![
                 vec![0, 5, 4],
                 vec![2, 4, 5],
