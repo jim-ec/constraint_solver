@@ -13,8 +13,9 @@ impl World {
         let a = rigid::Rigid::new(p1.rigid_metrics(0.1));
         let mut b = rigid::Rigid::new(p2.rigid_metrics(0.1));
 
-        b.position.z = 1.6;
-        b.rotation = Quaternion::from_angle_z(Deg(90.0));
+        b.position.x = 0.2;
+        b.position.y = 0.2;
+        b.position.z = 0.9;
 
         World { a, b }
     }
@@ -31,8 +32,8 @@ impl World {
             self.a.color = None;
             self.b.color = None;
         } else {
-            self.a.color = Some([1.0, 0.0, 0.0]);
-            self.b.color = Some([1.0, 0.0, 0.0]);
+            // self.a.color = Some([1.0, 0.0, 0.0]);
+            // self.b.color = Some([1.0, 0.0, 0.0]);
         }
 
         // solver::step(&mut self.a, p1, dt, 25);

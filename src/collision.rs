@@ -55,8 +55,39 @@ pub fn sat(
     }
 
     if a_face_query.0 > edge_query.0 && b_face_query.0 > edge_query.0 {
-        face_contact(rigids, (a_face_query, b_face_query));
+        // face_contact(rigids, (a_face_query, b_face_query), debug);
+        debug.line_loop(
+            polytopes.0.faces[a_face_query.1]
+                .iter()
+                .map(|&i| polytopes.0.vertices[i])
+                .map(|v| rigids.0.frame().act(v)),
+            [0.0, 0.0, 1.0],
+        );
     } else {
+        let edges = edge_query.1;
+
+        {
+            let edge = polytopes.0.edges[edges.0];
+            debug.line(
+                [
+                    rigids.0.frame().act(polytopes.0.vertices[edge.0]),
+                    rigids.0.frame().act(polytopes.0.vertices[edge.1]),
+                ],
+                [0.0, 1.0, 0.0],
+            )
+        }
+
+        {
+            let edge = polytopes.1.edges[edges.1];
+            debug.line(
+                [
+                    rigids.1.frame().act(polytopes.1.vertices[edge.0]),
+                    rigids.1.frame().act(polytopes.1.vertices[edge.1]),
+                ],
+                [0.0, 1.0, 0.0],
+            )
+        }
+
         edge_contact(rigids, edge_query);
     }
 
@@ -134,6 +165,11 @@ pub fn edge_axes_separation(
     (max_distance, edge_indices)
 }
 
-pub fn face_contact(_rigids: (&Rigid, &Rigid), _queries: ((f64, usize), (f64, usize))) {}
-
 pub fn edge_contact(_rigids: (&Rigid, &Rigid), _query: (f64, (usize, usize))) {}
+
+pub fn face_contact(
+    rigids: (&Rigid, &Rigid),
+    queries: ((f64, usize), (f64, usize)),
+    debug: &mut debug::DebugLines,
+) {
+}
