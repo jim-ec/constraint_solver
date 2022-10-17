@@ -204,6 +204,10 @@ impl Polytope {
         }
     }
 
+    pub fn face(&self, i: usize) -> impl Iterator<Item = Vector3<f64>> + '_ {
+        self.faces[i].iter().map(|&i| self.vertices[i])
+    }
+
     /// An iterator over the polytope's faces, tessellated into triangles.
     /// Co-linear vertices result in degenerate triangles.
     pub fn triangles(&self) -> impl Iterator<Item = (usize, usize, usize)> + '_ {

@@ -54,7 +54,42 @@ pub fn sat(
         return true;
     }
 
-    if a_face_query.0 > edge_query.0 && b_face_query.0 > edge_query.0 {
+    let minimal_penetration = a_face_query.0.max(b_face_query.0).max(edge_query.0);
+
+    if a_face_query.0 == minimal_penetration {
+        // Transport `b` out of `a`
+        let reference_face = polytopes
+            .0
+            .face(a_face_query.1)
+            .map(|v| rigids.0.frame().act(v))
+            .collect_vec();
+
+        let mut reference_normal = (reference_face[1] - reference_face[0])
+            .cross(reference_face[2] - reference_face[0])
+            .normalize();
+
+        // if reference_normal.dot(reference_face[0] - pol)
+
+        // Find incident face:
+        let mut incident_face = usize::MAX;
+        {
+            let mut least_dot = f64::MAX;
+
+            for face in &polytopes.1.faces {
+                let face = face
+                    .iter()
+                    .map(|&i| polytopes.1.vertices[i])
+                    .map(|v| rigids.1.frame().act(v))
+                    .collect_vec();
+
+                let plane = Plane::from_points([face[0], face[1], face[2]]);
+            }
+        }
+    } else if b_face_query.0 == minimal_penetration {
+        // Move `a` out of `b`
+    }
+
+    if a_face_query.0 >= edge_query.0 && b_face_query.0 >= edge_query.0 {
         // face_contact(rigids, (a_face_query, b_face_query), debug);
         debug.line_loop(
             polytopes.0.faces[a_face_query.1]
@@ -148,12 +183,18 @@ pub fn edge_axes_separation(
 
         let mut axis = edges.0.cross(edges.1).normalize();
 
-        // Keep normal pointing from `self` to `other`.
-        if axis.dot(foot - rigids.0.frame().act(Vector3::zero())) < 0.0 {
+        // Keep normal pointing from `a` to `b`.
+        if axis.dot(foot - rigids.0.frame().act(polytopes.0.centroid)) < 0.0 {
             axis = -axis;
         }
 
-        let plane = Plane::from_point_normal(polytopes.0.support(&rigids.0.frame(), axis), axis);
+        // Ignore if another point on `a` is further in the direction to `b`.
+        if polytopes.0.support(&rigids.0.frame(), axis).dot(axis) > foot.dot(axis) {
+            continue;
+        }
+
+        let plane = Plane::from_point_normal(foot, axis);
+
         let distance = plane.distance(polytopes.1.support(&rigids.1.frame(), -axis));
 
         if distance > max_distance {
