@@ -21,8 +21,8 @@ struct Fragment {
 fn vs_main(@location(0) position: vec3<f32>) -> Fragment {
     var frag: Fragment;
 
-    let position = camera.view * mesh.transform * vec4(position, 1.0);
-    frag.clip_position = camera.proj * position;
+    let position = mesh.transform * vec4(position, 1.0);
+    frag.clip_position = camera.proj * camera.view * position;
     frag.position = position.xyz / position.w;
 
     return frag;
@@ -34,7 +34,7 @@ fn fs_main(frag: Fragment) -> @location(0) vec4<f32> {
     let light_intensity = 2.0;
     
     let n = normalize(cross(dpdx(frag.position), dpdy(frag.position)));
-    let v = normalize(frag.position - vec3(0.0, 0.0, 1.0));
+    let v = normalize(frag.position - camera.pos.xyz / camera.pos.w);
     let nov = dot(n, v);
 
     let color = nov * light_intensity * mesh.color + ambient_light;
