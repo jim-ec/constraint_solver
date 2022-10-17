@@ -14,7 +14,7 @@ pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<
     let mut constraints = Vec::new();
 
     for &vertex in &polytope.vertices {
-        let position = rigid.frame().act(vertex);
+        let position = rigid.frame() * vertex;
         if position.z >= 0.0 {
             continue;
         }
@@ -35,7 +35,7 @@ pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<
 }
 
 pub fn sat(
-    frames: (&Frame, &Frame),
+    frames: (Frame, Frame),
     polytopes: (&Polytope, &Polytope),
     debug: &mut debug::DebugLines,
 ) -> bool {
@@ -61,7 +61,7 @@ pub fn sat(
     let ref_face = polytopes
         .0
         .face(a_face_query.1)
-        .map(|v| frames.0.act(v))
+        .map(|v| frames.0 * v)
         .collect_vec();
 
     // let mut reference_normal = (reference_face[1] - reference_face[0])
@@ -87,7 +87,7 @@ pub fn sat(
             let face = face
                 .iter()
                 .map(|&i| polytopes.1.vertices[i])
-                .map(|v| frames.1.act(v))
+                .map(|v| frames.1 * v)
                 .collect_vec();
 
             let mut plane = Plane::from_points([face[0], face[1], face[2]]);
@@ -131,7 +131,7 @@ pub fn sat(
 }
 
 pub fn face_axes_separation(
-    frames: (&Frame, &Frame),
+    frames: (Frame, Frame),
     polytopes: (&Polytope, &Polytope),
 ) -> (f64, usize) {
     let mut max_distance = f64::MIN;
@@ -143,8 +143,8 @@ pub fn face_axes_separation(
             .vertices
             .iter()
             .copied()
-            .map(|p| frames.1.act(p))
-            .map(|p| frames.0.inverse().act(p))
+            .map(|p| frames.1 * p)
+            .map(|p| frames.0.inverse() * p)
             .max_by(|a, b| a.dot(-plane.normal).total_cmp(&b.dot(-plane.normal)))
             .unwrap();
 
@@ -159,7 +159,7 @@ pub fn face_axes_separation(
 }
 
 pub fn edge_axes_separation(
-    frames: (&Frame, &Frame),
+    frames: (Frame, Frame),
     polytopes: (&Polytope, &Polytope),
     _debug: &mut debug::DebugLines,
 ) -> (f64, (usize, usize)) {
@@ -174,17 +174,17 @@ pub fn edge_axes_separation(
         .enumerate()
         .cartesian_product(polytopes.1.edges.iter().copied().enumerate())
     {
-        let foot = frames.0.act(polytopes.0.vertices[i.0]);
+        let foot = frames.0 * polytopes.0.vertices[i.0];
 
         let edges = (
-            frames.0.act(polytopes.0.vertices[i.1]) - foot,
-            frames.1.act(polytopes.1.vertices[j.1]) - frames.1.act(polytopes.1.vertices[j.0]),
+            frames.0 * polytopes.0.vertices[i.1] - foot,
+            frames.1 * polytopes.1.vertices[j.1] - frames.1 * polytopes.1.vertices[j.0],
         );
 
         let mut axis = edges.0.cross(edges.1).normalize();
 
         // Keep normal pointing from `a` to `b`.
-        if axis.dot(foot - frames.0.act(polytopes.0.centroid)) < 0.0 {
+        if axis.dot(foot - frames.0 * polytopes.0.centroid) < 0.0 {
             axis = -axis;
         }
 

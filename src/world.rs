@@ -28,7 +28,7 @@ impl World {
         p2: &geometry::Polytope,
         debug: &mut debug::DebugLines,
     ) {
-        if collision::sat((&self.a.frame(), &self.b.frame()), (p1, p2), debug) {
+        if collision::sat((self.a.frame(), self.b.frame()), (p1, p2), debug) {
             self.a.color = None;
             self.b.color = None;
         } else {

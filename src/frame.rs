@@ -34,10 +34,6 @@ impl Frame {
         }
     }
 
-    pub fn act(&self, x: Vector3<f64>) -> Vector3<f64> {
-        self.rotation * x + self.position
-    }
-
     // The resulting frame first applies `other` and then `self`.
     #[allow(dead_code)]
     pub fn compose(&self, other: &Frame) -> Frame {
@@ -49,8 +45,16 @@ impl Frame {
 
     /// Computes the position difference of a global point in the current frame from the same point in the past frame.
     pub fn delta(&self, past: Frame, global: Vector3<f64>) -> Vector3<f64> {
-        let local = self.inverse().act(global);
-        let past_global = past.act(local);
+        let local = self.inverse() * global;
+        let past_global = past * local;
         global - past_global
+    }
+}
+
+impl std::ops::Mul<Vector3<f64>> for Frame {
+    type Output = Vector3<f64>;
+
+    fn mul(self, rhs: Vector3<f64>) -> Self::Output {
+        self.rotation * rhs + self.position
     }
 }

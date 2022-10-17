@@ -248,18 +248,18 @@ impl Polytope {
     }
 
     // TODO: Remove `frame` parameter, `direction` has to be in local space?
-    pub fn support(&self, frame: &Frame, direction: Vector3<f64>) -> Vector3<f64> {
+    pub fn support(&self, frame: Frame, direction: Vector3<f64>) -> Vector3<f64> {
         self.vertices
             .iter()
             .copied()
-            .map(|vertex| frame.act(vertex))
+            .map(|vertex| frame * vertex)
             .total_max_by_key(|vertex| vertex.dot(direction))
             .unwrap()
     }
 
     pub fn minkowski_support(
         &self,
-        frames: (&Frame, &Frame),
+        frames: (Frame, Frame),
         direction: Vector3<f64>,
     ) -> Vector3<f64> {
         self.support(frames.0, direction) - self.support(frames.1, -direction)
