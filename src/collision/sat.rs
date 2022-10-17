@@ -33,12 +33,16 @@ pub fn brute_force_axis_separation(
     other_min - self_max
 }
 
-pub fn face_axes_separation(rigids: (&Rigid, &Rigid), polytope: &Polytope) -> (f64, usize) {
+pub fn face_axes_separation(
+    rigids: (&Rigid, &Rigid),
+    polytopes: (&Polytope, &Polytope),
+) -> (f64, usize) {
     let mut max_distance = f64::MIN;
     let mut face_index = usize::MAX;
 
-    for (i, plane) in polytope.planes() {
-        let support = polytope
+    for (i, plane) in polytopes.0.planes() {
+        let support = polytopes
+            .1
             .vertices
             .iter()
             .copied()
@@ -59,25 +63,26 @@ pub fn face_axes_separation(rigids: (&Rigid, &Rigid), polytope: &Polytope) -> (f
 
 pub fn edge_axes_separation(
     rigids: (&Rigid, &Rigid),
-    polytope: &Polytope,
+    polytopes: (&Polytope, &Polytope),
     _debug: &mut debug::DebugLines,
 ) -> (f64, (usize, usize)) {
     let mut max_distance = f64::MIN;
     let mut edge_indices = (usize::MAX, usize::MAX);
 
-    for ((i_edge, i), (j_edge, j)) in polytope
+    for ((i_edge, i), (j_edge, j)) in polytopes
+        .0
         .edges
         .iter()
         .copied()
         .enumerate()
-        .cartesian_product(polytope.edges.iter().copied().enumerate())
+        .cartesian_product(polytopes.1.edges.iter().copied().enumerate())
     {
-        let foot = rigids.0.frame().act(polytope.vertices[i.0]);
+        let foot = rigids.0.frame().act(polytopes.0.vertices[i.0]);
 
         let edges = (
-            rigids.0.frame().act(polytope.vertices[i.1]) - foot,
-            rigids.1.frame().act(polytope.vertices[j.1])
-                - rigids.1.frame().act(polytope.vertices[j.0]),
+            rigids.0.frame().act(polytopes.0.vertices[i.1]) - foot,
+            rigids.1.frame().act(polytopes.1.vertices[j.1])
+                - rigids.1.frame().act(polytopes.1.vertices[j.0]),
         );
 
         let mut axis = edges.0.cross(edges.1).normalize();
@@ -87,8 +92,8 @@ pub fn edge_axes_separation(
             axis = -axis;
         }
 
-        let plane = Plane::from_point_normal(polytope.support(&rigids.0.frame(), axis), axis);
-        let distance = plane.distance(polytope.support(&rigids.1.frame(), -axis));
+        let plane = Plane::from_point_normal(polytopes.0.support(&rigids.0.frame(), axis), axis);
+        let distance = plane.distance(polytopes.1.support(&rigids.1.frame(), -axis));
 
         if distance > max_distance {
             max_distance = distance;

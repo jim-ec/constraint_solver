@@ -1,6 +1,6 @@
-use cgmath::vec3;
+use cgmath::{Deg, Quaternion, Rotation3};
 
-use crate::{debug, geometry, rigid, solver};
+use crate::{collision, debug, geometry, rigid};
 
 #[derive(Debug, Clone, Copy)]
 pub struct World {
@@ -10,27 +10,16 @@ pub struct World {
 
 impl World {
     pub fn new(p1: &geometry::Polytope, p2: &geometry::Polytope) -> World {
-        let mut a = rigid::Rigid::new(p1.rigid_metrics(2.5));
+        let a = rigid::Rigid::new(p1.rigid_metrics(0.1));
         let mut b = rigid::Rigid::new(p2.rigid_metrics(0.1));
 
-        a.external_force.z = -5.0;
-        a.velocity.z = -0.2;
-        a.angular_velocity.x = 1.0;
-        a.angular_velocity.y = 0.5;
-        a.position = vec3(0.5, 0.5, 0.5);
-        a.position.z += 2.0;
-
-        b.external_force.z = -5.0;
-        b.velocity.z = -0.2;
-        b.angular_velocity.x = 1.0;
-        b.angular_velocity.y = 0.5;
-        // b.position = vec3(0.5, 0.5, 0.5);
-        b.position.z += 2.0;
-        b.position.x += 2.0;
+        b.position.z = 1.6;
+        b.rotation = Quaternion::from_angle_z(Deg(90.0));
 
         World { a, b }
     }
 
+    #[allow(unused)]
     pub fn integrate(
         &mut self,
         dt: f64,
@@ -38,14 +27,22 @@ impl World {
         p2: &geometry::Polytope,
         debug: &mut debug::DebugLines,
     ) {
-        solver::step(&mut self.a, p1, dt, 25);
+        if collision::sat((&self.a, &self.b), (p1, p2), debug) {
+            self.a.color = None;
+            self.b.color = None;
+        } else {
+            self.a.color = Some([1.0, 0.0, 0.0]);
+            self.b.color = Some([1.0, 0.0, 0.0]);
+        }
 
-        debug.point(self.a.position, [0.0, 0.0, 1.0]);
-        debug.point(self.a.position + self.a.center_of_mass, [1.0, 1.0, 0.0]);
+        // solver::step(&mut self.a, p1, dt, 25);
 
-        solver::step(&mut self.b, p2, dt, 25);
+        // debug.point(self.a.position, [0.0, 0.0, 1.0]);
+        // debug.point(self.a.position + self.a.center_of_mass, [1.0, 1.0, 0.0]);
 
-        debug.point(self.b.position, [0.0, 0.0, 1.0]);
-        debug.point(self.b.position + self.b.center_of_mass, [1.0, 1.0, 0.0]);
+        // solver::step(&mut self.b, p2, dt, 25);
+
+        // debug.point(self.b.position, [0.0, 0.0, 1.0]);
+        // debug.point(self.b.position + self.b.center_of_mass, [1.0, 1.0, 0.0]);
     }
 }
