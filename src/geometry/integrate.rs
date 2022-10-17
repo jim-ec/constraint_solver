@@ -4,7 +4,7 @@ use super::Polytope;
 
 #[derive(Default, Debug)]
 struct Polyhedron {
-    vertices: &'static [Vector3<f64>],
+    vertices: Vec<Vector3<f64>>,
     faces: Vec<Face>,
 }
 
@@ -12,7 +12,7 @@ struct Polyhedron {
 struct Face {
     normal: Vector3<f64>,
     displacement: f64,
-    vertices: &'static [usize],
+    vertices: Vec<usize>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -25,7 +25,7 @@ pub struct RigidMetrics {
 
 pub fn rigid_metrics(polytope: &Polytope, density: f64) -> RigidMetrics {
     let mut polyhedron = Polyhedron {
-        vertices: polytope.vertices,
+        vertices: polytope.vertices.clone(),
         faces: vec![],
     };
 
@@ -33,7 +33,7 @@ pub fn rigid_metrics(polytope: &Polytope, density: f64) -> RigidMetrics {
         polyhedron.faces.push(Face {
             normal: plane.normal,
             displacement: plane.constant(),
-            vertices: polytope.faces[i],
+            vertices: polytope.faces[i].clone(),
         });
     }
 
