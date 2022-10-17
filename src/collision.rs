@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Vector3, Zero};
+use cgmath::{InnerSpace, Vector3};
 use itertools::Itertools;
 
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
 pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<Constraint> {
     let mut constraints = Vec::new();
 
-    for &vertex in &polytope.vertices {
+    for &vertex in polytope.vertices {
         let position = rigid.frame().act(vertex);
         if position.z >= 0.0 {
             continue;
@@ -75,7 +75,7 @@ pub fn sat(
         {
             let mut least_dot = f64::MAX;
 
-            for face in &polytopes.1.faces {
+            for face in polytopes.1.faces {
                 let face = face
                     .iter()
                     .map(|&i| polytopes.1.vertices[i])

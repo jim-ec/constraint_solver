@@ -1,5 +1,3 @@
-use cgmath::{Deg, Quaternion, Rotation3};
-
 use crate::{collision, debug, geometry, rigid};
 
 #[derive(Debug, Clone, Copy)]
