@@ -1,8 +1,5 @@
-mod epa;
-mod gjk;
-mod sat;
-
-use cgmath::{InnerSpace, Vector3};
+use cgmath::{InnerSpace, Vector3, Zero};
+use itertools::Itertools;
 
 use crate::{
     constraint::Constraint,
@@ -37,85 +34,106 @@ pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<
     constraints
 }
 
-impl Rigid {
-    #[allow(dead_code)]
-    pub fn gjk(&self, other: &Rigid, polytope: &geometry::Polytope) -> Option<gjk::Tetrahedron> {
-        let mut direction =
-            -polytope.minkowski_support((&self.frame(), &other.frame()), Vector3::unit_x());
-        let mut simplex = gjk::Simplex::Point(-direction);
-
-        loop {
-            let support = polytope.minkowski_support((&self.frame(), &other.frame()), direction);
-
-            if direction.dot(support) <= 0.0 {
-                return None;
-            }
-
-            match simplex.enclose(support) {
-                Ok(simplex) => return Some(simplex),
-                Err((next_simplex, next_direction)) => {
-                    simplex = next_simplex;
-                    direction = next_direction;
-                }
-            };
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn epa(&self, other: &Rigid, polytope: &geometry::Polytope) -> Option<epa::Collision> {
-        let simplex = self.gjk(other, polytope)?;
-
-        let mut expanding_polytope = epa::Polytope::new(simplex);
-
-        loop {
-            let minimal_face = Plane::from_points(
-                expanding_polytope.face_vertices(expanding_polytope.minimal_face()),
-            );
-            let support =
-                polytope.minkowski_support((&self.frame(), &other.frame()), minimal_face.normal);
-
-            if polytope.vertices.contains(&support) {
-                break;
-            }
-
-            expanding_polytope.expand(support);
-        }
-
-        let minimal_face =
-            Plane::from_points(expanding_polytope.face_vertices(expanding_polytope.minimal_face()));
-        Some(epa::Collision {
-            normal: minimal_face.normal,
-            depth: minimal_face.displacement,
-        })
-    }
-}
-
-#[allow(dead_code)]
 pub fn sat(
     rigids: (&Rigid, &Rigid),
     polytopes: (&Polytope, &Polytope),
     debug: &mut debug::DebugLines,
 ) -> bool {
-    let a_face_query = sat::face_axes_separation(rigids, polytopes);
+    let a_face_query = face_axes_separation(rigids, polytopes);
     if a_face_query.0 >= 0.0 {
         return true;
     }
 
-    let b_face_query = sat::face_axes_separation(rigids, polytopes);
+    let b_face_query = face_axes_separation(rigids, polytopes);
     if b_face_query.0 >= 0.0 {
         return true;
     }
 
-    let edge_query = sat::edge_axes_separation(rigids, polytopes, debug);
+    let edge_query = edge_axes_separation(rigids, polytopes, debug);
     if edge_query.0 >= 0.0 {
         return true;
     }
 
     if a_face_query.0 > edge_query.0 && b_face_query.0 > edge_query.0 {
-        sat::face_contact(rigids, (a_face_query, b_face_query));
+        face_contact(rigids, (a_face_query, b_face_query));
     } else {
-        sat::edge_contact(rigids, edge_query);
+        edge_contact(rigids, edge_query);
     }
 
     false
 }
+
+pub fn face_axes_separation(
+    rigids: (&Rigid, &Rigid),
+    polytopes: (&Polytope, &Polytope),
+) -> (f64, usize) {
+    let mut max_distance = f64::MIN;
+    let mut face_index = usize::MAX;
+
+    for (i, plane) in polytopes.0.planes() {
+        let support = polytopes
+            .1
+            .vertices
+            .iter()
+            .copied()
+            .map(|p| rigids.1.frame().act(p))
+            .map(|p| rigids.0.frame().inverse().act(p))
+            .max_by(|a, b| a.dot(-plane.normal).total_cmp(&b.dot(-plane.normal)))
+            .unwrap();
+
+        let distance = plane.distance(support);
+        if distance > max_distance {
+            max_distance = distance;
+            face_index = i;
+        }
+    }
+
+    (max_distance, face_index)
+}
+
+pub fn edge_axes_separation(
+    rigids: (&Rigid, &Rigid),
+    polytopes: (&Polytope, &Polytope),
+    _debug: &mut debug::DebugLines,
+) -> (f64, (usize, usize)) {
+    let mut max_distance = f64::MIN;
+    let mut edge_indices = (usize::MAX, usize::MAX);
+
+    for ((i_edge, i), (j_edge, j)) in polytopes
+        .0
+        .edges
+        .iter()
+        .copied()
+        .enumerate()
+        .cartesian_product(polytopes.1.edges.iter().copied().enumerate())
+    {
+        let foot = rigids.0.frame().act(polytopes.0.vertices[i.0]);
+
+        let edges = (
+            rigids.0.frame().act(polytopes.0.vertices[i.1]) - foot,
+            rigids.1.frame().act(polytopes.1.vertices[j.1])
+                - rigids.1.frame().act(polytopes.1.vertices[j.0]),
+        );
+
+        let mut axis = edges.0.cross(edges.1).normalize();
+
+        // Keep normal pointing from `self` to `other`.
+        if axis.dot(foot - rigids.0.frame().act(Vector3::zero())) < 0.0 {
+            axis = -axis;
+        }
+
+        let plane = Plane::from_point_normal(polytopes.0.support(&rigids.0.frame(), axis), axis);
+        let distance = plane.distance(polytopes.1.support(&rigids.1.frame(), -axis));
+
+        if distance > max_distance {
+            max_distance = distance;
+            edge_indices = (i_edge, j_edge);
+        }
+    }
+
+    (max_distance, edge_indices)
+}
+
+pub fn face_contact(_rigids: (&Rigid, &Rigid), _queries: ((f64, usize), (f64, usize))) {}
+
+pub fn edge_contact(_rigids: (&Rigid, &Rigid), _query: (f64, (usize, usize))) {}
