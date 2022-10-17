@@ -1,6 +1,6 @@
 pub mod integrate;
 
-use cgmath::{vec3, InnerSpace, Vector3};
+use cgmath::{vec3, InnerSpace, Vector3, Zero};
 use itertools::Itertools;
 
 use crate::frame::Frame;
@@ -63,12 +63,15 @@ pub struct Polytope {
     /// Convex polygons indexing vertices.
     /// Vertices sharing a face are assumed to be co-planar.
     pub faces: Vec<Vec<usize>>,
+
+    pub centroid: Vector3<f64>,
 }
 
 impl Polytope {
     #[allow(dead_code)]
     pub fn new_tetrahedron() -> Self {
         Self {
+            centroid: vec3(0.25, 0.25, 0.25),
             vertices: vec![
                 vec3(0.0, 0.0, 0.0),
                 vec3(1.0, 0.0, 0.0),
@@ -84,6 +87,7 @@ impl Polytope {
     #[allow(dead_code)]
     pub fn new_cube() -> Self {
         Self {
+            centroid: vec3(0.5, 0.5, 0.5),
             vertices: vec![
                 vec3(0.0, 0.0, 0.0),
                 vec3(1.0, 0.0, 0.0),
@@ -128,6 +132,7 @@ impl Polytope {
         let b = 1.0 / mag;
 
         Self {
+            centroid: Vector3::zero(),
             vertices: vec![
                 vec3(a, b, 0.0),
                 vec3(a, -b, 0.0),
