@@ -1,6 +1,8 @@
 use cgmath::{Matrix4, Quaternion, Vector3, Zero};
 use derive_setters::Setters;
 
+use crate::geometry::Plane;
+
 #[derive(Debug, Clone, Copy, Setters)]
 pub struct Frame {
     pub position: Vector3<f64>,
@@ -47,6 +49,17 @@ impl std::ops::Mul<Vector3<f64>> for Frame {
 
     fn mul(self, rhs: Vector3<f64>) -> Self::Output {
         self.rotation * rhs + self.position
+    }
+}
+
+impl std::ops::Mul<Plane> for Frame {
+    type Output = Plane;
+
+    fn mul(self, rhs: Plane) -> Self::Output {
+        let support = rhs.displacement * rhs.normal;
+        let support = self * support;
+        let normal = self.rotation * rhs.normal;
+        Plane::from_point_normal(support, normal)
     }
 }
 
