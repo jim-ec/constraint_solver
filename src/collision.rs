@@ -68,13 +68,15 @@ pub fn sat(
     //     .cross(reference_face[2] - reference_face[0])
     //     .normalize();
 
-    let mut ref_plane = Plane::from_points([ref_face[0], ref_face[1], ref_face[2]]);
-    if ref_plane.normal.dot(ref_face[0] - polytopes.0.centroid) < 0.0 {
-        ref_plane = ref_plane.flip();
-    }
+    let mut ref_plane = frames.1 * polytopes.0.plane(0);
+
+    // let mut ref_plane = Plane::from_points([ref_face[0], ref_face[1], ref_face[2]]);
+    // if ref_plane.normal.dot(ref_face[0] - polytopes.0.centroid) < 0.0 {
+    //     ref_plane = ref_plane.flip();
+    // }
 
     // debug.line_loop(ref_face, [0.0, 1.0, 0.0]);
-    // debug.plane(ref_plane, [1.0, 1.0, 0.0]);
+    debug.plane(ref_plane, [1.0, 1.0, 0.0]);
 
     // if reference_normal.dot(reference_face[0] - pol)
 
@@ -137,7 +139,7 @@ pub fn face_axes_separation(
     let mut max_distance = f64::MIN;
     let mut face_index = usize::MAX;
 
-    for (i, plane) in polytopes.0.planes() {
+    for (i, plane) in polytopes.0.planes().enumerate() {
         let support = polytopes
             .1
             .vertices

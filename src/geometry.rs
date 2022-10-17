@@ -234,17 +234,19 @@ impl Polytope {
     }
 
     /// An iterator over the planes this polytope's faces generate.
-    /// Since faces with less than three vertices are skipped, an index is also given
-    /// to still be able to reference the generating faces.
-    pub fn planes(&self) -> impl Iterator<Item = (usize, Plane)> + '_ {
-        self.faces
-            .iter()
-            .enumerate()
-            .filter(|(_, face)| face.len() >= 3)
-            .map(|(i, face)| {
-                let points = [face[0], face[1], face[2]].map(|i| self.vertices[i]);
-                (i, Plane::from_points(points))
-            })
+    ///
+    /// Panics if there are faces with less than three vertices.
+    pub fn planes(&self) -> impl Iterator<Item = Plane> + '_ {
+        self.faces.iter().map(|face| {
+            let points = [face[0], face[1], face[2]].map(|i| self.vertices[i]);
+            Plane::from_points(points)
+        })
+    }
+
+    pub fn plane(&self, i: usize) -> Plane {
+        let face = &self.faces[i];
+        let points = [face[0], face[1], face[2]].map(|i| self.vertices[i]);
+        Plane::from_points(points)
     }
 
     // TODO: Remove `frame` parameter, `direction` has to be in local space?

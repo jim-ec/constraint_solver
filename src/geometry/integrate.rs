@@ -29,7 +29,7 @@ pub fn rigid_metrics(polytope: &Polytope, density: f64) -> RigidMetrics {
         faces: vec![],
     };
 
-    for (i, plane) in polytope.planes() {
+    for (i, plane) in polytope.planes().enumerate() {
         polyhedron.faces.push(Face {
             normal: plane.normal,
             displacement: plane.constant(),
