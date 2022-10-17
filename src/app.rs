@@ -4,7 +4,6 @@ use std::{
     time::{Duration, Instant},
 };
 use winit::{
-    dpi::PhysicalSize,
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::WindowBuilder,
@@ -20,20 +19,11 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
     let mut last_render_time = Instant::now();
     let event_loop = EventLoop::new();
-
     let window = WindowBuilder::new()
         .with_title("Constraint Solver")
         .with_visible(false)
         .build(&event_loop)
         .unwrap();
-
-    if let Some(monitor) = window.current_monitor() {
-        let size = monitor.size();
-        window.set_inner_size(PhysicalSize {
-            width: size.width * 2 / 3,
-            height: size.height * 2 / 3,
-        });
-    }
 
     let mut renderer = renderer::Renderer::new(&window).await?;
     let p1 = geometry::Polytope::new_tetrahedron();
