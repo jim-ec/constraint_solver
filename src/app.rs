@@ -126,12 +126,17 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     window.request_redraw();
                 }
 
-                WindowEvent::MouseWheel {
-                    delta: MouseScrollDelta::PixelDelta(delta),
-                    ..
-                } => {
-                    camera_target.orbit += 0.003 * delta.x as f32;
-                    camera_target.tilt += 0.003 * delta.y as f32;
+                WindowEvent::MouseWheel { delta, .. } => {
+                    match delta {
+                        MouseScrollDelta::PixelDelta(delta) => {
+                            camera_target.orbit += 0.003 * delta.x as f32;
+                            camera_target.tilt += 0.003 * delta.y as f32;
+                        }
+                        MouseScrollDelta::LineDelta(x, y) => {
+                            camera_target.orbit += 0.3 * x as f32;
+                            camera_target.tilt += 0.3 * y as f32;
+                        }
+                    }
                     camera_target.clamp_tilt();
                 }
 
