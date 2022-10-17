@@ -357,7 +357,9 @@ impl Renderer {
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        self.clear_surface(&view);
+        let mut command_buffers = vec![];
+
+        command_buffers.push(self.clear_surface(&view));
 
         self.queue.write_buffer(
             &self.camera_uniform_buffer,
@@ -368,19 +370,21 @@ impl Renderer {
         );
 
         for &(mesh, frame, color) in geometry {
-            self.render_entity(&view, mesh, frame, color);
+            command_buffers.push(self.render_entity(&view, mesh, frame, color));
         }
 
-        self.render_grid(&view);
+        command_buffers.push(self.render_grid(&view));
 
-        self.line_debugger.render(debug_lines, self, &view);
+        command_buffers.push(self.line_debugger.render(debug_lines, self, &view));
+
+        self.queue.submit(command_buffers);
 
         surface_texture.present();
 
         Ok(())
     }
 
-    fn clear_surface(&self, view: &wgpu::TextureView) {
+    fn clear_surface(&self, view: &wgpu::TextureView) -> wgpu::CommandBuffer {
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -410,7 +414,7 @@ impl Renderer {
             ..Default::default()
         });
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        encoder.finish()
     }
 
     fn render_entity(
@@ -419,7 +423,7 @@ impl Renderer {
         mesh: &mesh::Mesh,
         frame: frame::Frame,
         color: [f32; 3],
-    ) {
+    ) -> wgpu::CommandBuffer {
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -452,10 +456,10 @@ impl Renderer {
 
         drop(render_pass);
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        encoder.finish()
     }
 
-    fn render_grid(&self, view: &wgpu::TextureView) {
+    fn render_grid(&self, view: &wgpu::TextureView) -> wgpu::CommandBuffer {
         let mut encoder = self.device.create_command_encoder(&Default::default());
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -484,7 +488,7 @@ impl Renderer {
 
         drop(render_pass);
 
-        self.queue.submit(std::iter::once(encoder.finish()));
+        encoder.finish()
     }
 
     pub fn texture_view<'a>(&'a self, view: &'a wgpu::TextureView) -> &'a wgpu::TextureView {

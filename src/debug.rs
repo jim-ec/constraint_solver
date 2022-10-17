@@ -202,7 +202,7 @@ impl LineDebugger {
         debug_lines: &DebugLines,
         renderer: &renderer::Renderer,
         view: &wgpu::TextureView,
-    ) {
+    ) -> wgpu::CommandBuffer {
         if debug_lines.vertices.len() >= MAX_VERTEX_COUNT {
             println!("Exceeded maximal debug line vertex count {MAX_VERTEX_COUNT}")
         }
@@ -234,6 +234,6 @@ impl LineDebugger {
 
         drop(render_pass);
 
-        renderer.queue.submit(std::iter::once(encoder.finish()));
+        encoder.finish()
     }
 }
