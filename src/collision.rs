@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Vector3, Zero};
+use cgmath::{InnerSpace, Vector3};
 use itertools::Itertools;
 
 use crate::{
@@ -35,21 +35,21 @@ pub fn ground(rigid: &Rigid, past: Frame, polytope: &geometry::Polytope) -> Vec<
 }
 
 pub fn sat(
-    rigids: (&Rigid, &Rigid),
+    frames: (&Frame, &Frame),
     polytopes: (&Polytope, &Polytope),
     debug: &mut debug::DebugLines,
 ) -> bool {
-    let a_face_query = face_axes_separation(rigids, polytopes);
+    let a_face_query = face_axes_separation(frames, polytopes);
     if a_face_query.0 >= 0.0 {
         return true;
     }
 
-    let b_face_query = face_axes_separation(rigids, polytopes);
+    let b_face_query = face_axes_separation(frames, polytopes);
     if b_face_query.0 >= 0.0 {
         return true;
     }
 
-    let edge_query = edge_axes_separation(rigids, polytopes, debug);
+    let edge_query = edge_axes_separation(frames, polytopes, debug);
     if edge_query.0 >= 0.0 {
         return true;
     }
@@ -61,7 +61,7 @@ pub fn sat(
         let reference_face = polytopes
             .0
             .face(a_face_query.1)
-            .map(|v| rigids.0.frame().act(v))
+            .map(|v| frames.0.act(v))
             .collect_vec();
 
         let mut reference_normal = (reference_face[1] - reference_face[0])
@@ -79,7 +79,7 @@ pub fn sat(
                 let face = face
                     .iter()
                     .map(|&i| polytopes.1.vertices[i])
-                    .map(|v| rigids.1.frame().act(v))
+                    .map(|v| frames.1.act(v))
                     .collect_vec();
 
                 let plane = Plane::from_points([face[0], face[1], face[2]]);
@@ -95,7 +95,7 @@ pub fn sat(
             polytopes.0.faces[a_face_query.1]
                 .iter()
                 .map(|&i| polytopes.0.vertices[i])
-                .map(|v| rigids.0.frame().act(v)),
+                .map(|v| frames.0.act(v)),
             [0.0, 0.0, 1.0],
         );
     } else {
@@ -105,8 +105,8 @@ pub fn sat(
             let edge = polytopes.0.edges[edges.0];
             debug.line(
                 [
-                    rigids.0.frame().act(polytopes.0.vertices[edge.0]),
-                    rigids.0.frame().act(polytopes.0.vertices[edge.1]),
+                    frames.0.act(polytopes.0.vertices[edge.0]),
+                    frames.0.act(polytopes.0.vertices[edge.1]),
                 ],
                 [0.0, 1.0, 0.0],
             )
@@ -116,21 +116,21 @@ pub fn sat(
             let edge = polytopes.1.edges[edges.1];
             debug.line(
                 [
-                    rigids.1.frame().act(polytopes.1.vertices[edge.0]),
-                    rigids.1.frame().act(polytopes.1.vertices[edge.1]),
+                    frames.1.act(polytopes.1.vertices[edge.0]),
+                    frames.1.act(polytopes.1.vertices[edge.1]),
                 ],
                 [0.0, 1.0, 0.0],
             )
         }
 
-        edge_contact(rigids, edge_query);
+        // edge_contact(frames, edge_query);
     }
 
     false
 }
 
 pub fn face_axes_separation(
-    rigids: (&Rigid, &Rigid),
+    frames: (&Frame, &Frame),
     polytopes: (&Polytope, &Polytope),
 ) -> (f64, usize) {
     let mut max_distance = f64::MIN;
@@ -142,8 +142,8 @@ pub fn face_axes_separation(
             .vertices
             .iter()
             .copied()
-            .map(|p| rigids.1.frame().act(p))
-            .map(|p| rigids.0.frame().inverse().act(p))
+            .map(|p| frames.1.act(p))
+            .map(|p| frames.0.inverse().act(p))
             .max_by(|a, b| a.dot(-plane.normal).total_cmp(&b.dot(-plane.normal)))
             .unwrap();
 
@@ -158,7 +158,7 @@ pub fn face_axes_separation(
 }
 
 pub fn edge_axes_separation(
-    rigids: (&Rigid, &Rigid),
+    frames: (&Frame, &Frame),
     polytopes: (&Polytope, &Polytope),
     _debug: &mut debug::DebugLines,
 ) -> (f64, (usize, usize)) {
@@ -173,29 +173,28 @@ pub fn edge_axes_separation(
         .enumerate()
         .cartesian_product(polytopes.1.edges.iter().copied().enumerate())
     {
-        let foot = rigids.0.frame().act(polytopes.0.vertices[i.0]);
+        let foot = frames.0.act(polytopes.0.vertices[i.0]);
 
         let edges = (
-            rigids.0.frame().act(polytopes.0.vertices[i.1]) - foot,
-            rigids.1.frame().act(polytopes.1.vertices[j.1])
-                - rigids.1.frame().act(polytopes.1.vertices[j.0]),
+            frames.0.act(polytopes.0.vertices[i.1]) - foot,
+            frames.1.act(polytopes.1.vertices[j.1]) - frames.1.act(polytopes.1.vertices[j.0]),
         );
 
         let mut axis = edges.0.cross(edges.1).normalize();
 
         // Keep normal pointing from `a` to `b`.
-        if axis.dot(foot - rigids.0.frame().act(polytopes.0.centroid)) < 0.0 {
+        if axis.dot(foot - frames.0.act(polytopes.0.centroid)) < 0.0 {
             axis = -axis;
         }
 
         // Ignore if another point on `a` is further in the direction to `b`.
-        if polytopes.0.support(&rigids.0.frame(), axis).dot(axis) > foot.dot(axis) {
+        if polytopes.0.support(frames.0, axis).dot(axis) > foot.dot(axis) {
             continue;
         }
 
         let plane = Plane::from_point_normal(foot, axis);
 
-        let distance = plane.distance(polytopes.1.support(&rigids.1.frame(), -axis));
+        let distance = plane.distance(polytopes.1.support(frames.1, -axis));
 
         if distance > max_distance {
             max_distance = distance;
@@ -204,13 +203,4 @@ pub fn edge_axes_separation(
     }
 
     (max_distance, edge_indices)
-}
-
-pub fn edge_contact(_rigids: (&Rigid, &Rigid), _query: (f64, (usize, usize))) {}
-
-pub fn face_contact(
-    rigids: (&Rigid, &Rigid),
-    queries: ((f64, usize), (f64, usize)),
-    debug: &mut debug::DebugLines,
-) {
 }
