@@ -44,87 +44,88 @@ pub fn sat(
         return true;
     }
 
-    let b_face_query = face_axes_separation(frames, polytopes);
-    if b_face_query.0 >= 0.0 {
-        return true;
+    // let b_face_query = face_axes_separation(frames, polytopes);
+    // if b_face_query.0 >= 0.0 {
+    //     return true;
+    // }
+
+    // let edge_query = edge_axes_separation(frames, polytopes, debug);
+    // if edge_query.0 >= 0.0 {
+    //     return true;
+    // }
+
+    // let minimal_penetration = a_face_query.0.max(b_face_query.0).max(edge_query.0);
+
+    // if a_face_query.0 == minimal_penetration {
+    // Transport `b` out of `a`
+    let ref_face = polytopes
+        .0
+        .face(a_face_query.1)
+        .map(|v| frames.0.act(v))
+        .collect_vec();
+
+    // let mut reference_normal = (reference_face[1] - reference_face[0])
+    //     .cross(reference_face[2] - reference_face[0])
+    //     .normalize();
+
+    let mut ref_plane = Plane::from_points([ref_face[0], ref_face[1], ref_face[2]]);
+    if ref_plane.normal.dot(ref_face[0] - polytopes.0.centroid) < 0.0 {
+        ref_plane = ref_plane.flip();
     }
 
-    let edge_query = edge_axes_separation(frames, polytopes, debug);
-    if edge_query.0 >= 0.0 {
-        return true;
-    }
+    // debug.line_loop(ref_face, [0.0, 1.0, 0.0]);
+    // debug.plane(ref_plane, [1.0, 1.0, 0.0]);
 
-    let minimal_penetration = a_face_query.0.max(b_face_query.0).max(edge_query.0);
+    // if reference_normal.dot(reference_face[0] - pol)
 
-    if a_face_query.0 == minimal_penetration {
-        // Transport `b` out of `a`
-        let reference_face = polytopes
-            .0
-            .face(a_face_query.1)
-            .map(|v| frames.0.act(v))
-            .collect_vec();
+    // Find incident face:
+    let mut incident_face = usize::MAX;
+    {
+        let mut least_dot = f64::MAX;
 
-        let mut reference_normal = (reference_face[1] - reference_face[0])
-            .cross(reference_face[2] - reference_face[0])
-            .normalize();
+        for face in &polytopes.1.faces {
+            let face = face
+                .iter()
+                .map(|&i| polytopes.1.vertices[i])
+                .map(|v| frames.1.act(v))
+                .collect_vec();
 
-        // if reference_normal.dot(reference_face[0] - pol)
-
-        // Find incident face:
-        let mut incident_face = usize::MAX;
-        {
-            let mut least_dot = f64::MAX;
-
-            for face in &polytopes.1.faces {
-                let face = face
-                    .iter()
-                    .map(|&i| polytopes.1.vertices[i])
-                    .map(|v| frames.1.act(v))
-                    .collect_vec();
-
-                let plane = Plane::from_points([face[0], face[1], face[2]]);
+            let mut plane = Plane::from_points([face[0], face[1], face[2]]);
+            if plane.normal.dot(face[0] - polytopes.1.centroid) < 0.0 {
+                plane = plane.flip();
             }
         }
-    } else if b_face_query.0 == minimal_penetration {
-        // Move `a` out of `b`
     }
+    // } else if b_face_query.0 == minimal_penetration {
+    //     // Move `a` out of `b`
+    // } else {
+    //     // Move both edges
+    //     let edges = edge_query.1;
 
-    if a_face_query.0 >= edge_query.0 && b_face_query.0 >= edge_query.0 {
-        // face_contact(rigids, (a_face_query, b_face_query), debug);
-        debug.line_loop(
-            polytopes.0.faces[a_face_query.1]
-                .iter()
-                .map(|&i| polytopes.0.vertices[i])
-                .map(|v| frames.0.act(v)),
-            [0.0, 0.0, 1.0],
-        );
-    } else {
-        let edges = edge_query.1;
+    //     {
+    //         let edge = polytopes.0.edges[edges.0];
+    //         debug.line(
+    //             [
+    //                 frames.0.act(polytopes.0.vertices[edge.0]),
+    //                 frames.0.act(polytopes.0.vertices[edge.1]),
+    //             ],
+    //             [0.0, 1.0, 0.0],
+    //         )
+    //     }
 
-        {
-            let edge = polytopes.0.edges[edges.0];
-            debug.line(
-                [
-                    frames.0.act(polytopes.0.vertices[edge.0]),
-                    frames.0.act(polytopes.0.vertices[edge.1]),
-                ],
-                [0.0, 1.0, 0.0],
-            )
-        }
+    //     {
+    //         let edge = polytopes.1.edges[edges.1];
+    //         debug.line(
+    //             [
+    //                 frames.1.act(polytopes.1.vertices[edge.0]),
+    //                 frames.1.act(polytopes.1.vertices[edge.1]),
+    //             ],
+    //             [0.0, 1.0, 0.0],
+    //         )
+    //     }
 
-        {
-            let edge = polytopes.1.edges[edges.1];
-            debug.line(
-                [
-                    frames.1.act(polytopes.1.vertices[edge.0]),
-                    frames.1.act(polytopes.1.vertices[edge.1]),
-                ],
-                [0.0, 1.0, 0.0],
-            )
-        }
-
-        // edge_contact(frames, edge_query);
-    }
+    //     // edge_contact(frames, edge_query);
+    // }
 
     false
 }
