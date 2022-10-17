@@ -50,6 +50,14 @@ impl Plane {
     pub fn constant(self) -> f64 {
         -self.displacement
     }
+
+    /// Same plane but with anti-parallel normal.
+    pub fn flip(self) -> Self {
+        Self {
+            normal: -self.normal,
+            displacement: -self.displacement,
+        }
+    }
 }
 
 /// A convex polytope. The surface is assumed to form a manifold.
