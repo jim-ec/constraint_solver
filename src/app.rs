@@ -61,7 +61,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 DeviceEvent::MouseWheel { delta } => {
                     let sensitivity = match delta {
                         MouseScrollDelta::PixelDelta(delta) => 0.001 * delta.y as f32,
-                        MouseScrollDelta::LineDelta(_, y) => 0.05 * y as f32,
+                        MouseScrollDelta::LineDelta(_, y) => 0.08 * y as f32,
                     };
                     camera_target.distance =
                         (camera_target.distance * (1.0 - sensitivity)).clamp(2.0, 100.0);
