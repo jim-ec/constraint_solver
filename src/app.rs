@@ -45,6 +45,15 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     event_loop.run(move |event, _, control_flow| {
         let time_speed = || if time_speed_up { 5 } else { 1 };
 
+        let mut handle_wheel = |delta: MouseScrollDelta| {
+            let sensitivity = match delta {
+                MouseScrollDelta::PixelDelta(delta) => 0.001 * delta.y as f32,
+                MouseScrollDelta::LineDelta(_, y) => 0.08 * y as f32,
+            };
+            camera_target.distance =
+                (camera_target.distance * (1.0 - sensitivity)).clamp(2.0, 100.0);
+        };
+
         match event {
             Event::NewEvents(winit::event::StartCause::Init) => {
                 window.set_visible(true);
@@ -59,12 +68,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
                 DeviceEvent::MouseWheel { delta } => {
-                    let sensitivity = match delta {
-                        MouseScrollDelta::PixelDelta(delta) => 0.001 * delta.y as f32,
-                        MouseScrollDelta::LineDelta(_, y) => 0.08 * y as f32,
-                    };
-                    camera_target.distance =
-                        (camera_target.distance * (1.0 - sensitivity)).clamp(2.0, 100.0);
+                    handle_wheel(delta);
                 }
                 _ => {}
             },
@@ -175,6 +179,10 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                     (MouseButton::Left, ElementState::Released) => dragging = false,
                     _ => {}
                 },
+
+                WindowEvent::MouseWheel { delta, .. } => {
+                    handle_wheel(delta);
+                }
 
                 _ => {}
             },
