@@ -29,7 +29,9 @@ pub struct Renderer {
 impl Renderer {
     pub async fn new(window: &Window) -> Result<Self, Box<dyn std::error::Error>> {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::Backends::all());
+        let instance = wgpu::Instance::new(
+            wgpu::Backends::VULKAN | wgpu::Backends::DX12 | wgpu::Backends::METAL,
+        );
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
