@@ -1,6 +1,6 @@
 use cgmath::{Deg, Euler, Quaternion, Rotation3};
 
-use crate::{collision, debug, geometry, rigid};
+use crate::{collision, debug, geometry, rigid, solver};
 
 #[derive(Debug, Clone, Copy)]
 pub struct World {
@@ -10,12 +10,21 @@ pub struct World {
 
 impl World {
     pub fn new(p1: &geometry::Polytope, p2: &geometry::Polytope) -> World {
-        let a = rigid::Rigid::new(p1.rigid_metrics(0.1));
-        let mut b = rigid::Rigid::new(p2.rigid_metrics(0.1));
+        let mut a = rigid::Rigid::new(p1.rigid_metrics(0.1));
+        let mut b = rigid::Rigid::new(p2.rigid_metrics(5.0));
 
-        b.position.x = 0.2;
-        b.position.y = 0.2;
-        b.position.z = 1.0;
+        a.position.z = 4.0;
+        a.velocity.y = 2.5;
+        a.angular_velocity.x = -4.0;
+        a.angular_velocity.y = 1.0;
+        a.external_force.z = -2.0;
+
+        b.position.x = 4.0;
+        b.position.z = 4.0;
+        b.velocity.z = 7.0;
+        b.angular_velocity.x = -5.0;
+        b.angular_velocity.y = 5.0;
+        b.external_force.z = -2.0;
         b.rotation = Euler::new(Deg(10.0), Deg(15.0), Deg(5.0)).into();
 
         World { a, b }
@@ -29,22 +38,7 @@ impl World {
         p2: &geometry::Polytope,
         debug: &mut debug::DebugLines,
     ) {
-        if collision::sat((self.a.frame(), self.b.frame()), (p1, p2), debug) {
-            self.a.color = None;
-            self.b.color = None;
-        } else {
-            // self.a.color = Some([1.0, 0.0, 0.0]);
-            // self.b.color = Some([1.0, 0.0, 0.0]);
-        }
-
-        // solver::step(&mut self.a, p1, dt, 25);
-
-        // debug.point(self.a.position, [0.0, 0.0, 1.0]);
-        // debug.point(self.a.position + self.a.center_of_mass, [1.0, 1.0, 0.0]);
-
-        // solver::step(&mut self.b, p2, dt, 25);
-
-        // debug.point(self.b.position, [0.0, 0.0, 1.0]);
-        // debug.point(self.b.position + self.b.center_of_mass, [1.0, 1.0, 0.0]);
+        solver::step(&mut self.a, p1, dt, 25);
+        solver::step(&mut self.b, p1, dt, 25);
     }
 }
