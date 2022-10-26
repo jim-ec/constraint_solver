@@ -13,7 +13,7 @@ impl World {
         let a = rigid::Rigid::new(p1.rigid_metrics(0.1));
         let mut b = rigid::Rigid::new(p2.rigid_metrics(0.1));
 
-        b.position.x = 0.2;
+        b.position.x = 0.8;
         b.position.y = 0.2;
         b.position.z = 1.0;
         b.rotation = Euler::new(Deg(10.0), Deg(15.0), Deg(5.0)).into();

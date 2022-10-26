@@ -66,6 +66,13 @@ impl Plane {
     pub fn facing(self, p: Vector3<f64>) -> bool {
         self.normal.dot(p - self.support()) >= 0.0
     }
+
+    pub fn intersect(self, l0: Vector3<f64>, l: Vector3<f64>) -> Vector3<f64> {
+        let p0 = self.support();
+        let n = self.normal;
+        let d = (p0 - l0).dot(n) / l.dot(n);
+        l0 + d * l
+    }
 }
 
 impl Default for Plane {
@@ -89,6 +96,8 @@ pub struct Polytope {
     /// Vertices sharing a face are assumed to be co-planar.
     pub faces: Vec<Vec<usize>>,
 
+    pub adjancent_faces: Vec<Vec<usize>>,
+
     pub centroid: Vector3<f64>,
 }
 
@@ -105,6 +114,7 @@ impl Polytope {
             ],
             edges: vec![(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
             faces: vec![vec![0, 3, 2], vec![3, 0, 1], vec![2, 1, 0], vec![1, 2, 3]],
+            adjancent_faces: vec![vec![1, 2, 3], vec![0, 2, 3], vec![0, 1, 3], vec![0, 1, 2]],
         }
     }
 
@@ -144,6 +154,14 @@ impl Polytope {
                 vec![5, 1, 3, 7],
                 vec![7, 3, 2, 6],
                 vec![6, 2, 0, 4],
+            ],
+            adjancent_faces: vec![
+                vec![2, 3, 4, 5],
+                vec![2, 3, 4, 5],
+                vec![1, 3, 0, 5],
+                vec![1, 2, 0, 4],
+                vec![1, 3, 0, 5],
+                vec![1, 2, 0, 4],
             ],
         }
     }
@@ -226,6 +244,7 @@ impl Polytope {
                 vec![3, 6, 9],
                 vec![3, 11, 7],
             ],
+            adjancent_faces: todo!(),
         }
     }
 
@@ -302,6 +321,7 @@ impl std::ops::Mul<Polytope> for f64 {
             edges: rhs.edges,
             faces: rhs.faces,
             centroid: self * rhs.centroid,
+            adjancent_faces: rhs.adjancent_faces,
         }
     }
 }

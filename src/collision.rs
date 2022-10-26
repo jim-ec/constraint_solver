@@ -65,27 +65,73 @@ pub fn sat(
 
     let ref_plane = frames.0 * polytopes.0.plane(a_face_query.1);
 
-    // debug.line_loop(ref_face, [0.0, 1.0, 0.0]);
-    debug.plane(ref_plane, [0.0, 1.0, 1.0]);
-
     // if reference_normal.dot(reference_face[0] - pol)
 
     // Find incident face:
-    let mut incident_plane = Plane::default();
+    let mut incident_plane = usize::MAX;
     {
         let mut least_dot = f64::MAX;
 
-        for plane in polytopes.1.planes() {
+        for (i, plane) in polytopes.1.planes().enumerate() {
             let plane = frames.1 * plane;
             let dot = plane.normal.dot(ref_plane.normal);
             if dot < least_dot {
-                incident_plane = plane;
+                incident_plane = i;
                 least_dot = dot;
             }
         }
-
-        debug.plane(incident_plane, [1.0, 0.0, 1.0]);
     }
+
+    debug.plane(ref_plane, [1.0, 0.0, 0.0]);
+
+    debug.plane(
+        frames.1 * polytopes.1.plane(incident_plane),
+        [0.0, 1.0, 0.0],
+    );
+
+    // TODO: Clip incident face (polygon) against planes adjacent to the reference face.
+
+    // {
+    //     let i = polytopes.0.adjancent_faces[a_face_query.1][0];
+
+    //     debug.plane(frames.0 * polytopes.0.plane(i), [1.0, 0.0, 0.0]);
+
+    //     let xs = {
+    //         let mut polygon = polytopes.1.face(incident_plane).map(|p| frames.1 * p);
+    //         let plane = frames.0 * polytopes.0.plane(i);
+    //         let mut intersections = vec![];
+    //         for (p1, p2) in polygon.into_iter().tuple_windows() {
+    //             if plane.facing(p1) != plane.facing(p2) {
+    //                 if let Some(intersection) = plane.intersect(p1, p2 - p1) {
+    //                     intersections.push(intersection);
+    //                 }
+    //             }
+    //         }
+    //         intersections
+    //     };
+    //     for x in xs {
+    //         debug.point(x, [1.0, 1.0, 0.0]);
+    //     }
+    // }
+
+    let mut clipped = polytopes
+        .1
+        .face(incident_plane)
+        .map(|p| frames.1 * p)
+        .collect_vec();
+    for &i in &polytopes.0.adjancent_faces[a_face_query.1] {
+        clipped = clip(clipped, frames.0 * polytopes.0.plane(i));
+    }
+
+    // Project points onto reference plane.
+    for x in clipped.iter_mut() {
+        *x = ref_plane.project(*x)
+    }
+
+    for x in clipped {
+        debug.point(x, [1.0, 1.0, 0.0]);
+    }
+
     // } else if b_face_query.0 == minimal_penetration {
     //     // Move `a` out of `b`
     // } else {
@@ -118,6 +164,44 @@ pub fn sat(
     // }
 
     false
+}
+
+/// Clips the polygon against the plane, such that only the portion below the plane (not in normal direction) will remain.
+// TODO: Reimplement as iterator to avoid Vec?
+fn clip(polygon: Vec<Vector3<f64>>, plane: Plane) -> Vec<Vector3<f64>> {
+    let mut clipped = vec![];
+
+    for ((p1, t1), (p2, t2)) in polygon
+        .into_iter()
+        .map(|v| (v, plane.facing(v)))
+        .circular_tuple_windows()
+    {
+        match (t1, t2) {
+            (true, true) => {
+                // Line segment is above plane.
+                continue;
+            }
+            (true, false) => {
+                // Entered clip region, find intersection point.
+                let q = plane.intersect(p1, p2 - p1);
+                clipped.push(q);
+            }
+            (false, true) => {
+                // Exited clip region, find intersection point.
+                clipped.push(p1);
+
+                let q = plane.intersect(p1, p2 - p1);
+                clipped.push(q);
+            }
+            (false, false) => {
+                // Line segment is below plane.
+                clipped.push(p1);
+                continue;
+            }
+        }
+    }
+
+    clipped
 }
 
 pub fn face_axes_separation(
