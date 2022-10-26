@@ -7,6 +7,7 @@ pub struct Camera {
     pub orbit: f32,
     pub tilt: f32,
     pub distance: f32,
+    pub pan: (f32, f32),
     pub fovy: f32,
 }
 
@@ -35,6 +36,7 @@ impl Camera {
             orbit: -0.1 * TAU,
             tilt: 0.3 * 0.25 * TAU,
             distance: 12.0,
+            pan: (0.0, 0.0),
             fovy: 60.0,
         }
     }
@@ -46,8 +48,11 @@ impl Camera {
     pub fn uniforms(&self, aspect: f32) -> CameraUniforms {
         let orbit = Quaternion::from_angle_z(cgmath::Rad(self.orbit as f32));
         let tilt = Quaternion::from_angle_y(cgmath::Rad(self.tilt as f32));
-        let translation =
-            Matrix4::from_translation(Vector3::new(-1.0 * self.distance as f32, 0.0, 0.0));
+        let translation = Matrix4::from_translation(Vector3::new(
+            -1.0 * self.distance as f32,
+            self.pan.0,
+            -self.pan.1,
+        ));
 
         let view = translation * Matrix4::from(tilt * orbit);
 
