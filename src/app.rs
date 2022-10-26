@@ -34,7 +34,13 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut camera = camera::Camera::initial();
     let mut camera_target = camera;
 
-    let mut dragging = false;
+    enum Dragging {
+        Left,
+        Right,
+        None,
+    };
+
+    let mut dragging = Dragging::None;
     let mut paused = false;
     let mut manual_forward_step = false;
     let mut time_speed_up = false;
@@ -61,10 +67,14 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
             Event::DeviceEvent { event, .. } => match event {
                 DeviceEvent::MouseMotion { delta } => {
-                    if dragging {
+                    if let Dragging::Left = dragging {
                         camera_target.orbit += 0.01 * delta.0 as f32;
                         camera_target.tilt += 0.01 * delta.1 as f32;
                         camera_target.clamp_tilt();
+                    }
+                    if let Dragging::Right = dragging {
+                        camera_target.pan.0 += 0.001 * delta.0 as f32 * camera.distance;
+                        camera_target.pan.1 += 0.001 * delta.1 as f32 * camera.distance;
                     }
                 }
                 DeviceEvent::MouseWheel { delta } => {
@@ -175,8 +185,9 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 WindowEvent::MouseInput { state, button, .. } => match (button, state) {
-                    (MouseButton::Left, ElementState::Pressed) => dragging = true,
-                    (MouseButton::Left, ElementState::Released) => dragging = false,
+                    (MouseButton::Left, ElementState::Pressed) => dragging = Dragging::Left,
+                    (MouseButton::Right, ElementState::Pressed) => dragging = Dragging::Right,
+                    (_, ElementState::Released) => dragging = Dragging::None,
                     _ => {}
                 },
 
@@ -204,6 +215,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
                 }
 
                 camera.orbit = camera.orbit.lerp(camera_target.orbit, CAMERA_RESPONSIVNESS);
+                camera.pan.0 = camera.pan.0.lerp(camera_target.pan.0, CAMERA_RESPONSIVNESS);
+                camera.pan.1 = camera.pan.1.lerp(camera_target.pan.1, CAMERA_RESPONSIVNESS);
                 camera.tilt = camera.tilt.lerp(camera_target.tilt, CAMERA_RESPONSIVNESS);
                 camera.distance = camera
                     .distance
