@@ -122,11 +122,12 @@ pub fn sat(
     for &i in &polytopes.0.adjancent_faces[a_face_query.1] {
         clipped = clip(clipped, frames.0 * polytopes.0.plane(i));
     }
+    clipped = clip(clipped, ref_plane);
 
     // Project points onto reference plane.
-    for x in clipped.iter_mut() {
-        *x = ref_plane.project(*x)
-    }
+    // for x in clipped.iter_mut() {
+    //     *x = ref_plane.project(*x)
+    // }
 
     for x in clipped {
         debug.point(x, [1.0, 1.0, 0.0]);
