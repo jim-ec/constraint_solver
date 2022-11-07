@@ -1,11 +1,11 @@
-use cgmath::{InnerSpace, Vector3};
+use cgmath::{InnerSpace, MetricSpace, Vector3};
 use itertools::Itertools;
 
 use crate::{
     constraint::Constraint,
     debug,
     frame::Frame,
-    geometry::{self, Plane, Polytope},
+    geometry::{self, project_onto_line_simplex, Line, Plane, Polygon, Polytope},
     rigid::Rigid,
 };
 
@@ -129,9 +129,17 @@ pub fn sat(
     //     *x = ref_plane.project(*x)
     // }
 
-    for x in clipped {
+    for &x in &clipped {
         debug.point(x, [1.0, 1.0, 0.0]);
     }
+
+    let c0 = frames.0 * polytopes.0.centroid;
+    debug.point(c0, [1.0, 0.0, 0.0]);
+    debug.point(project_onto_polygon(&clipped, c0), [1.0, 0.0, 0.0]);
+
+    let c1 = frames.1 * polytopes.1.centroid;
+    debug.point(c1, [0.0, 1.0, 0.0]);
+    debug.point(project_onto_polygon(&clipped, c1), [0.0, 1.0, 0.0]);
 
     // } else if b_face_query.0 == minimal_penetration {
     //     // Move `a` out of `b`
@@ -167,9 +175,98 @@ pub fn sat(
     false
 }
 
+/// Clip the second "incident" object against the first "reference" object.
+/// Produces a polygon on the incident object within the global frame of reference.
+/// Procuces nothing if the two polytopes do not overlap.
+pub fn clip_step(frames: (Frame, Frame), polytopes: (&Polytope, &Polytope)) -> Option<Polygon> {
+    let (penetration_depth, reference_face_index) = face_axes_separation(frames, polytopes);
+    if penetration_depth >= 0.0 {
+        return None;
+    }
+
+    let reference_plane = frames.0 * polytopes.0.plane(reference_face_index);
+
+    let mut incident_face_index = usize::MAX;
+    {
+        let mut least_dot = f64::MAX;
+        for (i, plane) in polytopes.1.planes().enumerate() {
+            let plane = frames.1 * plane;
+            let dot = plane.normal.dot(reference_plane.normal);
+            if dot < least_dot {
+                incident_face_index = i;
+                least_dot = dot;
+            }
+        }
+    }
+
+    let mut clipped = polytopes
+        .1
+        .face(incident_face_index)
+        .map(|p| frames.1 * p)
+        .collect_vec();
+    for &i in &polytopes.0.adjancent_faces[reference_face_index] {
+        clipped = clip(clipped, frames.0 * polytopes.0.plane(i));
+    }
+    clipped = clip(clipped, reference_plane);
+
+    Some(clipped)
+}
+
+// TODO: Reimplement as GJK
+fn project_onto_polygon(polygon: &Polygon, point: Vector3<f64>) -> Vector3<f64> {
+    let mut projection = point;
+    let mut smallest_distance = f64::MAX;
+
+    for &q in polygon {
+        let distance = point.distance2(q);
+        if distance < smallest_distance {
+            projection = q;
+            smallest_distance = distance;
+        }
+    }
+
+    for (&l0, &l1) in polygon.into_iter().circular_tuple_windows() {
+        let q = project_onto_line_simplex(point, l0, l1);
+        let distance = point.distance2(q);
+        if distance < smallest_distance {
+            projection = q;
+            smallest_distance = distance;
+        }
+    }
+
+    if inside(point, &polygon) {
+        let f = Plane::from_points([polygon[0], polygon[1], polygon[2]]);
+        let q = f.project(point);
+        let distance = point.distance2(q);
+        if distance < smallest_distance {
+            projection = q;
+            smallest_distance = distance;
+        }
+    }
+
+    projection
+}
+
+fn inside(point: Vector3<f64>, vs: &Polygon) -> bool {
+    // ray-casting algorithm based on
+    // https://wrfranklin.org/Research/Short_Notes/pnpoly.html
+    let x = point.x;
+    let y = point.y;
+    let mut inside = false;
+    for (&i, &j) in vs.into_iter().circular_tuple_windows() {
+        if (i.y > y) == (j.y > y) {
+            continue;
+        }
+        if (x < (j.x - i.x) * (y - i.y) / (j.y - i.y) + i.x) {
+            inside = !inside;
+        }
+    }
+    inside
+}
+
 /// Clips the polygon against the plane, such that only the portion below the plane (not in normal direction) will remain.
 // TODO: Reimplement as iterator to avoid Vec?
-fn clip(polygon: Vec<Vector3<f64>>, plane: Plane) -> Vec<Vector3<f64>> {
+fn clip(polygon: Polygon, plane: Plane) -> Polygon {
     let mut clipped = vec![];
 
     for ((p1, t1), (p2, t2)) in polygon

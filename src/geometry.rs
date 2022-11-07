@@ -75,12 +75,42 @@ impl Plane {
     }
 }
 
+pub fn project_onto_line_simplex(
+    p: Vector3<f64>,
+    l0: Vector3<f64>,
+    l1: Vector3<f64>,
+) -> Vector3<f64> {
+    let l = l1 - l0;
+    let d = (p - l0).dot(l) / l.dot(l);
+    l0 + d.clamp(0.0, 1.0) * l
+}
+
 impl Default for Plane {
     fn default() -> Self {
         Self {
             normal: Vector3::zero(),
             displacement: 0.0,
         }
+    }
+}
+
+pub type Polygon = Vec<Vector3<f64>>;
+
+#[derive(Debug, Clone, Copy)]
+pub struct Line {
+    support: Vector3<f64>,
+    direction: Vector3<f64>,
+}
+
+impl Line {
+    pub fn new(support: Vector3<f64>, direction: Vector3<f64>) -> Self {
+        Self { support, direction }
+    }
+
+    pub fn project(&self, point: Vector3<f64>) -> Vector3<f64> {
+        let mut p = point - self.support;
+        p = p.project_on(self.direction);
+        p + self.support
     }
 }
 
